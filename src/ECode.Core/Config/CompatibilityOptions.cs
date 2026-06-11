@@ -198,7 +198,7 @@ public static class CompatibilityOptions
     /// 首启迁移：把旧目录下的子文件/子目录复制到新目录，写一条 `migrated-data` 日志。
     /// 仅执行一次。
     /// </summary>
-    private static void EnsureMigrated()
+    public static void EnsureMigrated()
     {
         if (_migrationChecked) return;
         lock (_migrationLock)
