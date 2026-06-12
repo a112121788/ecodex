@@ -54,6 +54,9 @@ public class TerminalControl : FrameworkElement
     private int _imeRefreshQueued;
     private System.Windows.Threading.DispatcherTimer? _imeRefreshTimer;
 
+    // TSF 输入法支持：使用不可见 TextBox 作为输入代理
+    private TextBox? _imeProxy;
+
     // 可视响铃
     private DateTime _bellFlashUntil;
     private System.Windows.Threading.DispatcherTimer? _bellTimer;
@@ -162,6 +165,24 @@ public class TerminalControl : FrameworkElement
         InputMethod.SetIsInputMethodEnabled(this, true);
         TextCompositionManager.AddTextInputStartHandler(this, OnImeTextInputPositionChanged);
         TextCompositionManager.AddTextInputUpdateHandler(this, OnImeTextInputPositionChanged);
+
+        _imeProxy = new TextBox
+        {
+            Width = 1,
+            Height = 1,
+            Opacity = 0,
+            IsHitTestVisible = false,
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            Focusable = false,
+            AcceptsReturn = false,
+            AcceptsTab = false
+        };
+        _imeProxy.TextChanged += OnImeProxyTextChanged;
+        _imeProxy.PreviewTextInput += OnImeProxyPreviewTextInput;
+        AddVisualChild(_imeProxy);
+        AddLogicalChild(_imeProxy);
+
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
 
@@ -202,6 +223,15 @@ public class TerminalControl : FrameworkElement
         _session.Redraw += OnRedraw;
         _session.BellReceived += OnBell;
         CalculateTerminalSize();
+
+        // 确保 IME 代理正确初始化（支持终端复用）
+        if (_imeProxy != null)
+        {
+            _imeProxy.Clear();
+            _imeProxy.IsEnabled = true;
+            UpdateImeProxyPosition();
+        }
+
         Render();
     }
 
@@ -232,6 +262,7 @@ public class TerminalControl : FrameworkElement
         _lastScrollbackCount = currentScrollback;
         RequestRender();
         QueueImeCaretRefresh();
+        UpdateImeProxyPosition();
     }
 
     private void OnBell()
@@ -352,6 +383,7 @@ public class TerminalControl : FrameworkElement
         CalculateTerminalSize();
         RequestRender(System.Windows.Threading.DispatcherPriority.Render);
         QueueImeCaretRefresh();
+        UpdateImeProxyPosition();
     }
 
     // --- 渲染 ---
@@ -611,6 +643,15 @@ public class TerminalControl : FrameworkElement
             }
 
             UpdateImeCaretPosition();
+
+            // 每次渲染时同步更新 IME 代理位置
+            if (_imeProxy != null && _session != null)
+            {
+                var buf = _session.Buffer;
+                double x = buf.CursorCol * _cellWidth;
+                double y = buf.CursorRow * _cellHeight;
+                _imeProxy.Arrange(new Rect(x, y, _cellWidth, _cellHeight));
+            }
         }
         catch (Exception ex)
         {
@@ -698,6 +739,38 @@ public class TerminalControl : FrameworkElement
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        // 终端复用时重新初始化 IME 代理
+        if (_imeProxy != null && _session != null)
+        {
+            RemoveVisualChild(_imeProxy);
+            RemoveLogicalChild(_imeProxy);
+
+        // 创建用于 TSF 输入法支持的 TextBox（必须可获得焦点）
+        _imeProxy = new TextBox
+        {
+            Width = 1,
+            Height = 1,
+            Opacity = 0,
+            IsHitTestVisible = false,
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            Focusable = true,  // 必须可获得焦点
+            AcceptsReturn = true,
+            AcceptsTab = true,
+            IsEnabled = true,
+            IsReadOnly = false
+        };
+        InputMethod.SetIsInputMethodEnabled(_imeProxy, true);
+        _imeProxy.PreviewKeyDown += OnImeProxyPreviewKeyDown;
+        _imeProxy.TextChanged += OnImeProxyTextChanged;
+        _imeProxy.PreviewTextInput += OnImeProxyPreviewTextInput;
+            _imeProxy.TextChanged += OnImeProxyTextChanged;
+            _imeProxy.PreviewTextInput += OnImeProxyPreviewTextInput;
+            AddVisualChild(_imeProxy);
+            AddLogicalChild(_imeProxy);
+            UpdateImeProxyPosition();
+        }
+
         if (IsPaneFocused)
             ActivateForInput();
         else
@@ -853,6 +926,7 @@ public class TerminalControl : FrameworkElement
             if (!TryGetImeMetrics(hwnd, allowCached: true, out var metrics))
                 return;
 
+            // 创建/更新 Native Caret
             if (!_nativeCaretCreated || _nativeCaretHwnd != hwnd)
             {
                 DestroyNativeCaret();
@@ -989,12 +1063,16 @@ public class TerminalControl : FrameworkElement
         metrics = default;
 
         if (_session == null || _cellWidth <= 0 || _cellHeight <= 0)
+        {
+            LogIme("TryCalculateImeMetrics: Failed - session or cell size invalid");
             return false;
+        }
 
         if (PresentationSource.FromVisual(this) is not HwndSource source ||
             source.Handle != hwnd ||
             source.CompositionTarget == null)
         {
+            LogIme("TryCalculateImeMetrics: Failed - invalid source");
             return false;
         }
 
@@ -1003,12 +1081,17 @@ public class TerminalControl : FrameworkElement
         int cursorRow = Math.Clamp(buffer.CursorRow, 0, Math.Max(0, buffer.Rows - 1));
 
         var caretTopLeft = new Point(cursorCol * _cellWidth, cursorRow * _cellHeight);
+        LogIme($"Cursor: col={cursorCol}, row={cursorRow}, localPoint=({caretTopLeft.X:F1}, {caretTopLeft.Y:F1})");
+
         if (!TryToHwndClientPixel(source, caretTopLeft, out var caretTopLeftClient) ||
             !TryToHwndClientPixel(source, new Point(0, 0), out var documentTopLeft) ||
             !TryToHwndClientPixel(source, new Point(ActualWidth, ActualHeight), out var documentBottomRight))
         {
+            LogIme("TryCalculateImeMetrics: Coordinate conversion failed");
             return false;
         }
+
+        LogIme($"ClientPixel: ({caretTopLeftClient.X}, {caretTopLeftClient.Y})");
 
         var deviceSize = source.CompositionTarget.TransformToDevice.Transform(new Vector(_cellWidth, _cellHeight));
         int cellWidth = Math.Max(1, (int)Math.Ceiling(Math.Abs(deviceSize.X)));
@@ -1057,9 +1140,9 @@ public class TerminalControl : FrameworkElement
         new()
         {
             DwIndex = index,
-            DwStyle = CfsCandidatePos,
+            DwStyle = CfsCandidatePos | CfsForcePosition,
             PtCurrentPos = metrics.CaretBottomLeftClient,
-            RcArea = metrics.CaretRectClient,
+            RcArea = metrics.DocumentRectClient,
         };
 
     private static ImeCharPosition CreateImeCharPosition(ImeMetrics metrics) =>
@@ -1074,28 +1157,8 @@ public class TerminalControl : FrameworkElement
 
     private bool TryToHwndClientPixel(HwndSource source, Point localPoint, out NativePoint point)
     {
-        point = default;
-
-        try
-        {
-            Point rootPoint = localPoint;
-            if (source.RootVisual is Visual rootVisual && !ReferenceEquals(rootVisual, this))
-            {
-                rootPoint = TransformToAncestor(rootVisual).Transform(localPoint);
-            }
-
-            var devicePoint = source.CompositionTarget.TransformToDevice.Transform(rootPoint);
-            point = new NativePoint((int)Math.Round(devicePoint.X), (int)Math.Round(devicePoint.Y));
-            return true;
-        }
-        catch (InvalidOperationException)
-        {
-            return TryPointToScreenClient(source.Handle, localPoint, out point);
-        }
-        catch (ArgumentException)
-        {
-            return TryPointToScreenClient(source.Handle, localPoint, out point);
-        }
+        // 直接使用屏幕坐标转换，更可靠地处理嵌套布局
+        return TryPointToScreenClient(source.Handle, localPoint, out point);
     }
 
     private bool TryPointToScreenClient(IntPtr hwnd, Point localPoint, out NativePoint point)
@@ -1106,10 +1169,13 @@ public class TerminalControl : FrameworkElement
         {
             var screenPoint = PointToScreen(localPoint);
             point = new NativePoint((int)Math.Round(screenPoint.X), (int)Math.Round(screenPoint.Y));
-            return ScreenToClient(hwnd, ref point);
+            bool success = ScreenToClient(hwnd, ref point);
+            LogIme($"ScreenToClient: Local({localPoint.X:F1},{localPoint.Y:F1}) -> Screen({screenPoint.X:F1},{screenPoint.Y:F1}) -> Client({point.X},{point.Y}), Success={success}");
+            return success;
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex)
         {
+            LogIme($"TryPointToScreenClient exception: {ex.Message}");
             return false;
         }
     }
@@ -1362,6 +1428,9 @@ public class TerminalControl : FrameworkElement
     protected override void OnTextInput(TextCompositionEventArgs e)
     {
         if (_session == null || string.IsNullOrEmpty(e.Text)) return;
+
+        // 输入开始时强制更新 IME 位置
+        UpdateImeCaretPosition();
 
         // KeyDown 已经处理了 Enter；当被截获的命令已经消费掉 Shell 提交时，
         // 抑制 TextInput 路径尾随产生的 CR/LF。
@@ -1988,15 +2057,88 @@ public class TerminalControl : FrameworkElement
 
     // --- Visual tree ---
 
-    protected override int VisualChildrenCount => 1;
-    protected override Visual GetVisualChild(int index) => _visual;
+    protected override int VisualChildrenCount => 2;
+    protected override Visual GetVisualChild(int index) => index == 0 ? _visual : _imeProxy!;
+
+    private void OnImeProxyPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        // 截获所有键盘事件并转发给 TerminalControl
+        e.Handled = true;
+
+        // 触发 TerminalControl 的 KeyDown 处理
+        var args = new KeyEventArgs(e.KeyboardDevice, e.InputSource, e.Timestamp, e.Key)
+        {
+            RoutedEvent = Keyboard.KeyDownEvent
+        };
+        RaiseEvent(args);
+    }
+
+    private void OnImeProxyPreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        // 阻止 TextBox 的默认处理，让文本直接发送到终端
+        e.Handled = true;
+        if (_session != null && !string.IsNullOrEmpty(e.Text))
+        {
+            _session.Write(e.Text);
+            TrackInputText(e.Text);
+        }
+    }
+
+    private void OnImeProxyTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_imeProxy == null || _session == null) return;
+
+        var text = _imeProxy.Text;
+        if (!string.IsNullOrEmpty(text))
+        {
+            _session.Write(text);
+            TrackInputText(text);
+            _imeProxy.Clear();
+        }
+    }
+
+    private void UpdateImeProxyPosition()
+    {
+        if (_imeProxy == null || _session == null) return;
+        InvalidateArrange(); // 触发重新布局
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        if (_imeProxy != null && _session != null)
+        {
+            var buffer = _session.Buffer;
+            double x = buffer.CursorCol * _cellWidth;
+            double y = buffer.CursorRow * _cellHeight;
+            _imeProxy.Arrange(new Rect(x, y, _cellWidth, _cellHeight));
+        }
+        return base.ArrangeOverride(finalSize);
+    }
 
     protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
     {
         base.OnGotKeyboardFocus(e);
+
+        // 立即将焦点转移到 _imeProxy
+        if (_imeProxy != null && !_imeProxy.IsFocused)
+        {
+            e.Handled = true;
+            _imeProxy.Focus();
+            return;
+        }
+
         RegisterImeHook();
         UpdateImeCaretPosition();
         QueueImeCaretRefresh();
+
+        // 焦点切换时立即更新 IME 代理位置
+        if (_imeProxy != null && _session != null)
+        {
+            var buffer = _session.Buffer;
+            double x = buffer.CursorCol * _cellWidth;
+            double y = buffer.CursorRow * _cellHeight;
+            _imeProxy.Arrange(new Rect(x, y, _cellWidth, _cellHeight));
+        }
     }
 
     protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
@@ -2112,6 +2254,10 @@ public class TerminalControl : FrameworkElement
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool ImmSetCandidateWindow(IntPtr himc, ref CandidateForm form);
 
+    [DllImport("imm32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ImmNotifyIME(IntPtr himc, int dwAction, int dwIndex, int dwValue);
+
     private const int WmImeStartComposition = 0x010D;
     private const int WmImeComposition = 0x010F;
     private const int WmImeNotify = 0x0282;
@@ -2124,6 +2270,8 @@ public class TerminalControl : FrameworkElement
     private const int ImrQueryCharPosition = 0x0006;
     private const int CfsForcePosition = 0x0020;
     private const int CfsCandidatePos = 0x0040;
+    private const int NI_COMPOSITIONSTR = 0x0015;
+    private const int CPS_CANCEL = 0x0004;
     private const uint EventObjectLocationChange = 0x800B;
     private const int ObjidCaret = -8;
     private const int ChildidSelf = 0;
@@ -2187,6 +2335,16 @@ public class TerminalControl : FrameworkElement
         NativePoint CharPositionScreen,
         NativeRect DocumentRectScreen,
         int CellHeight);
+
+    private static void LogIme(string message)
+    {
+        try
+        {
+            var logPath = Path.Combine(Path.GetTempPath(), "ecode-ime-debug.log");
+            File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss.fff}] {message}\n");
+        }
+        catch { }
+    }
 
     public void UpdateTheme(GhosttyTheme theme)
     {
