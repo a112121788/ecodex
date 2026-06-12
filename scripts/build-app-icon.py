@@ -12,6 +12,7 @@ Outputs:
                            each entry is a 32-bit RGBA PNG, matching the
                            previous .ico structure that the WPF project
                            already references.
+  * src/ECode/Assets/*   - synchronized copies used by ECode.csproj.
 """
 from __future__ import annotations
 
@@ -24,8 +25,11 @@ ROOT = Path(__file__).resolve().parent.parent
 SVG_PATH = ROOT / "assets" / "app-icon.svg"
 PNG_PATH = ROOT / "assets" / "app-icon.png"
 ICO_PATH = ROOT / "assets" / "app-icon.ico"
+PROJECT_ASSET_DIR = ROOT / "src" / "ECode" / "Assets"
+PROJECT_PNG_PATH = PROJECT_ASSET_DIR / "app-icon.png"
+PROJECT_ICO_PATH = PROJECT_ASSET_DIR / "app-icon.ico"
 
-PNG_SIZE = 256
+PNG_SIZE = 512
 ICO_SIZES = (16, 32, 48, 64, 128, 256)
 
 
@@ -80,6 +84,12 @@ def main() -> None:
         print(f"  embedded {s}x{s}")
     print(f"wrote {ICO_PATH.relative_to(ROOT)}  "
           f"sizes={list(ICO_SIZES)}  {ICO_PATH.stat().st_size:,} bytes")
+
+    PROJECT_ASSET_DIR.mkdir(parents=True, exist_ok=True)
+    PROJECT_PNG_PATH.write_bytes(PNG_PATH.read_bytes())
+    PROJECT_ICO_PATH.write_bytes(ICO_PATH.read_bytes())
+    print(f"synced {PROJECT_PNG_PATH.relative_to(ROOT)}")
+    print(f"synced {PROJECT_ICO_PATH.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

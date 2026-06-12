@@ -65,11 +65,15 @@ $CliProj  = Join-Path $RepoRoot 'src/ECode.Cli/ECode.Cli.csproj'
 function Invoke-DotnetPublish {
     param(
         [Parameter(Mandatory)][string]$Project,
+        [Parameter(Mandatory)][string]$ArtifactsPath,
         [Parameter(Mandatory)][string[]]$Args
     )
+    Reset-PublishDir $ArtifactsPath
+
     Write-Host ""
-    Write-Host ">> dotnet publish $Project $($Args -join ' ')" -ForegroundColor Cyan
-    & dotnet @('publish', $Project) @Args
+    Write-Host ">> dotnet publish $Project --artifacts-path $ArtifactsPath $($Args -join ' ')" -ForegroundColor Cyan
+    $publishArgs = @('publish', $Project, '--artifacts-path', $ArtifactsPath) + $Args
+    & dotnet @publishArgs
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet publish failed for $Project (exit $LASTEXITCODE)"
     }
@@ -79,24 +83,26 @@ function Ensure-Dir([string]$path) {
     if (-not (Test-Path $path)) { New-Item -ItemType Directory -Path $path -Force | Out-Null }
 }
 
-# --- 预检：清理 `dotnet clean` 清不掉的 WPF 临时 csproj 缓存 ----------
-# 若不清理，obj/ 中残留的 ECode_*_wpftmp.csproj 可能导致第二次构建时
-# XAML code-behind 字段（ContentArea、PaneCountText、SurfaceTabBarControl、
-# AgentMessagesList 等）被报告为缺失。
-$cacheDirs = @(
-    (Join-Path $RepoRoot 'src/ECode/obj'),
-    (Join-Path $RepoRoot 'src/ECode/bin'),
-    (Join-Path $RepoRoot 'src/ECode.Core/obj'),
-    (Join-Path $RepoRoot 'src/ECode.Core/bin')
-)
-foreach ($d in $cacheDirs) {
-    if (Test-Path $d) {
-        Write-Host ">> cleaning $d"
-        Remove-Item -Recurse -Force $d
+function Reset-PublishDir([string]$path) {
+    $trimChars = @([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+    $root = [System.IO.Path]::GetFullPath($OutputRoot).TrimEnd($trimChars)
+    $full = [System.IO.Path]::GetFullPath($path).TrimEnd($trimChars)
+    $rootPrefix = $root + [System.IO.Path]::DirectorySeparatorChar
+
+    if (-not $full.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to clean publish directory outside OutputRoot: $full"
     }
+
+    if (Test-Path $full) {
+        Write-Host ">> removing stale publish output $full"
+        Remove-Item -LiteralPath $full -Recurse -Force
+    }
+    Ensure-Dir $full
 }
 
 Ensure-Dir $OutputRoot
+# 把 MSBuild 的 bin/obj 放进发布目录下的隔离缓存，避免覆盖正在运行的开发版 exe。
+$BuildRoot = Join-Path $OutputRoot '.build'
 
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 Write-Host "=== ECode publish === Config=$Config Rid=$Rid Flavor=$Flavor Time=$stamp ===" -ForegroundColor Yellow
@@ -105,7 +111,9 @@ $ran = @()
 
 if ($Flavor -in @('All', 'Framework')) {
     $out = Join-Path $OutputRoot "ecode-$Rid"
-    Invoke-DotnetPublish -Project $MainProj -Args @(
+    $artifacts = Join-Path $BuildRoot 'framework'
+    Reset-PublishDir $out
+    Invoke-DotnetPublish -Project $MainProj -ArtifactsPath $artifacts -Args @(
         '-c', $Config,
         '-r', $Rid,
         '--self-contained', 'false',
@@ -116,7 +124,9 @@ if ($Flavor -in @('All', 'Framework')) {
 
 if ($Flavor -in @('All', 'SelfContained')) {
     $out = Join-Path $OutputRoot "ecode-$Rid-sc"
-    Invoke-DotnetPublish -Project $MainProj -Args @(
+    $artifacts = Join-Path $BuildRoot 'self-contained'
+    Reset-PublishDir $out
+    Invoke-DotnetPublish -Project $MainProj -ArtifactsPath $artifacts -Args @(
         '-c', $Config,
         '-r', $Rid,
         '--self-contained', 'true',
@@ -127,7 +137,9 @@ if ($Flavor -in @('All', 'SelfContained')) {
 
 if ($Flavor -in @('All', 'Cli')) {
     $out = Join-Path $OutputRoot "ecode-cli"
-    Invoke-DotnetPublish -Project $CliProj -Args @(
+    $artifacts = Join-Path $BuildRoot 'cli'
+    Reset-PublishDir $out
+    Invoke-DotnetPublish -Project $CliProj -ArtifactsPath $artifacts -Args @(
         '-c', $Config,
         '-r', $Rid,
         '--self-contained', 'true',
