@@ -162,12 +162,9 @@
                             <MenuItem Header="文件(_F)" Style="{StaticResource AppMenuTopItemStyle}" ItemContainerStyle="{StaticResource AppMenuSubItemStyle}">
                                 <MenuItem Header="新建项目(_N)" Command="{Binding CreateNewWorkspaceCommand}" InputGestureText="Ctrl+N" />
                                 <MenuItem Header="新建标签页(_S)" Command="{Binding SelectedWorkspace.CreateNewSurfaceCommand}" InputGestureText="Ctrl+T" />
-                                <Separator />
                                 <MenuItem Header="命令日志(_L)" Click="MenuOpenLogs_Click" InputGestureText="Ctrl+Shift+L" />
                                 <MenuItem Header="会话存档(_V)" Click="MenuOpenSessionVault_Click" InputGestureText="Ctrl+Shift+V" />
-                                <Separator />
                                 <MenuItem Header="设置(_S)" Click="MenuOpenSettings_Click" InputGestureText="Ctrl+," />
-                                <Separator />
                                 <MenuItem Header="退出(_X)" Click="CloseButton_Click" />
                             </MenuItem>
                             <MenuItem Header="窗口(_W)" Style="{StaticResource AppMenuTopItemStyle}" ItemContainerStyle="{StaticResource AppMenuSubItemStyle}">
@@ -175,11 +172,9 @@
                                 <MenuItem Header="向下分屏(_D)" Click="ToolbarSplitDown_Click" InputGestureText="Ctrl+Shift+D" />
                                 <MenuItem Header="缩放面板(_Z)" Click="ToolbarZoom_Click" InputGestureText="Ctrl+Shift+Z" />
                                 <MenuItem Header="等宽面板(_E)" Click="ToolbarEqualize_Click" />
-                                <Separator />
                                 <MenuItem Header="搜索(_S)" Click="Search_Click" InputGestureText="Ctrl+Shift+F" />
                                 <MenuItem Header="命令面板(_P)" Click="CommandPalette_Click" InputGestureText="Ctrl+Shift+P" />
                                 <MenuItem Header="片段(_S)" Click="Snippets_Click" />
-                                <Separator />
                                 <MenuItem Header="切换侧边栏(_B)" Command="{Binding ToggleSidebarCommand}" InputGestureText="Ctrl+B" />
                             </MenuItem>
                             <MenuItem Header="帮助(_H)" Style="{StaticResource AppMenuTopItemStyle}" ItemContainerStyle="{StaticResource AppMenuSubItemStyle}">
