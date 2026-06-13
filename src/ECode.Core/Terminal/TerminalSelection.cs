@@ -22,8 +22,9 @@ public class TerminalSelection
 {
     private SelectionPoint? _start;
     private SelectionPoint? _end;
+    private bool _hasSelection;
 
-    public bool HasSelection => _start.HasValue && _end.HasValue;
+    public bool HasSelection => _hasSelection && _start.HasValue && _end.HasValue;
     public SelectionPoint? Start => _start;
     public SelectionPoint? End => _end;
 
@@ -33,6 +34,7 @@ public class TerminalSelection
     {
         _start = new SelectionPoint(row, col);
         _end = new SelectionPoint(row, col);
+        _hasSelection = false;
         SelectionChanged?.Invoke();
     }
 
@@ -40,6 +42,7 @@ public class TerminalSelection
     {
         if (!_start.HasValue) return;
         _end = new SelectionPoint(row, col);
+        _hasSelection = _start.Value.Row != row || _start.Value.Col != col;
         SelectionChanged?.Invoke();
     }
 
@@ -47,6 +50,7 @@ public class TerminalSelection
     {
         _start = null;
         _end = null;
+        _hasSelection = false;
         SelectionChanged?.Invoke();
     }
 
@@ -55,7 +59,7 @@ public class TerminalSelection
     /// </summary>
     public (SelectionPoint start, SelectionPoint end)? GetNormalizedRange()
     {
-        if (!_start.HasValue || !_end.HasValue) return null;
+        if (!_hasSelection || !_start.HasValue || !_end.HasValue) return null;
 
         var s = _start.Value;
         var e = _end.Value;
@@ -168,6 +172,7 @@ public class TerminalSelection
         {
             _start = new SelectionPoint(row, col);
             _end = new SelectionPoint(row, col);
+            _hasSelection = false;
             SelectionChanged?.Invoke();
             return;
         }
@@ -183,6 +188,7 @@ public class TerminalSelection
 
         _start = new SelectionPoint(row, startCol);
         _end = new SelectionPoint(row, endCol);
+        _hasSelection = true;
         SelectionChanged?.Invoke();
     }
 
@@ -193,6 +199,7 @@ public class TerminalSelection
     {
         _start = new SelectionPoint(row, 0);
         _end = new SelectionPoint(row, cols - 1);
+        _hasSelection = cols > 0;
         SelectionChanged?.Invoke();
     }
 
@@ -203,6 +210,7 @@ public class TerminalSelection
     {
         _start = new SelectionPoint(0, 0);
         _end = new SelectionPoint(rows - 1, cols - 1);
+        _hasSelection = rows > 0 && cols > 0;
         SelectionChanged?.Invoke();
     }
 }

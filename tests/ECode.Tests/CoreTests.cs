@@ -1065,6 +1065,17 @@ public class TerminalColorTests
 public class TerminalSelectionTests
 {
     [Fact]
+    public void StartSelection_WithoutDrag_DoesNotSelectSingleCell()
+    {
+        var selection = new TerminalSelection();
+
+        selection.StartSelection(4, 8);
+
+        selection.HasSelection.Should().BeFalse();
+        selection.IsSelected(4, 8).Should().BeFalse();
+    }
+
+    [Fact]
     public void StartAndExtend_CreatesSelection()
     {
         var selection = new TerminalSelection();
