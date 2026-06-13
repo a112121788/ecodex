@@ -471,22 +471,6 @@ public class TerminalControl : FrameworkElement
                 dc.DrawRoundedRectangle(null, attentionPen, new Rect(2, 2, ActualWidth - 4, ActualHeight - 4), 6, 6);
             }
 
-            // 通知光环
-            if (HasNotification)
-            {
-                var notifPen = new Pen(GetCachedBrush(Color.FromArgb(180, 0x63, 0x66, 0xF1)), 2);
-                notifPen.Freeze();
-                dc.DrawRoundedRectangle(null, notifPen, new Rect(1, 1, ActualWidth - 2, ActualHeight - 2), 4, 4);
-            }
-
-            // 聚焦面板指示器
-            if (IsPaneFocused)
-            {
-                var focusPen = new Pen(GetCachedBrush(Color.FromArgb(50, 0x81, 0x8C, 0xF8)), 1);
-                focusPen.Freeze();
-                dc.DrawRectangle(null, focusPen, new Rect(0, 0, ActualWidth, ActualHeight));
-            }
-
             // 计算回滚偏移
             int scrollbackCount = buffer.ScrollbackCount;
             bool isScrolledBack = _scrollOffset < 0;
@@ -677,6 +661,8 @@ public class TerminalControl : FrameworkElement
                 dc.DrawText(indicatorText, new Point(ix + 6, 8));
             }
 
+            DrawPaneStateOverlay(dc);
+
             UpdateImeCaretPosition();
 
             // 每次渲染时同步更新 IME 代理位置
@@ -692,6 +678,36 @@ public class TerminalControl : FrameworkElement
         {
             Debug.WriteLine($"[TerminalControl] Render failed: {ex}");
         }
+    }
+
+    private void DrawPaneStateOverlay(DrawingContext dc)
+    {
+        if (ActualWidth <= 2 || ActualHeight <= 2)
+            return;
+
+        // 放在终端内容绘制之后，避免被单元格背景覆盖。
+        if (HasNotification)
+        {
+            var notificationColor = TryGetResourceColor("NotificationColor", Color.FromRgb(0x1F, 0xA0, 0xFF));
+            var notifPen = new Pen(GetCachedBrush(Color.FromArgb(230, notificationColor.R, notificationColor.G, notificationColor.B)), 2);
+            notifPen.Freeze();
+            dc.DrawRoundedRectangle(null, notifPen, new Rect(1, 1, ActualWidth - 2, ActualHeight - 2), 5, 5);
+        }
+
+        if (IsPaneFocused)
+        {
+            var focusPen = new Pen(GetCachedBrush(Color.FromArgb(70, 0x81, 0x8C, 0xF8)), 1);
+            focusPen.Freeze();
+            dc.DrawRectangle(null, focusPen, new Rect(0.5, 0.5, ActualWidth - 1, ActualHeight - 1));
+        }
+    }
+
+    private static Color TryGetResourceColor(string key, Color fallback)
+    {
+        if (Application.Current?.Resources[key] is Color color)
+            return color;
+
+        return fallback;
     }
 
     /// <summary>
