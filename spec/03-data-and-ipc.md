@@ -222,6 +222,10 @@ public class DaemonSessionInfo {
         {
           "id": "guid",
           "name": "Terminal 1",
+          "kind": "Terminal",
+          "browserUrl": null,
+          "browserTitle": null,
+          "browserHistory": [],
           "focusedPaneId": "pane-guid",
           "paneCustomNames": { "pane-guid": "Build" },
           "paneSnapshots": {
@@ -243,6 +247,21 @@ public class DaemonSessionInfo {
       ]
     }
   ]
+}
+```
+
+`SurfaceState.kind` 目前为 `"Terminal"` 或 `"Browser"`；旧 `session.json` 缺少该字段时默认恢复为 `Terminal`。Browser surface 使用 `browserUrl/browserTitle/browserHistory` 保存 URL 状态，terminal surface 继续使用 `rootNode/paneSnapshots`。
+
+Browser surface 示例：
+
+```jsonc
+{
+  "id": "browser-surface",
+  "name": "Docs",
+  "kind": "Browser",
+  "browserUrl": "https://example.com/docs",
+  "browserTitle": "Docs",
+  "browserHistory": ["https://example.com", "https://example.com/docs"]
 }
 ```
 

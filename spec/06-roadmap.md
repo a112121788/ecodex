@@ -525,8 +525,8 @@ public class Surface
 
 | ID | 任务 | 说明 | 文件 |
 |---|---|---|---|
-| M3-T01 | `SurfaceKind` | Terminal/Browser enum | `Models/Surface.cs` |
-| M3-T02 | SessionState 扩展 | `kind/browserUrl/browserTitle/browserHistory` | `Models/SessionState.cs`、`SessionPersistenceService.cs` |
+| M3-T01 | `SurfaceKind` | Terminal/Browser enum（已实现） | `Models/Surface.cs` |
+| M3-T02 | SessionState 扩展 | `kind/browserUrl/browserTitle/browserHistory`（已实现，旧文件默认 Terminal） | `Models/SessionState.cs`、`SessionPersistenceService.cs` |
 | M3-T03 | `BrowserPaneViewModel` | URL、Title、CanGoBack、CanGoForward、Loading | `src/ECode/ViewModels/BrowserPaneViewModel.cs` |
 | M3-T04 | `BrowserControl` 升级 | 地址栏、back/forward/reload/devtools | `Controls/BrowserControl.xaml(.cs)` |
 | M3-T05 | SplitPaneContainer 支持 browser | `BuildLeaf` 分支 | `Controls/SplitPaneContainer.cs` |

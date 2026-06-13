@@ -617,6 +617,117 @@ public class ResumeBindingServiceTests
 }
 
 /// <summary>
+/// 会话持久化测试 - 验证 SurfaceKind 与 Browser metadata 的兼容存储。
+/// </summary>
+public class SessionPersistenceServiceTests
+{
+    [Fact]
+    public void BuildState_PersistsBrowserSurfaceMetadata()
+    {
+        var workspace = new Workspace
+        {
+            Id = "workspace-1",
+            Name = "Workspace",
+        };
+        var surface = new Surface
+        {
+            Id = "surface-1",
+            Name = "Docs",
+            Kind = SurfaceKind.Browser,
+            BrowserUrl = "https://example.com/docs",
+            BrowserTitle = "Docs",
+            BrowserHistory = ["https://example.com", "https://example.com/docs"],
+        };
+        workspace.Surfaces.Add(surface);
+        workspace.SelectedSurface = surface;
+
+        var state = SessionPersistenceService.BuildState(
+            [workspace],
+            selectedWorkspaceIndex: 0,
+            windowX: 1,
+            windowY: 2,
+            windowWidth: 1200,
+            windowHeight: 800,
+            isMaximized: false,
+            sidebarWidth: 280,
+            sidebarVisible: true,
+            compactSidebar: false);
+
+        var persisted = state.Workspaces.Single().Surfaces.Single();
+        persisted.Kind.Should().Be(SurfaceKind.Browser);
+        persisted.BrowserUrl.Should().Be("https://example.com/docs");
+        persisted.BrowserTitle.Should().Be("Docs");
+        persisted.BrowserHistory.Should().Equal("https://example.com", "https://example.com/docs");
+    }
+
+    [Fact]
+    public void SurfaceState_RoundTripsBrowserMetadata()
+    {
+        var state = new SessionState
+        {
+            Workspaces =
+            [
+                new WorkspaceState
+                {
+                    Id = "workspace-1",
+                    Name = "Workspace",
+                    Surfaces =
+                    [
+                        new SurfaceState
+                        {
+                            Id = "surface-1",
+                            Name = "Browser",
+                            Kind = SurfaceKind.Browser,
+                            BrowserUrl = "http://localhost:5173",
+                            BrowserTitle = "Local App",
+                            BrowserHistory = ["http://localhost:5173", "http://localhost:5173/dashboard"],
+                        },
+                    ],
+                },
+            ],
+        };
+
+        var json = JsonSerializer.Serialize(state);
+        var roundTripped = JsonSerializer.Deserialize<SessionState>(json);
+
+        var surface = roundTripped!.Workspaces.Single().Surfaces.Single();
+        surface.Kind.Should().Be(SurfaceKind.Browser);
+        surface.BrowserUrl.Should().Be("http://localhost:5173");
+        surface.BrowserTitle.Should().Be("Local App");
+        surface.BrowserHistory.Should().Equal("http://localhost:5173", "http://localhost:5173/dashboard");
+        json.Should().Contain("\"kind\":\"Browser\"");
+    }
+
+    [Fact]
+    public void SurfaceState_WhenKindMissing_DefaultsToTerminal()
+    {
+        var json = """
+            {
+              "version": 1,
+              "workspaces": [
+                {
+                  "id": "workspace-1",
+                  "name": "Workspace",
+                  "surfaces": [
+                    {
+                      "id": "surface-1",
+                      "name": "Terminal",
+                      "rootNode": { "isLeaf": true, "paneId": "pane-1" }
+                    }
+                  ]
+                }
+              ]
+            }
+            """;
+
+        var state = JsonSerializer.Deserialize<SessionState>(json);
+
+        state!.Workspaces.Single().Surfaces.Single().Kind.Should().Be(SurfaceKind.Terminal);
+        state.Workspaces.Single().Surfaces.Single().BrowserHistory.Should().BeEmpty();
+    }
+}
+
+/// <summary>
 /// ecode.json 配置服务测试 - 验证全局配置与本地配置的加载、合并、验证和 JSONC 支持
 /// </summary>
 public class EcodeJsonServiceTests

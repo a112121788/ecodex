@@ -105,6 +105,10 @@ public partial class MainViewModel : ObservableObject
             var clonedSurface = new Surface
             {
                 Name = sourceSurface.Name,
+                Kind = sourceSurface.Kind,
+                BrowserUrl = sourceSurface.BrowserUrl,
+                BrowserTitle = sourceSurface.BrowserTitle,
+                BrowserHistory = sourceSurface.BrowserHistory.ToList(),
                 RootSplitNode = clonedRoot,
                 FocusedPaneId = sourceSurface.FocusedPaneId != null && paneIdMap.TryGetValue(sourceSurface.FocusedPaneId, out var mappedFocused)
                     ? mappedFocused
@@ -348,6 +352,10 @@ public partial class MainViewModel : ObservableObject
                 {
                     Id = surfState.Id,
                     Name = surfState.Name,
+                    Kind = surfState.Kind,
+                    BrowserUrl = surfState.BrowserUrl,
+                    BrowserTitle = surfState.BrowserTitle,
+                    BrowserHistory = surfState.BrowserHistory.ToList(),
                     FocusedPaneId = surfState.FocusedPaneId,
                     PaneCustomNames = new Dictionary<string, string>(surfState.PaneCustomNames),
                     PaneSnapshots = surfState.PaneSnapshots.ToDictionary(

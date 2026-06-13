@@ -135,8 +135,8 @@
 
 | ID | 标题 | 关联文件 | 验收 |
 |---|---|---|---|
-| `M3-A-01` | `SurfaceKind { Terminal, Browser }` | `Models/Surface.cs` | 旧 `session.json` 默认 Terminal |
-| `M3-A-02` | `SessionState` 新增 `kind/browserUrl/browserTitle/browserHistory` | `Models/SessionState.cs`、`SessionPersistenceService.cs` | 重启后 URL 恢复 |
+| `M3-A-01` | `[x]` `SurfaceKind { Terminal, Browser }` | `Models/Surface.cs` | 旧 `session.json` 默认 Terminal |
+| `M3-A-02` | `[x]` `SessionState` 新增 `kind/browserUrl/browserTitle/browserHistory` | `Models/SessionState.cs`、`SessionPersistenceService.cs` | Browser metadata roundtrip 测试通过 |
 
 ### 包 B：UI
 
@@ -303,7 +303,7 @@
 7. `M2-A-03`（已完成：ResumeBinding 敏感环境剔除）
 8. `M2-C-01`（已完成：CLI `surface resume`）
 9. `M2-A-04`（已完成：`ECODE_WORKSPACE_ID` 启动注入）
-10. `M3-A-01` + `M3-A-02`（SurfaceKind + SessionState 扩展）
+10. `M3-A-01` + `M3-A-02`（已完成：SurfaceKind + SessionState 扩展）
 11. `M3-C-01` + `M3-B-02`（CLI `browser open` + BrowserControl 升级）
 
 > 进入 M4 / M5 前必须先冻结 v1 CLI 行为并完成 v1 contract 测试固化，避免 v2 协议破坏现有 agent 集成。

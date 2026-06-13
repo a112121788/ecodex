@@ -26,8 +26,8 @@
 |---|---|---|
 | `Models/SplitNode.cs` | `SplitNode / SplitDirection` | 树形分屏；工厂方法 `CreateLeaf / CreateColumns / CreateRows / CreateGrid / CreateMainStack`；操作 `Split / FindNode / FindParent / GetLeaves / Remove / GetNextLeaf / GetPreviousLeaf / ResizePane / SwapPanes / Equalize` |
 | `Models/Workspace.cs` | `Workspace` | UI 层 Model：`Id / Name / IconGlyph / AccentColor / Surfaces / SelectedSurface / GitBranch / WorkingDirectory / ListeningPorts / LatestNotificationText / UnreadNotificationCount` |
-| `Models/Surface.cs` | `Surface` | 标签页 Model：`RootSplitNode / FocusedPaneId / PaneCustomNames / PaneSnapshots` |
-| `Models/SessionState.cs` | `SessionState / WorkspaceState / SurfaceState / SplitNodeState / WindowState` | 持久化 DTO，`[JsonPropertyName]` 全部小写 |
+| `Models/Surface.cs` | `Surface / SurfaceKind` | 标签页 Model：`Kind(Terminal/Browser) / BrowserUrl / BrowserTitle / BrowserHistory / RootSplitNode / FocusedPaneId / PaneCustomNames / PaneSnapshots` |
+| `Models/SessionState.cs` | `SessionState / WorkspaceState / SurfaceState / SplitNodeState / WindowState` | 持久化 DTO，`[JsonPropertyName]` 全部小写；缺少 `SurfaceState.kind` 的旧文件默认 Terminal |
 | `Models/PaneStateSnapshot.cs` | `PaneStateSnapshot` | 单面板快照：cwd + shell + 命令历史 + `TerminalBufferSnapshot` |
 | `Models/ResumeBinding.cs` | `ResumeBindingFile / ResumeBinding / ResumeBindingKinds` | `%USERPROFILE%/.ecode/resume.json` DTO；记录 workspace/surface/pane 与可恢复 shell 命令、cwd、安全环境、信任前缀和更新时间 |
 | `Models/CommandLogEntry.cs` | `CommandLogEntry` | 命令日志项：起止时间、退出码、状态图标（`\uE916 / \uE73E / \uE711`）、时长格式化 |

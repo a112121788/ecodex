@@ -52,6 +52,19 @@ public class SurfaceState
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
 
+    [JsonPropertyName("kind")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public SurfaceKind Kind { get; set; } = SurfaceKind.Terminal;
+
+    [JsonPropertyName("browserUrl")]
+    public string? BrowserUrl { get; set; }
+
+    [JsonPropertyName("browserTitle")]
+    public string? BrowserTitle { get; set; }
+
+    [JsonPropertyName("browserHistory")]
+    public List<string> BrowserHistory { get; set; } = [];
+
     [JsonPropertyName("rootNode")]
     public SplitNodeState? RootNode { get; set; }
 

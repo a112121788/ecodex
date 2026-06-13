@@ -91,6 +91,10 @@ public class SessionPersistenceService
                 {
                     Id = surface.Id,
                     Name = surface.Name,
+                    Kind = surface.Kind,
+                    BrowserUrl = surface.BrowserUrl,
+                    BrowserTitle = surface.BrowserTitle,
+                    BrowserHistory = surface.BrowserHistory.ToList(),
                     FocusedPaneId = surface.FocusedPaneId,
                     PaneCustomNames = new Dictionary<string, string>(surface.PaneCustomNames),
                     PaneSnapshots = surface.PaneSnapshots.ToDictionary(
