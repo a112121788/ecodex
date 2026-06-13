@@ -2,6 +2,9 @@ using System.Text;
 
 namespace ECode.Core.Terminal;
 
+/// <summary>
+/// 终端选区中的坐标点（行列位置）
+/// </summary>
 public struct SelectionPoint
 {
     public int Row;

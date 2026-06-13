@@ -5,6 +5,7 @@ using System.Windows.Media;
 
 namespace ECode.Converters;
 
+/// <summary>XAML 数据绑定值转换器集合</summary>
 /// <summary>Bool to Visibility (Visible/Collapsed).</summary>
 public class BoolToVisibilityConverter : IValueConverter
 {

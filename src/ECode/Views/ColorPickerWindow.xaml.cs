@@ -4,6 +4,7 @@ using System.Windows.Media;
 
 namespace ECode.Views;
 
+/// <summary>RGB 颜色选择对话框，支持滑块调整和 Hex 输入</summary>
 public partial class ColorPickerWindow : Window
 {
     private bool _suppress;

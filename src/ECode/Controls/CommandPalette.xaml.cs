@@ -8,6 +8,7 @@ using System.Windows.Input;
 
 namespace ECode.Controls;
 
+/// <summary>命令面板项数据模型</summary>
 public class PaletteItem
 {
     public string Id { get; set; } = string.Empty;
@@ -20,6 +21,7 @@ public class PaletteItem
     public Action? Execute { get; set; }
 }
 
+/// <summary>命令面板控件，提供模糊搜索和快速执行应用命令</summary>
 public partial class CommandPalette : UserControl
 {
     private List<PaletteItem> _allItems = [];

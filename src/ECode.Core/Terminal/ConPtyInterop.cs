@@ -3,6 +3,9 @@ using Microsoft.Win32.SafeHandles;
 
 namespace ECode.Core.Terminal;
 
+/// <summary>
+/// Windows ConPTY API 的 P/Invoke 互操作声明
+/// </summary>
 internal static partial class ConPtyInterop
 {
     internal const uint PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE = 0x00020016;

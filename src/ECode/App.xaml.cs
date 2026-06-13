@@ -5,6 +5,7 @@ using ECode.Core.Services;
 
 namespace ECode;
 
+/// <summary>应用程序入口，初始化全局服务、守护进程连接和命名管道</summary>
 public partial class App : Application
 {
     private NamedPipeServer? _pipeServer;

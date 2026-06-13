@@ -2,6 +2,9 @@ using ECode.Core.Terminal;
 
 namespace ECode.Core.Config;
 
+/// <summary>
+/// 终端主题配置,包含背景色、前景色、光标色和 16 色调色板
+/// </summary>
 public class TerminalTheme
 {
     public required string Name { get; init; }

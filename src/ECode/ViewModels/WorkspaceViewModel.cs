@@ -6,6 +6,7 @@ using ECode.Core.Services;
 
 namespace ECode.ViewModels;
 
+/// <summary>管理单个项目的多个 Surface 和项目元数据</summary>
 public partial class WorkspaceViewModel : ObservableObject, IDisposable
 {
     public Workspace Workspace { get; }

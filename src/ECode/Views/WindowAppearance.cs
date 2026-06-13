@@ -5,6 +5,7 @@ using System.Windows.Interop;
 
 namespace ECode.Views;
 
+/// <summary>窗口外观辅助工具，启用沉浸式深色标题栏和最大化边界修正</summary>
 internal static class WindowAppearance
 {
     private const int DwmUseImmersiveDarkMode = 20;

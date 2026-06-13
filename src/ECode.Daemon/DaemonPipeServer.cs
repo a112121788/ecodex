@@ -9,6 +9,9 @@ using static ECode.Core.IPC.DaemonClient;
 
 namespace ECode.Daemon;
 
+/// <summary>
+/// 命名管道服务器 —— 监听客户端连接并分发会话管理请求，支持新旧管道协议的兼容过渡
+/// </summary>
 public sealed class DaemonPipeServer
 {
     private static string PipeName => CompatibilityOptions.NewDaemonPipe;

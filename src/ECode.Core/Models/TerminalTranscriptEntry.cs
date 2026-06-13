@@ -1,5 +1,8 @@
 namespace ECode.Core.Models;
 
+/// <summary>
+/// 终端会话转录文件的元数据条目，记录捕获时间、所属窗格及文件路径信息。
+/// </summary>
 public class TerminalTranscriptEntry
 {
     public string FilePath { get; init; } = string.Empty;

@@ -8,6 +8,7 @@ using ECode.Core.Models;
 
 namespace ECode.Controls;
 
+/// <summary>代码片段选择器，支持搜索、收藏、编辑和快速插入</summary>
 public partial class SnippetPicker : UserControl
 {
     public event Action<Snippet>? SnippetSelected;

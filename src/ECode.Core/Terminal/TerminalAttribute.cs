@@ -1,5 +1,8 @@
 namespace ECode.Core.Terminal;
 
+/// <summary>
+/// 终端单元格的文本样式标志（粗体、斜体、下划线等）
+/// </summary>
 [Flags]
 public enum CellFlags : ushort
 {
@@ -14,6 +17,9 @@ public enum CellFlags : ushort
     Strikethrough = 128,
 }
 
+/// <summary>
+/// 终端颜色，支持默认色、256 色索引和 24 位真彩色
+/// </summary>
 public struct TerminalColor : IEquatable<TerminalColor>
 {
     public byte R;
@@ -90,6 +96,9 @@ public struct TerminalColor : IEquatable<TerminalColor>
     public static bool operator !=(TerminalColor left, TerminalColor right) => !left.Equals(right);
 }
 
+/// <summary>
+/// 终端单元格的显示属性（前景色、背景色、样式标志）
+/// </summary>
 public struct TerminalAttribute
 {
     public CellFlags Flags;
@@ -104,6 +113,9 @@ public struct TerminalAttribute
     };
 }
 
+/// <summary>
+/// 终端缓冲区中的单个字符单元格（包含字符、属性和宽度信息）
+/// </summary>
 public struct TerminalCell
 {
     public char Character;

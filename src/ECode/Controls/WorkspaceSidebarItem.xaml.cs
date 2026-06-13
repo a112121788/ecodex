@@ -5,6 +5,7 @@ using ECode.ViewModels;
 
 namespace ECode.Controls;
 
+/// <summary>侧边栏单个项目项控件，支持拖拽排序和右键菜单</summary>
 public partial class WorkspaceSidebarItem : UserControl
 {
     public WorkspaceSidebarItem()

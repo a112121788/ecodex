@@ -7,6 +7,7 @@ using ECode.ViewModels;
 
 namespace ECode.Controls;
 
+/// <summary>通知面板控件，显示终端通知列表并支持跳转到对应面板</summary>
 public partial class NotificationPanel : UserControl
 {
     public NotificationPanel()

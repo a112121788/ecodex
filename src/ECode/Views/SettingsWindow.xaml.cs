@@ -9,6 +9,7 @@ using ECode.Core.Services;
 
 namespace ECode.Views;
 
+/// <summary>应用设置窗口，管理外观、终端和行为配置</summary>
 public partial class SettingsWindow : Window
 {
     private bool _suppressTerminalColorEvents;

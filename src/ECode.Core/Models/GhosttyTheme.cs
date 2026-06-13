@@ -1,6 +1,9 @@
 using ECode.Core.Terminal;
 namespace ECode.Core.Models;
 
+/// <summary>
+/// Ghostty 终端主题配置，包含颜色、字体及 ANSI 调色板定义。
+/// </summary>
 public class GhosttyTheme
 {
     public TerminalColor Background { get; set; } = new(30, 30, 30);

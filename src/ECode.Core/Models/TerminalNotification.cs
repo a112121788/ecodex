@@ -3,14 +3,20 @@ using System.Runtime.CompilerServices;
 
 namespace ECode.Core.Models;
 
+/// <summary>
+/// 通知来源 - OSC 序列或 CLI 触发
+/// </summary>
 public enum NotificationSource
 {
-    Osc9,
-    Osc99,
-    Osc777,
-    Cli,
+    Osc9,    // OSC 9 序列（简单通知）
+    Osc99,   // OSC 99 序列（键值对通知）
+    Osc777,  // OSC 777 序列（结构化通知）
+    Cli,     // CLI 命令触发
 }
 
+/// <summary>
+/// 终端通知 - 由终端 OSC 序列或 CLI 触发的通知消息，支持已读/未读状态
+/// </summary>
 public record TerminalNotification : INotifyPropertyChanged
 {
     private bool _isRead;

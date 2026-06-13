@@ -2,6 +2,10 @@ using ECode.Core.Config;
 using ECode.Core.IPC;
 using ECode.Daemon;
 
+/// <summary>
+/// ecode-daemon 后台服务入口 —— 管理所有终端会话的生命周期，通过命名管道接收 CLI 和 WPF 应用的控制指令
+/// </summary>
+
 // 通过命名互斥体进行单实例检查。
 // 兼容期：若用户保留 CompatListenLegacyDaemonPipe=true，且旧 mutex 已被旧版
 // cmux-daemon 占用，我们主动让位，由旧 daemon 继续处理遗留连接。

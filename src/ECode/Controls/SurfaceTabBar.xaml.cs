@@ -6,6 +6,7 @@ using ECode.ViewModels;
 
 namespace ECode.Controls;
 
+/// <summary>Surface 标签栏控件，支持标签切换、拖拽排序和搜索功能</summary>
 public partial class SurfaceTabBar : UserControl
 {
     private SurfaceViewModel? _renamingSurface;

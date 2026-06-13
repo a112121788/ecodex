@@ -6,6 +6,9 @@ using ECode.Core.Config;
 
 namespace ECode.Core.IPC;
 
+/// <summary>
+/// 连接并控制 ecode-daemon 守护进程的客户端，负责会话生命周期管理和双向通信。
+/// </summary>
 public sealed class DaemonClient : IDisposable
 {
     private static string PipeName => CompatibilityOptions.NewDaemonPipe;

@@ -2,6 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace ECode.Core.Models;
 
+/// <summary>
+/// 代码片段 - 支持 {{key}} 占位符替换的可复用文本模板
+/// </summary>
 public partial class Snippet
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();

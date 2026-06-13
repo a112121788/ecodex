@@ -5,6 +5,7 @@ using System.Windows.Input;
 
 namespace ECode.Views;
 
+/// <summary>面板命令历史选择器，支持快速插入或运行历史命令</summary>
 public partial class HistoryWindow : Window
 {
     private readonly List<string> _allCommands;

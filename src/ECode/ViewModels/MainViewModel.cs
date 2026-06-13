@@ -9,6 +9,7 @@ using ECode.Core.Services;
 
 namespace ECode.ViewModels;
 
+/// <summary>管理多个 Workspace 和侧边栏状态的主窗口 ViewModel</summary>
 public partial class MainViewModel : ObservableObject
 {
     [ObservableProperty]

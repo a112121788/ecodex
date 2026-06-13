@@ -10,6 +10,7 @@ using ECode.Core.Terminal;
 
 namespace ECode.ViewModels;
 
+/// <summary>管理单个 Surface 的分屏布局和终端会话生命周期</summary>
 public partial class SurfaceViewModel : ObservableObject, IDisposable
 {
     public Surface Surface { get; }

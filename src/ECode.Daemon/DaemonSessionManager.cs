@@ -5,6 +5,9 @@ using static ECode.Core.IPC.DaemonClient;
 
 namespace ECode.Daemon;
 
+/// <summary>
+/// 会话管理器 —— 负责终端会话的创建、复用、输入输出和生命周期管理
+/// </summary>
 public sealed class DaemonSessionManager : IDisposable
 {
     private readonly ConcurrentDictionary<string, TerminalSession> _sessions = new();

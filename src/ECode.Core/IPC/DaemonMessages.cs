@@ -1,5 +1,8 @@
 namespace ECode.Core.IPC;
 
+/// <summary>
+/// 守护进程通信协议的消息类型常量和数据传输对象。
+/// </summary>
 public static class DaemonMessageTypes
 {
     public const string SessionCreate = "SESSION_CREATE";

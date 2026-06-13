@@ -17,6 +17,7 @@ using EcodeJsonDiagnosticSeverity = ECode.Core.Models.EcodeJsonDiagnosticSeverit
 
 namespace ECode.Views;
 
+/// <summary>应用主窗口，管理项目侧边栏、Surface 标签栏和终端面板容器</summary>
 public partial class MainWindow : Window
 {
     private MainViewModel ViewModel => (MainViewModel)DataContext;

@@ -7,6 +7,7 @@ using ECode.ViewModels;
 
 namespace ECode.Views;
 
+/// <summary>会话存档查看器，浏览和检索已捕获的终端脚本快照</summary>
 public partial class SessionVaultWindow : Window
 {
     private readonly Dictionary<string, string> _workspaceNames = new(StringComparer.Ordinal);

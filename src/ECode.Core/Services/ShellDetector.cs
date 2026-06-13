@@ -2,6 +2,9 @@ namespace ECode.Core.Services;
 
 public record ShellInfo(string Name, string Path);
 
+/// <summary>
+/// 检测 Windows 系统中可用的 Shell 环境（PowerShell、CMD、WSL、Git Bash）
+/// </summary>
 public static class ShellDetector
 {
     public static List<ShellInfo> DetectShells()

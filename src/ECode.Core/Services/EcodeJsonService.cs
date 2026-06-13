@@ -3,6 +3,9 @@ using ECode.Core.Models;
 
 namespace ECode.Core.Services;
 
+/// <summary>
+/// 加载、验证和合并全局及项目级 ecode.json 配置文件
+/// </summary>
 public sealed class EcodeJsonService
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

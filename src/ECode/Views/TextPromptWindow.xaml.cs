@@ -3,6 +3,7 @@ using System.Windows.Input;
 
 namespace ECode.Views;
 
+/// <summary>通用文本输入对话框，用于重命名等场景</summary>
 public partial class TextPromptWindow : Window
 {
     public string ResponseText => InputTextBox.Text;

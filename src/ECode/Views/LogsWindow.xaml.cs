@@ -8,6 +8,7 @@ using ECode.ViewModels;
 
 namespace ECode.Views;
 
+/// <summary>命令日志查看窗口，按日期和项目过滤已执行命令</summary>
 public partial class LogsWindow : Window
 {
     private readonly List<DateOnly> _dates = [];

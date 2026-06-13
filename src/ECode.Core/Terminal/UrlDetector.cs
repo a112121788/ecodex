@@ -2,6 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace ECode.Core.Terminal;
 
+/// <summary>
+/// 在终端文本中检测和提取 URL（http/https/ftp/file 协议）
+/// </summary>
 public static partial class UrlDetector
 {
     [GeneratedRegex(@"(https?://|ftp://|file://)[\w\-_.~:/?#\[\]@!$&'()*+,;=%]+", RegexOptions.Compiled)]

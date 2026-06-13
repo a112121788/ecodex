@@ -2,6 +2,9 @@ using System.Collections.ObjectModel;
 
 namespace ECode.Core.Models;
 
+/// <summary>
+/// 工作空间 - 包含多个 Surface 的项目容器，关联 Git 分支、监听端口和通知状态
+/// </summary>
 public class Workspace
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();

@@ -1,14 +1,18 @@
 namespace ECode.Core.Models;
 
+/// <summary>
+/// ecode.json 配置文件根对象 - 定义命令、动作和 UI 配置
+/// </summary>
 public sealed class EcodeJsonConfig
 {
-    public Dictionary<string, EcodeAction> Actions { get; set; } = [];
-
-    public List<EcodeCommand> Commands { get; set; } = [];
-
+    public Dictionary<string, EcodeAction> Actions { get; set; } = []; // 可绑定的动作（快捷键/按钮触发）
+    public List<EcodeCommand> Commands { get; set; } = []; // 命令面板中的命令列表
     public EcodeUiConfig? Ui { get; set; }
 }
 
+/// <summary>
+/// 命令定义 - 在命令面板中可搜索和执行的命令
+/// </summary>
 public sealed class EcodeCommand
 {
     public string Name { get; set; } = "";

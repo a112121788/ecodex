@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace ECode.Core.Models;
 
+/// <summary>
+/// 会话状态 - 用于持久化和恢复整个应用状态（工作空间、窗口布局、终端面板）
+/// </summary>
 public class SessionState
 {
     [JsonPropertyName("version")]
