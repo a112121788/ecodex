@@ -43,6 +43,7 @@ public sealed class ResumeBindingService
     public void Save(ResumeBindingFile file)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_filePath) ?? ".");
+        ScrubSensitiveEnvironment(file);
         var json = JsonSerializer.Serialize(file, JsonOptions);
         var tempPath = _filePath + ".tmp";
         File.WriteAllText(tempPath, json);
@@ -60,6 +61,7 @@ public sealed class ResumeBindingService
         if (binding.CreatedAtUtc == default)
             binding.CreatedAtUtc = now;
 
+        binding.Environment = DropSensitiveEnvironment(binding.Environment);
         binding.UpdatedAtUtc = now;
 
         var existingIndex = file.Bindings.FindIndex(b => string.Equals(b.Id, binding.Id, StringComparison.Ordinal));
@@ -133,5 +135,36 @@ public sealed class ResumeBindingService
 
         return trustedCount;
     }
-}
 
+    public static Dictionary<string, string> DropSensitiveEnvironment(IReadOnlyDictionary<string, string>? environment)
+    {
+        if (environment == null || environment.Count == 0)
+            return [];
+
+        return environment
+            .Where(kvp => !IsSensitiveEnvironmentName(kvp.Key))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static void ScrubSensitiveEnvironment(ResumeBindingFile file)
+    {
+        foreach (var binding in file.Bindings)
+        {
+            binding.Environment = DropSensitiveEnvironment(binding.Environment);
+        }
+    }
+
+    private static bool IsSensitiveEnvironmentName(string key)
+    {
+        var upper = key.ToUpperInvariant();
+        return upper.Contains("PASSWORD", StringComparison.Ordinal) ||
+               upper.Contains("PASSWD", StringComparison.Ordinal) ||
+               upper.Contains("SECRET", StringComparison.Ordinal) ||
+               upper.Contains("API_KEY", StringComparison.Ordinal) ||
+               upper.Contains("ACCESS_KEY", StringComparison.Ordinal) ||
+               upper is "TOKEN" ||
+               upper.EndsWith("_TOKEN", StringComparison.Ordinal) ||
+               upper.Contains("_TOKEN_", StringComparison.Ordinal) ||
+               upper.StartsWith("TOKEN_", StringComparison.Ordinal);
+    }
+}

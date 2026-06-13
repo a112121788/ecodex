@@ -462,6 +462,51 @@ public class ResumeBindingServiceTests
         bindings["wrong-surface"].Trusted.Should().BeFalse();
     }
 
+    [Fact]
+    public void Save_DropsSensitiveEnv()
+    {
+        using var temp = TempDirectory.Create();
+        var service = new ResumeBindingService(Path.Combine(temp.Path, "resume.json"));
+        var binding = CreateResumeBinding("binding-1", "workspace-1", "surface-1", "pane-1");
+        binding.Environment = new Dictionary<string, string>
+        {
+            ["PATH"] = @"C:\Windows",
+            ["OPENAI_API_KEY"] = "sk-secret",
+            ["GITHUB_TOKEN"] = "ghp_secret",
+            ["PASSWORD"] = "hunter2",
+            ["MY_SECRET_VALUE"] = "secret",
+            ["AWS_ACCESS_KEY_ID"] = "access",
+            ["TOKEN_CACHE_DISABLED"] = "true",
+            ["SAFE_KEY"] = "safe",
+        };
+
+        service.Save(new ResumeBindingFile { Bindings = [binding] });
+
+        var loadedEnv = service.Load().Bindings.Single().Environment;
+        loadedEnv.Keys.Should().BeEquivalentTo("PATH", "SAFE_KEY");
+        loadedEnv["PATH"].Should().Be(@"C:\Windows");
+        loadedEnv["SAFE_KEY"].Should().Be("safe");
+    }
+
+    [Fact]
+    public void Add_DropsSensitiveEnvBeforePersisting()
+    {
+        using var temp = TempDirectory.Create();
+        var service = new ResumeBindingService(Path.Combine(temp.Path, "resume.json"));
+        var binding = CreateResumeBinding("binding-1", "workspace-1", "surface-1", "pane-1");
+        binding.Environment = new Dictionary<string, string>
+        {
+            ["SAFE_KEY"] = "safe",
+            ["API_KEY"] = "secret",
+        };
+
+        service.Add(binding);
+
+        var loadedEnv = service.Load().Bindings.Single().Environment;
+        loadedEnv.Should().ContainKey("SAFE_KEY").WhoseValue.Should().Be("safe");
+        loadedEnv.Should().NotContainKey("API_KEY");
+    }
+
     private static ResumeBinding CreateResumeBinding(
         string id,
         string workspaceId,

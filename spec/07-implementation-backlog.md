@@ -103,7 +103,7 @@
 |---|---|---|---|
 | `M2-A-01` | `[x]` `ResumeBinding` DTO + JSON | `ECode.Core/Models/ResumeBinding.cs` | roundtrip 测试 |
 | `M2-A-02` | `[x]` `ResumeBindingService`（Load/Save/Add/Remove/FindForSurface/TrustPrefix） | `ECode.Core/Services/ResumeBindingService.cs` | 覆盖所有 public method |
-| `M2-A-03` | 敏感环境剔除（TOKEN / PASSWORD / SECRET / API_KEY 等） | 同上 | `DropsSensitiveEnv` 测试通过 |
+| `M2-A-03` | `[x]` 敏感环境剔除（TOKEN / PASSWORD / SECRET / API_KEY 等） | 同上 | `DropsSensitiveEnv` 测试通过 |
 | `M2-A-04` | `ECODE_WORKSPACE_ID` 启动注入 | `TerminalProcess.cs` | `GetEnvironmentVariable("ECODE_WORKSPACE_ID")` 非空 |
 
 ### 包 B：UI 与开关
@@ -300,7 +300,7 @@
 4. `M1-C-01` ~ `M1-C-05`（已完成：`ecode.json` Core + CommandPalette 接入 + reload config）
 5. `M2-A-01`（已完成：`ResumeBinding` DTO + JSON）
 6. `M1-A-01`（Pane 蓝环，macOS 核心体验首块拼图）
-7. `M2-A-03`（ResumeBinding 敏感环境剔除）
+7. `M2-A-03`（已完成：ResumeBinding 敏感环境剔除）
 8. `M2-C-01`（CLI `surface resume`）
 9. `M3-A-01` + `M3-A-02`（SurfaceKind + SessionState 扩展）
 10. `M3-C-01` + `M3-B-02`（CLI `browser open` + BrowserControl 升级）
