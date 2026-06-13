@@ -93,12 +93,46 @@ public class NotificationServiceTests
         service.UnreadCount.Should().Be(2);
     }
 
-    private static TerminalNotification CreateNotification(string id, bool isRead, DateTime timestamp) => new()
+    [Fact]
+    public void GetUnreadCount_ForSurface_FiltersByWorkspaceAndSurface()
+    {
+        var service = new NotificationService();
+        service.Notifications.Add(CreateNotification("target-1", isRead: false, timestamp: DateTime.UtcNow, workspaceId: "workspace-1", surfaceId: "surface-1"));
+        service.Notifications.Add(CreateNotification("target-read", isRead: true, timestamp: DateTime.UtcNow, workspaceId: "workspace-1", surfaceId: "surface-1"));
+        service.Notifications.Add(CreateNotification("other-surface", isRead: false, timestamp: DateTime.UtcNow, workspaceId: "workspace-1", surfaceId: "surface-2"));
+        service.Notifications.Add(CreateNotification("other-workspace", isRead: false, timestamp: DateTime.UtcNow, workspaceId: "workspace-2", surfaceId: "surface-1"));
+
+        var count = service.GetUnreadCount("workspace-1", "surface-1");
+
+        count.Should().Be(1);
+    }
+
+    [Fact]
+    public void GetUnreadCount_ForPane_FiltersByWorkspaceSurfaceAndPane()
+    {
+        var service = new NotificationService();
+        service.Notifications.Add(CreateNotification("target-1", isRead: false, timestamp: DateTime.UtcNow, workspaceId: "workspace-1", surfaceId: "surface-1", paneId: "pane-1"));
+        service.Notifications.Add(CreateNotification("target-read", isRead: true, timestamp: DateTime.UtcNow, workspaceId: "workspace-1", surfaceId: "surface-1", paneId: "pane-1"));
+        service.Notifications.Add(CreateNotification("other-pane", isRead: false, timestamp: DateTime.UtcNow, workspaceId: "workspace-1", surfaceId: "surface-1", paneId: "pane-2"));
+        service.Notifications.Add(CreateNotification("other-surface", isRead: false, timestamp: DateTime.UtcNow, workspaceId: "workspace-1", surfaceId: "surface-2", paneId: "pane-1"));
+
+        var count = service.GetUnreadCount("workspace-1", "surface-1", "pane-1");
+
+        count.Should().Be(1);
+    }
+
+    private static TerminalNotification CreateNotification(
+        string id,
+        bool isRead,
+        DateTime timestamp,
+        string workspaceId = "workspace-1",
+        string surfaceId = "surface-1",
+        string paneId = "pane-1") => new()
     {
         Id = id,
-        WorkspaceId = "workspace-1",
-        SurfaceId = "surface-1",
-        PaneId = "pane-1",
+        WorkspaceId = workspaceId,
+        SurfaceId = surfaceId,
+        PaneId = paneId,
         IsRead = isRead,
         Title = id,
         Body = "body",

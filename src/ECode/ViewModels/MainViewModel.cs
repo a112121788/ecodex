@@ -271,6 +271,14 @@ public partial class MainViewModel : ObservableObject
         {
             ws.UnreadNotificationCount = _notificationService.GetUnreadCount(ws.Workspace.Id);
             ws.LatestNotificationText = _notificationService.GetLatestText(ws.Workspace.Id);
+
+            foreach (var surface in ws.Surfaces)
+            {
+                surface.UnreadNotificationCount = _notificationService.GetUnreadCount(
+                    ws.Workspace.Id,
+                    surface.Surface.Id);
+                surface.RefreshNotificationState();
+            }
         }
     }
 

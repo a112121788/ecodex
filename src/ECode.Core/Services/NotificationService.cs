@@ -146,6 +146,33 @@ public class NotificationService
     }
 
     /// <summary>
+    /// 获取指定标签页的未读数量。
+    /// </summary>
+    public int GetUnreadCount(string workspaceId, string surfaceId)
+    {
+        lock (_lock)
+        {
+            return _notifications.Count(n => n.WorkspaceId == workspaceId
+                                             && n.SurfaceId == surfaceId
+                                             && !n.IsRead);
+        }
+    }
+
+    /// <summary>
+    /// 获取指定面板的未读数量。
+    /// </summary>
+    public int GetUnreadCount(string workspaceId, string surfaceId, string paneId)
+    {
+        lock (_lock)
+        {
+            return _notifications.Count(n => n.WorkspaceId == workspaceId
+                                             && n.SurfaceId == surfaceId
+                                             && n.PaneId == paneId
+                                             && !n.IsRead);
+        }
+    }
+
+    /// <summary>
     /// 获取指定项目的最新通知文本（用于侧边栏显示）。
     /// </summary>
     public string? GetLatestText(string workspaceId)

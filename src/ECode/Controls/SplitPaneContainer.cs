@@ -70,6 +70,10 @@ public class SplitPaneContainer : ContentControl
         {
             Dispatcher.BeginInvoke(UpdateFocusState);
         }
+        else if (e.PropertyName is nameof(SurfaceViewModel.NotificationVersion))
+        {
+            Dispatcher.BeginInvoke(UpdateNotificationState);
+        }
     }
 
     /// <summary>
@@ -95,6 +99,16 @@ public class SplitPaneContainer : ContentControl
         }
 
         QueueFocusCurrentPane();
+    }
+
+    private void UpdateNotificationState()
+    {
+        if (_surface == null) return;
+
+        foreach (var (paneId, terminal) in _terminalCache)
+        {
+            terminal.HasNotification = _surface.HasUnreadNotification(paneId);
+        }
     }
 
     private void Rebuild()
@@ -245,6 +259,7 @@ public class SplitPaneContainer : ContentControl
         terminal.SearchRequested += () => SearchRequested?.Invoke();
         terminal.IsPaneFocused = paneId == _surface?.FocusedPaneId;
         terminal.IsSurfaceZoomed = _surface?.IsZoomed == true;
+        terminal.HasNotification = _surface?.HasUnreadNotification(paneId) == true;
 
         // 附加终端会话
         var session = _surface?.GetSession(paneId);

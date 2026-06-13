@@ -18,6 +18,7 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
     private readonly Dictionary<string, TerminalSession> _sessions = [];
     private readonly Dictionary<string, List<string>> _paneCommandHistory = [];
     private readonly Dictionary<string, string?> _paneShells = [];
+    private readonly Dictionary<string, int> _paneUnreadCounts = [];
     private readonly HashSet<string> _daemonPanes = [];
     private readonly HashSet<string> _daemonOutputLogged = [];
     private static readonly object _daemonWaitLock = new();
@@ -34,6 +35,15 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private bool _isZoomed;
+
+    [ObservableProperty]
+    private int _unreadNotificationCount;
+
+    [ObservableProperty]
+    private bool _hasNotification;
+
+    [ObservableProperty]
+    private int _notificationVersion;
 
     public event Action<string>? WorkingDirectoryChanged;
 
@@ -95,6 +105,34 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
         {
             Surface.FocusedPaneId = _focusedPaneId;
         }
+
+        RefreshNotificationState();
+    }
+
+    partial void OnUnreadNotificationCountChanged(int value)
+    {
+        HasNotification = value > 0;
+    }
+
+    public bool HasUnreadNotification(string paneId)
+    {
+        return _paneUnreadCounts.TryGetValue(paneId, out var count) && count > 0;
+    }
+
+    public void RefreshNotificationState()
+    {
+        foreach (var leaf in RootNode.GetLeaves())
+        {
+            if (string.IsNullOrWhiteSpace(leaf.PaneId))
+                continue;
+
+            _paneUnreadCounts[leaf.PaneId] = _notificationService.GetUnreadCount(
+                _workspaceId,
+                Surface.Id,
+                leaf.PaneId);
+        }
+
+        NotificationVersion++;
     }
 
     private void OnDaemonRawOutput(string paneId, byte[] data)

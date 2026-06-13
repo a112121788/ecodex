@@ -22,6 +22,7 @@
                 <DataTemplate DataType="{x:Type vm:SurfaceViewModel}">
                     <Border x:Name="tabBorder" Padding="14,6" Cursor="Hand"
                             Margin="2,4,2,4" CornerRadius="6"
+                            BorderBrush="Transparent" BorderThickness="1"
                             MouseLeftButtonDown="Tab_Click">
                         <Border.Background>
                             <SolidColorBrush x:Name="tabBg" Color="Transparent" />
@@ -42,19 +43,26 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12"
                                        Foreground="{StaticResource ForegroundDimBrush}"
                                        VerticalAlignment="Center"
                                        x:Name="tabText" />
-                            <Button Grid.Column="1" Content="&#xE10A;" FontFamily="Segoe MDL2 Assets"
+                            <Ellipse x:Name="unreadDot" Grid.Column="1"
+                                     Width="7" Height="7" Margin="8,0,0,0"
+                                     VerticalAlignment="Center"
+                                     Fill="{StaticResource NotificationBrush}"
+                                     Visibility="Collapsed"
+                                     ToolTip="{Binding UnreadNotificationCount, StringFormat={}{0} 条未读通知}" />
+                            <Button Grid.Column="2" Content="&#xE10A;" FontFamily="Segoe MDL2 Assets"
                                     FontSize="8" Margin="8,0,0,0" Padding="2"
                                     Opacity="0" x:Name="closeBtn"
                                     Style="{StaticResource ECodeButton}"
                                     Click="CloseTab_Click" Tag="{Binding}" />
 
                             <!-- Active tab bottom accent line -->
-                            <Rectangle x:Name="activeIndicator" Grid.ColumnSpan="2"
+                            <Rectangle x:Name="activeIndicator" Grid.ColumnSpan="3"
                                        Height="2" VerticalAlignment="Bottom" Margin="0,0,0,-4"
                                        RadiusX="1" RadiusY="1" Opacity="0">
                                 <Rectangle.Fill>
@@ -83,6 +91,12 @@
                                     Value="{StaticResource ForegroundBrush}" />
                             <Setter TargetName="tabText" Property="FontWeight" Value="SemiBold" />
                             <Setter TargetName="activeIndicator" Property="Opacity" Value="1" />
+                        </DataTrigger>
+                        <!-- Unread notification styling -->
+                        <DataTrigger Binding="{Binding HasNotification}" Value="True">
+                            <Setter TargetName="unreadDot" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="tabBorder" Property="BorderBrush"
+                                    Value="{StaticResource NotificationBrush}" />
                         </DataTrigger>
                         <!-- Hover effect -->
                         <Trigger SourceName="tabBorder" Property="IsMouseOver" Value="True">
