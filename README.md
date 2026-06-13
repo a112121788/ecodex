@@ -1,4 +1,4 @@
-# ECode（Windows 版）
+# ECode
 
 一款运行在 Windows 上的深色、键盘优先的终端复用器，灵感来自 cmux，但底层使用 WPF + ConPTY 原生构建。
 
