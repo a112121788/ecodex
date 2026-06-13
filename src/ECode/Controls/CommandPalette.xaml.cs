@@ -16,6 +16,7 @@ public class PaletteItem
     public string? Shortcut { get; set; }
     public string Icon { get; set; } = "\uE756";
     public string Category { get; set; } = "Commands";
+    public string? SearchText { get; set; }
     public Action? Execute { get; set; }
 }
 
@@ -57,7 +58,8 @@ public partial class CommandPalette : UserControl
             : _allItems.Where(item =>
                 item.Label.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 (item.Description?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                item.Category.Contains(query, StringComparison.OrdinalIgnoreCase));
+                item.Category.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                (item.SearchText?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false));
 
         foreach (var item in matches.Take(20))
             FilteredItems.Add(item);

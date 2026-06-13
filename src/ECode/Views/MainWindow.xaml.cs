@@ -12,6 +12,8 @@ using ECode.Controls;
 using ECode.Core.Services;
 using ECode.ViewModels;
 using ECode.Services;
+using EcodeActionTargets = ECode.Core.Models.EcodeActionTargets;
+using EcodeJsonDiagnosticSeverity = ECode.Core.Models.EcodeJsonDiagnosticSeverity;
 
 namespace ECode.Views;
 
@@ -639,7 +641,7 @@ public partial class MainWindow : Window
 
     private List<PaletteItem> BuildPaletteItems()
     {
-        return
+        List<PaletteItem> items =
         [
             new() { Id = "new-workspace", Label = "新建项目", Icon = "\uE710", Shortcut = "Ctrl+N", Category = "项目", Execute = () => ViewModel.CreateNewWorkspace() },
             new() { Id = "new-surface", Label = "新建标签页", Icon = "\uE710", Shortcut = "Ctrl+T", Category = "标签页", Execute = () => ViewModel.SelectedWorkspace?.CreateNewSurface() },
@@ -667,6 +669,145 @@ public partial class MainWindow : Window
             new() { Id = "layout-grid", Label = "布局：2x2 网格", Icon = "\uF0E2", Category = "布局", Execute = () => ApplyLayout(2, 2) },
             new() { Id = "layout-main-stack", Label = "布局：主+副", Icon = "\uE745", Category = "布局", Execute = () => ApplyMainStackLayout() },
         ];
+
+        AddEcodeJsonPaletteItems(items);
+        return items;
+    }
+
+    private void AddEcodeJsonPaletteItems(List<PaletteItem> items)
+    {
+        var service = new EcodeJsonService();
+        var result = service.Load(GetActiveWorkspaceDirectory());
+
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            items.Add(new PaletteItem
+            {
+                Id = $"ecode-json-diagnostic:{items.Count}",
+                Label = diagnostic.Severity == EcodeJsonDiagnosticSeverity.Error
+                    ? "ecode.json 配置错误"
+                    : "ecode.json 配置警告",
+                Description = diagnostic.Message,
+                Icon = "\uE7BA",
+                Category = "配置",
+                SearchText = $"{diagnostic.Path} {diagnostic.Message}",
+                Execute = () => MessageBox.Show(
+                    this,
+                    $"{diagnostic.Message}\n\n{diagnostic.Path}",
+                    "ecode.json",
+                    MessageBoxButton.OK,
+                    diagnostic.Severity == EcodeJsonDiagnosticSeverity.Error
+                        ? MessageBoxImage.Error
+                        : MessageBoxImage.Warning),
+            });
+        }
+
+        foreach (var command in result.Config.Commands.Where(c =>
+                     !string.IsNullOrWhiteSpace(c.Name) &&
+                     !string.IsNullOrWhiteSpace(c.Command)))
+        {
+            var commandText = command.Command;
+            items.Add(new PaletteItem
+            {
+                Id = $"ecode-json-command:{command.Name}",
+                Label = command.Name,
+                Description = command.Description ?? commandText,
+                Icon = "\uE756",
+                Category = "项目命令",
+                SearchText = string.Join(' ', command.Keywords),
+                Execute = () => ExecuteEcodeJsonCommand(
+                    command.Name,
+                    commandText,
+                    command.Target,
+                    command.Confirm),
+            });
+        }
+
+        foreach (var (id, action) in result.Config.Actions.Where(kvp =>
+                     kvp.Value.Palette &&
+                     string.Equals(kvp.Value.Type, "command", StringComparison.OrdinalIgnoreCase) &&
+                     !string.IsNullOrWhiteSpace(kvp.Value.Command)))
+        {
+            var commandText = action.Command!;
+            var title = string.IsNullOrWhiteSpace(action.Title) ? id : action.Title;
+            items.Add(new PaletteItem
+            {
+                Id = $"ecode-json-action:{id}",
+                Label = title,
+                Description = action.Subtitle ?? commandText,
+                Icon = "\uE756",
+                Category = "项目动作",
+                SearchText = id,
+                Execute = () => ExecuteEcodeJsonCommand(
+                    title,
+                    commandText,
+                    action.Target,
+                    action.Confirm),
+            });
+        }
+    }
+
+    private string? GetActiveWorkspaceDirectory()
+    {
+        var workspace = ViewModel.SelectedWorkspace;
+        var surface = workspace?.SelectedSurface;
+        var focusedPaneId = surface?.FocusedPaneId;
+
+        if (!string.IsNullOrWhiteSpace(focusedPaneId))
+        {
+            var cwd = surface?.GetSession(focusedPaneId)?.WorkingDirectory;
+            if (!string.IsNullOrWhiteSpace(cwd))
+                return cwd;
+        }
+
+        return workspace?.WorkingDirectory;
+    }
+
+    private void ExecuteEcodeJsonCommand(string label, string command, string target, bool confirm)
+    {
+        if (confirm)
+        {
+            var result = MessageBox.Show(
+                this,
+                $"要执行项目命令吗？\n\n{command}",
+                label,
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+        }
+
+        if (string.Equals(target, EcodeActionTargets.NewTabInCurrentPane, StringComparison.Ordinal))
+            ViewModel.SelectedWorkspace?.CreateNewSurface();
+
+        WriteCommandToFocusedTerminal(command);
+    }
+
+    private void WriteCommandToFocusedTerminal(string command)
+    {
+        var surface = ViewModel.SelectedWorkspace?.SelectedSurface;
+        if (surface == null)
+            return;
+
+        var paneId = surface.FocusedPaneId
+            ?? surface.RootNode.GetLeaves()
+                .Select(l => l.PaneId)
+                .FirstOrDefault(id => !string.IsNullOrWhiteSpace(id));
+
+        if (string.IsNullOrWhiteSpace(paneId))
+            return;
+
+        var session = surface.GetSession(paneId);
+        if (session == null)
+            return;
+
+        var commandText = command.TrimEnd('\r', '\n');
+        if (string.IsNullOrWhiteSpace(commandText))
+            return;
+
+        surface.RegisterCommandSubmission(paneId, commandText);
+        session.Write(commandText + Environment.NewLine);
     }
 
     private void ApplyLayout(int cols, int rows)
