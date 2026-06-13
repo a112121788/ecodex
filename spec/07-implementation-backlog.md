@@ -87,10 +87,10 @@
 
 | ID | 标题 | 关联文件 | 验收 |
 |---|---|---|---|
-| `M1-C-01` | `EcodeJsonConfig / EcodeCommand / EcodeAction` DTO | `ECode.Core/Models/EcodeJsonConfig.cs` | Core 单元测试通过 |
-| `M1-C-02` | `EcodeJsonService` 解析（路径搜索 / 全局本地合并 / schema 错误） | `ECode.Core/Services/EcodeJsonService.cs` | 含 `MergesLocalOverGlobal`、`InvalidSchema_ReturnsDiagnostic` 测试 |
-| `M1-C-03` | CommandPalette 接入 custom commands | `Controls/CommandPalette.xaml.cs` | 命令出现在面板 |
-| `M1-C-04` | `currentTerminal` / `newTabInCurrentPane` 目标执行 | `SurfaceViewModel.cs` | 含 confirm 弹窗路径 |
+| `M1-C-01` | `[x]` `EcodeJsonConfig / EcodeCommand / EcodeAction` DTO | `ECode.Core/Models/EcodeJsonConfig.cs` | Core 单元测试通过 |
+| `M1-C-02` | `[x]` `EcodeJsonService` 解析（路径搜索 / 全局本地合并 / schema 错误） | `ECode.Core/Services/EcodeJsonService.cs` | 含 `MergesLocalOverGlobal`、`InvalidSchema_ReturnsDiagnostic`、JSONC 测试 |
+| `M1-C-03` | `[x]` CommandPalette 接入 custom commands | `Controls/CommandPalette.xaml.cs`、`Views/MainWindow.xaml.cs` | 命令出现在面板，keywords/action id 可搜索 |
+| `M1-C-04` | `[x]` `currentTerminal` / `newTabInCurrentPane` 目标执行 | `Views/MainWindow.xaml.cs` | 含 `confirm` 弹窗路径；执行时记录命令日志 |
 | `M1-C-05` | CLI `ecode reload-config` + `Ctrl+Shift+,` | `ECode.Cli/Program.cs`、`MainWindow.xaml.cs` | 重载后命令面板刷新 |
 
 ---
@@ -297,8 +297,8 @@
 1. `M0-A-01` + `M0-A-02`（建立 CI 安全网）
 2. `M0-A-03`（版本号统一）
 3. `M0-B-01` ~ `M0-B-05`（核心测试补齐）
-4. `M1-C-01` + `M1-C-02`（`ecode.json` 纯 Core 部分）
-5. `M1-C-03` ~ `M1-C-05`（CommandPalette 接入）
+4. `M1-C-01` ~ `M1-C-04`（已完成：`ecode.json` Core + CommandPalette 接入）
+5. `M1-C-05`（CLI `ecode reload-config` + `Ctrl+Shift+,`）
 6. `M1-A-01`（Pane 蓝环，macOS 核心体验首块拼图）
 7. `M2-A-01` ~ `M2-A-03`（ResumeBinding 数据与服务）
 8. `M2-C-01`（CLI `surface resume`）
