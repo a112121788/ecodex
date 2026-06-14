@@ -306,12 +306,12 @@
                             <TextBlock Text="键盘" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
-                    <Button x:Name="NavAbout" Style="{StaticResource NavButton}"
+                    <Button x:Name="NavAdvanced" Style="{StaticResource NavButton}"
                             Click="NavButton_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                            <TextBlock Text="&#xE7B8;" FontFamily="Segoe MDL2 Assets" FontSize="14"
                                        VerticalAlignment="Center" Margin="0,0,10,0" />
-                            <TextBlock Text="关于" VerticalAlignment="Center" />
+                            <TextBlock Text="高级" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -851,10 +851,50 @@
                     </StackPanel>
 
 
-                    <!-- ═══ 关于部分 ═══ -->
-                    <StackPanel x:Name="AboutSection" Visibility="Collapsed">
-                        <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"
+                    <!-- ═══ 高级部分 ═══ -->
+                    <StackPanel x:Name="AdvancedSection" Visibility="Collapsed">
+                        <TextBlock Text="高级" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{StaticResource ForegroundBrush}" Margin="0,0,0,20" />
+
+                        <Border Background="#FF1A1A1A" CornerRadius="6" Padding="20,16" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="自定义命令" FontSize="15" FontWeight="SemiBold"
+                                           Foreground="{StaticResource ForegroundBrush}" Margin="0,0,0,6" />
+                                <TextBlock Text="通过项目内 .ecode/ecode.json 定义命令，保存后可用 Ctrl+Shift+, 热重载，并在命令面板中搜索执行。"
+                                           Foreground="{StaticResource ForegroundDimBrush}" FontSize="12"
+                                           TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,10" />
+                                <TextBox IsReadOnly="True" Style="{StaticResource SettingsTextBox}"
+                                         FontFamily="Cascadia Code" FontSize="11"
+                                         TextWrapping="NoWrap" Height="112"
+                                         AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                                         xml:space="preserve"><TextBox.Text>{
+  "commands": [
+    {
+      "id": "dev",
+      "label": "启动开发服务",
+      "action": "npm run dev",
+      "target": "currentTerminal",
+      "confirm": false
+    }
+  ]
+}</TextBox.Text></TextBox>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#FF1A1A1A" CornerRadius="6" Padding="20,16" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="兼容选项" FontSize="15" FontWeight="SemiBold"
+                                           Foreground="{StaticResource ForegroundBrush}" Margin="0,0,0,10" />
+                                <CheckBox x:Name="CompatMainPipeCheck" Style="{StaticResource SettingsCheck}"
+                                          Content="监听旧主应用管道（cmux）" Margin="0,0,0,8" />
+                                <CheckBox x:Name="CompatDaemonPipeCheck" Style="{StaticResource SettingsCheck}"
+                                          Content="监听旧守护进程管道 / Mutex（cmux-daemon）" Margin="0,0,0,8" />
+                                <CheckBox x:Name="CompatConfigFileCheck" Style="{StaticResource SettingsCheck}"
+                                          Content="读取旧配置文件 .cmux/cmux.json" Margin="0,0,0,8" />
+                                <CheckBox x:Name="CompatLegacyCliCheck" Style="{StaticResource SettingsCheck}"
+                                          Content="接受旧 CLI 命令别名" />
+                            </StackPanel>
+                        </Border>
 
                         <Border Background="#FF1A1A1A" CornerRadius="6" Padding="20,16" Margin="0,0,0,12">
                             <StackPanel>

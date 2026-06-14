@@ -27,6 +27,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - Workspace 侧边栏拖拽重排现在会校验同一列表内的源 / 目标项目，并在成功后持久化项目顺序。
 - 拖入终端的文件 / 图片路径统一通过 `ShellPathQuoter` 生成 quoted path，并补充 Core 单元测试覆盖空白路径与带空格路径。
 - Workspace 右键菜单已覆盖重命名、复制项目 ID 与关闭项目三个基础操作。
+- 设置窗口重排为外观 / 终端 / 行为 / 键盘 / 高级，并在高级页加入自定义命令说明与兼容开关。
 - 新增 `ResumeBinding` / `ResumeBindingFile` DTO，为 M2 会话恢复增强的 `resume.json` 打基础。
 - 新增 `ResumeBindingService`，支持 `resume.json` 的加载、保存、增删、按 Surface 查询与信任前缀更新。
 - `ResumeBindingService` 保存 `resume.json` 前会剔除 TOKEN、PASSWORD、SECRET、API_KEY 等敏感环境变量。

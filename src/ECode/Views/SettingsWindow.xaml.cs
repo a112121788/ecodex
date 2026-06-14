@@ -91,6 +91,10 @@ public partial class SettingsWindow : Window
         CaptureOnCloseCheck.IsChecked = s.CaptureTranscriptsOnClose;
         CaptureOnClearCheck.IsChecked = s.CaptureTranscriptsOnClear;
         TranscriptRetentionDaysBox.Text = Math.Clamp(s.TranscriptRetentionDays, 0, 3650).ToString();
+        CompatMainPipeCheck.IsChecked = s.CompatListenLegacyMainPipe;
+        CompatDaemonPipeCheck.IsChecked = s.CompatListenLegacyDaemonPipe;
+        CompatConfigFileCheck.IsChecked = s.CompatReadLegacyConfigFile;
+        CompatLegacyCliCheck.IsChecked = s.CompatAcceptLegacyCliCommand;
 
         UseCustomTerminalColorsCheck.IsChecked = s.UseCustomTerminalColors;
 
@@ -136,6 +140,10 @@ public partial class SettingsWindow : Window
         s.CaptureTranscriptsOnClear = CaptureOnClearCheck.IsChecked == true;
         if (int.TryParse(TranscriptRetentionDaysBox.Text, out int transcriptRetention))
             s.TranscriptRetentionDays = Math.Clamp(transcriptRetention, 0, 3650);
+        s.CompatListenLegacyMainPipe = CompatMainPipeCheck.IsChecked == true;
+        s.CompatListenLegacyDaemonPipe = CompatDaemonPipeCheck.IsChecked == true;
+        s.CompatReadLegacyConfigFile = CompatConfigFileCheck.IsChecked == true;
+        s.CompatAcceptLegacyCliCommand = CompatLegacyCliCheck.IsChecked == true;
 
         s.UseCustomTerminalColors = UseCustomTerminalColorsCheck.IsChecked == true;
         s.CustomTerminalBackground = NormalizeHexColor(TerminalBackgroundHexBox.Text) ?? string.Empty;
@@ -150,14 +158,17 @@ public partial class SettingsWindow : Window
 
     private void ShowSection(string section)
     {
+        if (section == "About")
+            section = "Advanced";
+
         AppearanceSection.Visibility = section == "Appearance" ? Visibility.Visible : Visibility.Collapsed;
         TerminalSection.Visibility = section == "Terminal" ? Visibility.Visible : Visibility.Collapsed;
         BehaviorSection.Visibility = section == "Behavior" ? Visibility.Visible : Visibility.Collapsed;
         KeyboardSection.Visibility = section == "Keyboard" ? Visibility.Visible : Visibility.Collapsed;
-        AboutSection.Visibility = section == "About" ? Visibility.Visible : Visibility.Collapsed;
+        AdvancedSection.Visibility = section == "Advanced" ? Visibility.Visible : Visibility.Collapsed;
 
         // 通过 Tag 更新导航按钮的激活状态
-        foreach (var btn in new[] { NavAppearance, NavTerminal, NavBehavior, NavKeyboard, NavAbout })
+        foreach (var btn in new[] { NavAppearance, NavTerminal, NavBehavior, NavKeyboard, NavAdvanced })
             btn.Tag = btn.Name == $"Nav{section}" ? "active" : null;
     }
 
