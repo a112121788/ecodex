@@ -48,6 +48,7 @@ public static class Program
                 "surface" => await HandleSurface(args[1..]),
                 "browser" => await HandleBrowser(args[1..]),
                 "split" => await HandleSplit(args[1..]),
+                "restore-session" => await HandleRestoreSession(args[1..]),
                 "reload-config" => await HandleReloadConfig(),
                 "status" => await HandleStatus(),
                 "help" or "--help" or "-h" => PrintHelp(),
@@ -193,6 +194,13 @@ public static class Program
         return await SendAndPrint("STATUS");
     }
 
+    private static async Task<int> HandleRestoreSession(string[] args)
+    {
+        var parsed = ParseArgs(args);
+        NormalizeResumeSelectorAliases(parsed);
+        return await SendAndPrint("SESSION.RESTORE", parsed);
+    }
+
     private static async Task<int> HandleReloadConfig()
     {
         return await SendAndPrint("CONFIG.RELOAD");
@@ -336,6 +344,12 @@ public static class Program
 
               reload-config         Reload ecode.json commands/actions
 
+              restore-session       Refresh resume bindings and focus first recoverable pane
+                --all               Scan all workspaces/surfaces
+                --trusted           Also run trusted bindings immediately
+                --workspace <name>  Select workspace by name
+                --surface <name>    Select surface by name
+
               status                Show ecode status
 
             Keyboard Shortcuts (in the app):
@@ -351,6 +365,7 @@ public static class Program
               Ctrl+Alt+Arrow        Focus pane directionally
               Ctrl+I                Toggle notification panel
               Ctrl+Shift+U          Jump to latest unread
+              Ctrl+Shift+O          Restore session bindings
               Ctrl+Shift+,          Reload ecode.json
             """);
         return 0;
@@ -369,4 +384,3 @@ public static class Program
         return 1;
     }
 }
-

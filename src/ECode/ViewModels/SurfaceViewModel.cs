@@ -218,6 +218,13 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
         return _pendingResumeBindings.TryGetValue(paneId, out var binding) ? binding : null;
     }
 
+    public IReadOnlyList<ResumeBinding> GetPendingResumeBindings()
+    {
+        return _pendingResumeBindings.Values
+            .OrderByDescending(binding => binding.UpdatedAtUtc)
+            .ToList();
+    }
+
     public bool RunPendingResumeBinding(string paneId, bool trustForFuture = false)
     {
         if (!_pendingResumeBindings.TryGetValue(paneId, out var binding))
@@ -234,14 +241,14 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
         _ = Task.Run(async () =>
         {
             await Task.Delay(600);
-            await Application.Current.Dispatcher.InvokeAsync(RunTrustedResumeBindings);
+            await Application.Current.Dispatcher.InvokeAsync(() => RunTrustedResumeBindings());
         });
     }
 
-    private void RunTrustedResumeBindings()
+    public int RunTrustedResumeBindings(bool requireEnabledSetting = true)
     {
-        if (!SettingsService.Current.AutoResumeTrustedBindings)
-            return;
+        if (requireEnabledSetting && !SettingsService.Current.AutoResumeTrustedBindings)
+            return 0;
 
         var activePaneIds = RootNode.GetLeaves()
             .Select(leaf => leaf.PaneId)
@@ -261,8 +268,14 @@ public partial class SurfaceViewModel : ObservableObject, IDisposable
             .Select(group => group.OrderByDescending(binding => binding.UpdatedAtUtc).First())
             .ToList();
 
+        var started = 0;
         foreach (var binding in trustedBindings)
-            RunResumeBinding(binding, trustForFuture: false);
+        {
+            if (RunResumeBinding(binding, trustForFuture: false))
+                started++;
+        }
+
+        return started;
     }
 
     private bool RunResumeBinding(ResumeBinding binding, bool trustForFuture)

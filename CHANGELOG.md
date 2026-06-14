@@ -35,6 +35,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - 未信任 resume binding 会在对应 pane 显示红色恢复提示条与“可恢复”按钮，用户确认后才会执行恢复命令。
 - 新增自动恢复可信 resume binding 的全局开关，以及“信任并恢复”按钮；关闭时不会自动执行任何 resume binding。
 - 新增 `ResumeProcessDetector`，可解析 Windows `tasklist /fo csv /v` 输出并检测 tmux 与常见 shell 进程。
+- 新增 `ecode restore-session`、`Ctrl+Shift+O` 和命令面板入口，用于刷新恢复绑定并定位第一个可恢复面板。
 - 启动 shell 时注入 `ECODE_WORKSPACE_ID`，本地 ConPTY 与 daemon 托管会话均可读取当前 workspace id。
 - 新增 Browser surface 基础数据模型，`session.json` 可保存 `kind/browserUrl/browserTitle/browserHistory`，旧会话默认按 Terminal 恢复。
 - 新增 `BrowserPaneViewModel`，为 Browser pane 暴露 URL、标题、加载中、前进/后退能力与历史状态。

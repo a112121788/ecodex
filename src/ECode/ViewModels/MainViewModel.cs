@@ -9,6 +9,16 @@ using ECode.Core.Services;
 
 namespace ECode.ViewModels;
 
+public sealed record RestoreSessionResult(
+    int ScannedSurfaces,
+    int PendingBindings,
+    int TrustedStarted,
+    string? FirstWorkspaceId,
+    string? FirstWorkspaceName,
+    string? FirstSurfaceId,
+    string? FirstSurfaceName,
+    string? FirstPaneId);
+
 /// <summary>管理多个 Workspace 和侧边栏状态的主窗口 ViewModel</summary>
 public partial class MainViewModel : ObservableObject
 {
@@ -464,6 +474,7 @@ public partial class MainViewModel : ObservableObject
                 "SURFACE.RESUME.SHOW" => HandleSurfaceResumeShow(args),
                 "SURFACE.RESUME.SET" => HandleSurfaceResumeSet(args),
                 "SURFACE.RESUME.CLEAR" => HandleSurfaceResumeClear(args),
+                "SESSION.RESTORE" => HandleSessionRestore(args),
                 "BROWSER.OPEN" => HandleBrowserOpen(args),
                 "BROWSER.NEW" => HandleBrowserNew(args),
                 "BROWSER.OPEN_SPLIT" => HandleBrowserOpenSplit(args),
@@ -737,6 +748,100 @@ public partial class MainViewModel : ObservableObject
             foreach (var surface in workspace.Surfaces)
                 surface.RefreshResumeBindings();
         }
+    }
+
+    public RestoreSessionResult RestoreResumeBindingsForSelected(bool runTrusted = false, bool focusFirst = true)
+    {
+        var workspace = SelectedWorkspace;
+        var surface = workspace?.SelectedSurface;
+        if (workspace == null || surface == null)
+            return new RestoreSessionResult(0, 0, 0, null, null, null, null, null);
+
+        return RestoreResumeBindings([(workspace, surface)], runTrusted, focusFirst);
+    }
+
+    private string HandleSessionRestore(Dictionary<string, string> args)
+    {
+        var runTrusted = IsTruthy(args, "trusted") || IsTruthy(args, "runTrusted");
+        var focusFirst = !IsTruthy(args, "noFocus");
+
+        List<(WorkspaceViewModel workspace, SurfaceViewModel surface)> targets = [];
+        if (IsTruthy(args, "all"))
+        {
+            targets.AddRange(Workspaces.SelectMany(workspace => workspace.Surfaces
+                .Select(surface => (workspace, surface))));
+        }
+        else
+        {
+            if (!TryResolveWorkspace(args, out var workspace, out var error))
+                return JsonSerializer.Serialize(new { error });
+
+            if (!TryResolveSurface(workspace, args, out var surface, out error))
+                return JsonSerializer.Serialize(new { error });
+
+            targets.Add((workspace, surface));
+        }
+
+        var result = RestoreResumeBindings(targets, runTrusted, focusFirst);
+        return JsonSerializer.Serialize(new
+        {
+            ok = true,
+            scannedSurfaces = result.ScannedSurfaces,
+            pendingBindings = result.PendingBindings,
+            trustedStarted = result.TrustedStarted,
+            firstPending = result.FirstPaneId == null
+                ? null
+                : new
+                {
+                    workspaceId = result.FirstWorkspaceId,
+                    workspaceName = result.FirstWorkspaceName,
+                    surfaceId = result.FirstSurfaceId,
+                    surfaceName = result.FirstSurfaceName,
+                    paneId = result.FirstPaneId,
+                },
+        });
+    }
+
+    private RestoreSessionResult RestoreResumeBindings(
+        IReadOnlyList<(WorkspaceViewModel workspace, SurfaceViewModel surface)> targets,
+        bool runTrusted,
+        bool focusFirst)
+    {
+        var scanned = 0;
+        var pending = 0;
+        var trustedStarted = 0;
+        (WorkspaceViewModel workspace, SurfaceViewModel surface, ResumeBinding binding)? firstPending = null;
+
+        foreach (var (workspace, surface) in targets)
+        {
+            scanned++;
+            surface.RefreshResumeBindings();
+            if (runTrusted)
+                trustedStarted += surface.RunTrustedResumeBindings(requireEnabledSetting: false);
+
+            var bindings = surface.GetPendingResumeBindings();
+            pending += bindings.Count;
+            if (firstPending == null && bindings.Count > 0)
+                firstPending = (workspace, surface, bindings[0]);
+        }
+
+        if (focusFirst && firstPending is { } target)
+        {
+            SelectedWorkspace = target.workspace;
+            target.workspace.SelectedSurface = target.surface;
+            target.surface.FocusPane(target.binding.PaneId);
+            target.surface.FlashPaneAttention(target.binding.PaneId);
+        }
+
+        return new RestoreSessionResult(
+            scanned,
+            pending,
+            trustedStarted,
+            firstPending?.workspace.Workspace.Id,
+            firstPending?.workspace.Name,
+            firstPending?.surface.Surface.Id,
+            firstPending?.surface.Name,
+            firstPending?.binding.PaneId);
     }
 
     private string HandleBrowserOpen(Dictionary<string, string> args)

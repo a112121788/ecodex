@@ -752,6 +752,7 @@
                                     <RowDefinition Height="28" />
                                     <RowDefinition Height="28" />
                                     <RowDefinition Height="28" />
+                                    <RowDefinition Height="28" />
                                 </Grid.RowDefinitions>
 
                                 <!-- 项目 -->
@@ -857,6 +858,11 @@
                                 <TextBlock Grid.Row="19" Grid.Column="0" Text="Ctrl+Shift+V" FontWeight="SemiBold"
                                            Foreground="{StaticResource AccentBrush}" FontSize="13" VerticalAlignment="Center" />
                                 <TextBlock Grid.Row="19" Grid.Column="1" Text="打开会话存档"
+                                           Foreground="{StaticResource ForegroundDimBrush}" FontSize="13" VerticalAlignment="Center" />
+
+                                <TextBlock Grid.Row="20" Grid.Column="0" Text="Ctrl+Shift+O" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AccentBrush}" FontSize="13" VerticalAlignment="Center" />
+                                <TextBlock Grid.Row="20" Grid.Column="1" Text="恢复会话绑定"
                                            Foreground="{StaticResource ForegroundDimBrush}" FontSize="13" VerticalAlignment="Center" />
                             </Grid>
                         </Border>

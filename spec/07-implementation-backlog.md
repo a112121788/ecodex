@@ -120,7 +120,7 @@
 | ID | 标题 | 关联文件 | 验收 |
 |---|---|---|---|
 | `M2-C-01` | `[x]` CLI `surface resume {set,show,clear}` | `ECode.Cli/Program.cs`、`MainViewModel.cs` | build + ResumeBinding service 测试通过 |
-| `M2-C-02` | CLI `restore-session` / `Ctrl+Shift+O` 入口 | `MainWindow.xaml.cs` | UI 入口可用 |
+| `M2-C-02` | `[x]` CLI `restore-session` / `Ctrl+Shift+O` 入口 | `MainWindow.xaml.cs` | UI 入口可用 |
 
 ## M3 - 浏览器面板基础
 

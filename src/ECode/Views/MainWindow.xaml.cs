@@ -287,6 +287,10 @@ public partial class MainWindow : Window
                     ViewModel.JumpToLatestUnread();
                     e.Handled = true;
                     return;
+                case Key.O: // Restore session bindings (Ctrl+Shift+O)
+                    RestoreSessionBindings();
+                    e.Handled = true;
+                    return;
                 case Key.OemCloseBrackets: // Next surface (Ctrl+Shift+])
                     ViewModel.SelectedWorkspace?.NextSurface();
                     e.Handled = true;
@@ -556,8 +560,19 @@ public partial class MainWindow : Window
 
     private void MenuOpenLogs_Click(object sender, RoutedEventArgs e) => OpenLogsWindow();
     private void MenuOpenSessionVault_Click(object sender, RoutedEventArgs e) => OpenSessionVault();
+    private void MenuRestoreSession_Click(object sender, RoutedEventArgs e) => RestoreSessionBindings();
     private void MenuReloadConfig_Click(object sender, RoutedEventArgs e) => ReloadEcodeJsonConfig(showFeedback: true);
     private void MenuOpenSettings_Click(object sender, RoutedEventArgs e) => OpenSettings();
+
+    private void RestoreSessionBindings()
+    {
+        var result = ViewModel.RestoreResumeBindingsForSelected();
+        var message = result.PendingBindings > 0
+            ? $"找到 {result.PendingBindings} 个可恢复绑定，已定位到第一个可恢复面板。"
+            : "当前标签页没有待确认的恢复绑定。";
+
+        MessageBox.Show(this, message, "恢复会话", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
     private void MenuOpenKeyboardShortcuts_Click(object sender, RoutedEventArgs e)
     {
         var settings = new SettingsWindow("Keyboard") { Owner = this };
@@ -702,6 +717,7 @@ public partial class MainWindow : Window
             new() { Id = "test-notification", Label = "测试通知", Icon = "\uE7F4", Category = "视图", Execute = ShowTestNotification },
             new() { Id = "open-logs", Label = "打开命令日志", Icon = "\uE7BA", Shortcut = "Ctrl+Shift+L", Category = "日志", Execute = OpenLogsWindow },
             new() { Id = "open-session-vault", Label = "打开会话存档", Icon = "\uE8D1", Shortcut = "Ctrl+Shift+V", Category = "日志", Execute = OpenSessionVault },
+            new() { Id = "restore-session", Label = "恢复会话绑定", Icon = "\uE777", Shortcut = "Ctrl+Shift+O", Category = "会话", Execute = RestoreSessionBindings },
             new() { Id = "open-command-history", Label = "打开命令历史", Icon = "\uE81C", Shortcut = "Ctrl+Alt+H", Category = "历史", Execute = OpenCommandHistoryPicker },
             new() { Id = "insert-last-command", Label = "插入上一条命令", Icon = "\uE8A7", Shortcut = "Ctrl+Shift+H", Category = "历史", Execute = InsertLastCommandFromHistory },
             new() { Id = "search", Label = "搜索", Icon = "\uE721", Shortcut = "Ctrl+Shift+F", Category = "视图", Execute = () => ToggleSearch() },

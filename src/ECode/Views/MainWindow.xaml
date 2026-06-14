@@ -164,6 +164,7 @@
                                 <MenuItem Header="新建标签页(_S)" Command="{Binding SelectedWorkspace.CreateNewSurfaceCommand}" InputGestureText="Ctrl+T" />
                                 <MenuItem Header="命令日志(_L)" Click="MenuOpenLogs_Click" InputGestureText="Ctrl+Shift+L" />
                                 <MenuItem Header="会话存档(_V)" Click="MenuOpenSessionVault_Click" InputGestureText="Ctrl+Shift+V" />
+                                <MenuItem Header="恢复会话(_O)" Click="MenuRestoreSession_Click" InputGestureText="Ctrl+Shift+O" />
                                 <MenuItem Header="重载 ecode.json(_R)" Click="MenuReloadConfig_Click" InputGestureText="Ctrl+Shift+," />
                                 <MenuItem Header="设置(_S)" Click="MenuOpenSettings_Click" InputGestureText="Ctrl+," />
                                 <MenuItem Header="退出(_X)" Click="CloseButton_Click" />
