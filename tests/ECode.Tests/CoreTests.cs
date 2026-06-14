@@ -495,6 +495,93 @@ public class ShortRefTests
     }
 }
 
+public class CliGlobalOptionsTests
+{
+    [Fact]
+    public void TryExtract_DefaultsHumanOutputToRefs()
+    {
+        var ok = CliGlobalOptions.TryExtract(
+            ["workspace", "list"],
+            out var options,
+            out var remaining,
+            out var error);
+
+        ok.Should().BeTrue(error);
+        options.IdFormat.Should().Be(CliIdFormat.Refs);
+        options.Json.Should().BeFalse();
+        remaining.Should().Equal("workspace", "list");
+    }
+
+    [Fact]
+    public void TryExtract_DefaultsJsonOutputToBoth()
+    {
+        var ok = CliGlobalOptions.TryExtract(
+            ["--json", "workspace", "list"],
+            out var options,
+            out var remaining,
+            out var error);
+
+        ok.Should().BeTrue(error);
+        options.IdFormat.Should().Be(CliIdFormat.Both);
+        options.Json.Should().BeTrue();
+        remaining.Should().Equal("workspace", "list");
+    }
+
+    [Theory]
+    [InlineData("refs", CliIdFormat.Refs)]
+    [InlineData("uuids", CliIdFormat.Uuids)]
+    [InlineData("both", CliIdFormat.Both)]
+    public void TryExtract_ExplicitIdFormatOverridesDefault(string raw, CliIdFormat expected)
+    {
+        var ok = CliGlobalOptions.TryExtract(
+            ["--json", "--id-format", raw, "status"],
+            out var options,
+            out var remaining,
+            out var error);
+
+        ok.Should().BeTrue(error);
+        options.IdFormat.Should().Be(expected);
+        options.Json.Should().BeTrue();
+        remaining.Should().Equal("status");
+    }
+
+    [Fact]
+    public void TryExtract_SupportsEqualsSyntax()
+    {
+        var ok = CliGlobalOptions.TryExtract(
+            ["--id-format=uuids", "status"],
+            out var options,
+            out var remaining,
+            out var error);
+
+        ok.Should().BeTrue(error);
+        options.IdFormat.Should().Be(CliIdFormat.Uuids);
+        remaining.Should().Equal("status");
+    }
+
+    [Fact]
+    public void TryExtract_RejectsInvalidIdFormat()
+    {
+        var ok = CliGlobalOptions.TryExtract(
+            ["--id-format", "short", "status"],
+            out _,
+            out _,
+            out var error);
+
+        ok.Should().BeFalse();
+        error.Should().Contain("Invalid --id-format");
+    }
+
+    [Fact]
+    public void ToPipeArgs_EmitsIdFormatAndJsonFlag()
+    {
+        var args = new CliGlobalOptions(CliIdFormat.Both, Json: true).ToPipeArgs();
+
+        args.Should().Contain("idFormat", "both");
+        args.Should().Contain("json", "true");
+    }
+}
+
 public class BrowserScriptingServiceTests
 {
     [Fact]

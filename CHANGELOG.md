@@ -53,6 +53,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - 新增浏览器脚本化 P0 xUnit fixture，并在 CI 中为 WebView2 集成测试提供 Windows-only gate。
 - 命名管道现在支持同一 `\\.\pipe\ecode` 上 v1 文本命令与 `ecode.v2` JSON 首行协商，并提供 v2 `status` smoke。
 - 新增 `ShortRef` 模型，支持 `window:N/workspace:N/surface:N/pane:N` 与 UUID 的双向解析。
+- `ecode` CLI 新增全局 `--id-format refs|uuids|both` 与 `--json` 默认联动，human 默认 refs、JSON 默认 both。
 - 新增 `ecode browser open|new|open-split <url>` 与 `BROWSER.OPEN*` IPC，可从 CLI 创建或复用 Browser Surface。
 - Browser 工具栏新增停止加载、开发者工具与加载进度状态。
 - `.ecode/ecode.json` 新增 `workspace.surfaces` Browser Surface layout 支持，启动或重载配置时可创建 / 复用浏览器标签页。

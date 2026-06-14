@@ -21,6 +21,8 @@ namespace ECode.Cli;
 /// </summary>
 public static class Program
 {
+    private static CliGlobalOptions _globalOptions = CliGlobalOptions.DefaultHuman;
+
     public static async Task<int> Main(string[] args)
     {
         if (args.Length == 0)
@@ -35,6 +37,15 @@ public static class Program
             && string.Equals(args[0], "cmux", StringComparison.Ordinal))
         {
             args = new[] { "ecode" }.Concat(args.Skip(1)).ToArray();
+        }
+
+        if (!CliGlobalOptions.TryExtract(args, out _globalOptions, out args, out var globalError))
+            return Error(globalError);
+
+        if (args.Length == 0)
+        {
+            PrintHelp();
+            return 0;
         }
 
         var command = args[0].ToLowerInvariant();
@@ -204,7 +215,13 @@ public static class Program
 
     private static async Task<int> SendAndPrint(string command, Dictionary<string, string>? args = null)
     {
-        var response = await NamedPipeClient.SendCommand(command, args);
+        var response = await NamedPipeClient.SendCommand(command, MergeGlobalArgs(args));
+
+        if (_globalOptions.Json)
+        {
+            Console.WriteLine(response);
+            return 0;
+        }
 
         // 美化输出 JSON
         try
@@ -219,6 +236,18 @@ public static class Program
         }
 
         return 0;
+    }
+
+    private static Dictionary<string, string> MergeGlobalArgs(Dictionary<string, string>? args)
+    {
+        var merged = _globalOptions.ToPipeArgs();
+        if (args != null)
+        {
+            foreach (var (key, value) in args)
+                merged[key] = value;
+        }
+
+        return merged;
     }
 
     private static Dictionary<string, string> ParseArgs(string[] args)
@@ -311,7 +340,11 @@ public static class Program
             ecode - Terminal multiplexer (Windows)
 
             Usage:
-              ecode <command> [options]
+              ecode [--json] [--id-format refs|uuids|both] <command> [options]
+
+            Global options:
+              --id-format <mode>   refs | uuids | both; default refs, or both with --json
+              --json               Print raw JSON and default id-format to both
 
             Commands:
               notify                Send a notification

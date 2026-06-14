@@ -193,7 +193,7 @@
 |---|---|---|---|
 | `M5-A-01` | `[x]` 同一 `\\.\pipe\ecode` 上 v1/v2 协商（首行 JSON 判 v2） | `NamedPipeServer.cs`、`NamedPipeClient.cs` | v1 / v2 并存可运行 |
 | `M5-A-02` | `[x]` 短 ID 引用（`window:N / workspace:N / surface:N / pane:N`） | `ECode.Core/Models/ShortRef.cs` | UUID↔ref 双向解析 |
-| `M5-A-03` | `--id-format refs|uuids|both` 全局参数 | `ECode.Cli/Program.cs` | 默认行为与 `06-roadmap.md` §5.3 一致 |
+| `M5-A-03` | `[x]` `--id-format refs|uuids|both` 全局参数 | `ECode.Cli/Program.cs` | 默认行为与 `06-roadmap.md` §5.3 一致 |
 
 ### 包 B：多窗口
 
