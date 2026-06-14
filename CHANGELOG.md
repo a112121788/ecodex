@@ -73,6 +73,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - 新增 MSIX manifest 与 `publish.ps1 -Flavor MSIX`，用于企业可选的 Windows app package 打包。
 - 新增 release artifact workflow，nightly/manual 发布 `win-x64/win-x86/win-arm64` app 与 `win-x64` CLI 四个产物。
 - 新增 Release Drafter 配置与 workflow，可按 PR labels 自动生成 draft release notes。
+- 新增 VitePress 文档站骨架与 `npm run docs:build`，覆盖 M7 用户文档导航入口。
 - 新增 `ecode browser open|new|open-split <url>` 与 `BROWSER.OPEN*` IPC，可从 CLI 创建或复用 Browser Surface。
 - Browser 工具栏新增停止加载、开发者工具与加载进度状态。
 - `.ecode/ecode.json` 新增 `workspace.surfaces` Browser Surface layout 支持，启动或重载配置时可创建 / 复用浏览器标签页。

@@ -33,6 +33,11 @@ packages/
 *.nuget.targets
 project.lock.json
 
+# Node / docs
+node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
 # =========================
 # IDE / editor
 # =========================

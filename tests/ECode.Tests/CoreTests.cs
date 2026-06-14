@@ -615,6 +615,31 @@ public class ReleaseWorkflowTests
     }
 }
 
+public class DocsSiteTests
+{
+    [Fact]
+    public void VitePressDocs_DefinesBuildScriptAndCorePages()
+    {
+        var packageJsonPath = Path.Combine(AppContext.BaseDirectory, "package.json");
+        var configPath = Path.Combine(AppContext.BaseDirectory, "docs", ".vitepress", "config.mts");
+        var docsRoot = Path.Combine(AppContext.BaseDirectory, "docs");
+
+        using var packageJson = JsonDocument.Parse(File.ReadAllText(packageJsonPath));
+        packageJson.RootElement.GetProperty("scripts").GetProperty("docs:build").GetString()
+            .Should().Be("vitepress build docs");
+        packageJson.RootElement.GetProperty("devDependencies").TryGetProperty("vitepress", out _)
+            .Should().BeTrue();
+
+        var config = File.ReadAllText(configPath);
+        config.Should().Contain("title: 'ECode'");
+        config.Should().Contain("provider: 'local'");
+        config.Should().Contain("link: '/getting-started'");
+
+        foreach (var page in new[] { "index.md", "installation.md", "getting-started.md", "cli.md", "browser-api.md", "troubleshooting.md" })
+            File.Exists(Path.Combine(docsRoot, page)).Should().BeTrue(page);
+    }
+}
+
 public class MsixManifestTests
 {
     [Fact]
