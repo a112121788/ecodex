@@ -578,6 +578,33 @@ public class InnoSetupScriptTests
     }
 }
 
+public class MsixManifestTests
+{
+    [Fact]
+    public void AppXManifest_DefinesFullTrustDesktopPackage()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "installer", "AppXManifest.xml");
+        var manifest = File.ReadAllText(path);
+        var doc = new System.Xml.XmlDocument();
+
+        doc.LoadXml(manifest);
+        var ns = new System.Xml.XmlNamespaceManager(doc.NameTable);
+        ns.AddNamespace("m", "http://schemas.microsoft.com/appx/manifest/foundation/windows10");
+        ns.AddNamespace("uap", "http://schemas.microsoft.com/appx/manifest/uap/windows10");
+        ns.AddNamespace("rescap", "http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities");
+
+        doc.SelectSingleNode("/m:Package/m:Identity[@Name='ECode']", ns).Should().NotBeNull();
+        doc.SelectSingleNode("/m:Package/m:Applications/m:Application[@Executable='ecode-app.exe' and @EntryPoint='Windows.FullTrustApplication']", ns)
+            .Should().NotBeNull();
+        doc.SelectSingleNode("/m:Package/m:Applications/m:Application/uap:VisualElements[@Square150x150Logo='Assets\\Square150x150Logo.png']", ns)
+            .Should().NotBeNull();
+        doc.SelectSingleNode("/m:Package/m:Capabilities/rescap:Capability[@Name='runFullTrust']", ns)
+            .Should().NotBeNull();
+        doc.SelectSingleNode("/m:Package/m:Dependencies/m:TargetDeviceFamily[@Name='Windows.Desktop']", ns)
+            .Should().NotBeNull();
+    }
+}
+
 public class DoctorTests
 {
     [Fact]

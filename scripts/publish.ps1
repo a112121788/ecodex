@@ -8,6 +8,7 @@
     2) 自包含目录版        -> publish/ecode-win-x64-sc    （文件夹形式，可在任意 win-x64 上运行）
     3) CLI                 -> publish/ecode-cli           （自包含，可直接放入 PATH）
     4) Velopack            -> publish/velopack            （installer + RELEASES feed）
+    5) MSIX                -> publish/msix                （enterprise opt-in package）
 
   WPF + ConPTY 与 PublishSingleFile 配合不佳，因此有意省略了单文件
   发布形态。请改用自包含文件夹版本。
@@ -24,7 +25,8 @@
     SelfContained-> 形态 2
     Cli          -> 形态 3
     Velopack    -> self-contained app + vpk pack
-    All          -> 1 + 2 + 3
+    MSIX        -> self-contained app + CLI + makeappx pack
+    All          -> 1 + 2 + 3；installer flavors are opt-in
 
 .PARAMETER OutputRoot
   输出根目录。默认值：<repo>\publish。
@@ -37,6 +39,7 @@
   pwsh ./scripts/publish.ps1 -Flavor SelfContained
   pwsh ./scripts/publish.ps1 -Flavor Cli -Rid win-arm64
   pwsh ./scripts/publish.ps1 -Flavor Velopack -VpkCommand vpk
+  pwsh ./scripts/publish.ps1 -Flavor MSIX -MakeAppxCommand makeappx.exe
   pwsh ./scripts/publish.ps1 -Config Debug -Flavor Framework
 #>
 
@@ -48,7 +51,7 @@ param(
     [ValidateSet('win-x64', 'win-x86', 'win-arm64')]
     [string]$Rid = 'win-x64',
 
-    [ValidateSet('All', 'Framework', 'SelfContained', 'Cli', 'Velopack')]
+    [ValidateSet('All', 'Framework', 'SelfContained', 'Cli', 'Velopack', 'MSIX')]
     [string]$Flavor = 'All',
 
     [string]$OutputRoot,
@@ -58,6 +61,18 @@ param(
     [string]$VelopackAuthors = 'ECode',
 
     [string]$VpkCommand = 'vpk',
+
+    [string]$MakeAppxCommand = 'makeappx.exe',
+
+    [string]$SignToolCommand = 'signtool.exe',
+
+    [string]$MsixPackageName = 'ECode',
+
+    [string]$MsixPublisher = 'CN=ECode',
+
+    [string]$MsixCertPath,
+
+    [string]$MsixCertPassword,
 
     [ValidateRange(1, [int]::MaxValue)]
     [int]$MinimumExeBytes = 65536
@@ -81,6 +96,22 @@ $Validations = @()
 function Get-ProjectVersion {
     $props = [xml](Get-Content -LiteralPath (Join-Path $RepoRoot 'Directory.Build.props') -Raw)
     return $props.Project.PropertyGroup.Version
+}
+
+function Get-MsixVersion {
+    $core = (Get-ProjectVersion).Split('-', '+')[0]
+    $parts = @($core.Split('.'))
+    while ($parts.Count -lt 4) { $parts += '0' }
+    return ($parts[0..3] -join '.')
+}
+
+function Get-MsixArchitecture {
+    switch ($Rid) {
+        'win-x64' { return 'x64' }
+        'win-x86' { return 'x86' }
+        'win-arm64' { return 'arm64' }
+        default { throw "Unsupported MSIX RID: $Rid" }
+    }
 }
 
 function Invoke-DotnetPublish {
@@ -222,6 +253,109 @@ function Invoke-VelopackPack {
     }
 }
 
+function Copy-DirectoryContents {
+    param(
+        [Parameter(Mandatory)][string]$SourceDir,
+        [Parameter(Mandatory)][string]$DestinationDir
+    )
+
+    Ensure-Dir $DestinationDir
+    Copy-Item -LiteralPath (Join-Path $SourceDir '.') -Destination $DestinationDir -Recurse -Force
+}
+
+function New-ResizedPngAsset {
+    param(
+        [Parameter(Mandatory)][string]$SourcePng,
+        [Parameter(Mandatory)][string]$DestinationPng,
+        [Parameter(Mandatory)][int]$Width,
+        [Parameter(Mandatory)][int]$Height
+    )
+
+    Add-Type -AssemblyName PresentationCore
+    $sourceUri = [Uri]::new([System.IO.Path]::GetFullPath($SourcePng))
+    $decoder = [System.Windows.Media.Imaging.BitmapDecoder]::Create(
+        $sourceUri,
+        [System.Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,
+        [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
+    $frame = $decoder.Frames[0]
+    $scale = [System.Windows.Media.ScaleTransform]::new($Width / $frame.PixelWidth, $Height / $frame.PixelHeight)
+    $bitmap = [System.Windows.Media.Imaging.TransformedBitmap]::new($frame, $scale)
+    $encoder = [System.Windows.Media.Imaging.PngBitmapEncoder]::new()
+    $encoder.Frames.Add([System.Windows.Media.Imaging.BitmapFrame]::Create($bitmap))
+    $stream = [System.IO.File]::Create($DestinationPng)
+    try {
+        $encoder.Save($stream)
+    } finally {
+        $stream.Dispose()
+    }
+}
+
+function Write-MsixManifest {
+    param(
+        [Parameter(Mandatory)][string]$OutputPath
+    )
+
+    $template = Join-Path $RepoRoot 'installer/AppXManifest.xml'
+    [xml]$manifest = Get-Content -LiteralPath $template -Raw
+    $ns = [System.Xml.XmlNamespaceManager]::new($manifest.NameTable)
+    $ns.AddNamespace('m', 'http://schemas.microsoft.com/appx/manifest/foundation/windows10')
+    $identity = $manifest.SelectSingleNode('/m:Package/m:Identity', $ns)
+    $identity.SetAttribute('Name', $MsixPackageName)
+    $identity.SetAttribute('Publisher', $MsixPublisher)
+    $identity.SetAttribute('Version', (Get-MsixVersion))
+    $identity.SetAttribute('ProcessorArchitecture', (Get-MsixArchitecture))
+    $manifest.Save($OutputPath)
+}
+
+function Invoke-MsixPack {
+    param(
+        [Parameter(Mandatory)][string]$AppDir,
+        [Parameter(Mandatory)][string]$CliDir,
+        [Parameter(Mandatory)][string]$OutputDir
+    )
+
+    $staging = Join-Path $OutputRoot '.msix-staging'
+    Reset-PublishDir $staging
+    Copy-DirectoryContents -SourceDir $AppDir -DestinationDir $staging
+    Copy-DirectoryContents -SourceDir $CliDir -DestinationDir $staging
+
+    $assetsDir = Join-Path $staging 'Assets'
+    Ensure-Dir $assetsDir
+    $sourceIcon = Join-Path $RepoRoot 'src/ECode/Assets/app-icon.png'
+    New-ResizedPngAsset -SourcePng $sourceIcon -DestinationPng (Join-Path $assetsDir 'StoreLogo.png') -Width 50 -Height 50
+    New-ResizedPngAsset -SourcePng $sourceIcon -DestinationPng (Join-Path $assetsDir 'Square44x44Logo.png') -Width 44 -Height 44
+    New-ResizedPngAsset -SourcePng $sourceIcon -DestinationPng (Join-Path $assetsDir 'Square150x150Logo.png') -Width 150 -Height 150
+    Write-MsixManifest -OutputPath (Join-Path $staging 'AppXManifest.xml')
+
+    Reset-PublishDir $OutputDir
+    $packagePath = Join-Path $OutputDir ("$MsixPackageName-$Rid-" + (Get-MsixVersion) + '.msix')
+    $makeAppxArgs = @('pack', '/d', $staging, '/p', $packagePath, '/overwrite')
+
+    Write-Host ""
+    Write-Host ">> $MakeAppxCommand $($makeAppxArgs -join ' ')" -ForegroundColor Cyan
+    & $MakeAppxCommand @makeAppxArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "makeappx pack failed (exit $LASTEXITCODE). Install Windows SDK or pass -MakeAppxCommand."
+    }
+
+    if ($MsixCertPath) {
+        $signArgs = @('sign', '/fd', 'SHA256', '/f', $MsixCertPath)
+        if ($MsixCertPassword) {
+            $signArgs += @('/p', $MsixCertPassword)
+        }
+        $signArgs += $packagePath
+        Write-Host ">> $SignToolCommand $($signArgs -join ' ')" -ForegroundColor Cyan
+        & $SignToolCommand @signArgs
+        if ($LASTEXITCODE -ne 0) {
+            throw "signtool sign failed (exit $LASTEXITCODE)."
+        }
+    } else {
+        Write-Host ">> MSIX package is unsigned. Sign it before Add-AppxPackage." -ForegroundColor Yellow
+    }
+
+    Add-FileValidation -FlavorName 'MSIX' -FilePath $packagePath
+}
+
 function Write-ValidationTable {
     if ($Validations.Count -eq 0) { return }
 
@@ -244,7 +378,9 @@ Write-Host "=== ECode publish === Config=$Config Rid=$Rid Flavor=$Flavor Time=$s
 
 $ran = @()
 $selfContainedOut = Join-Path $OutputRoot "ecode-$Rid-sc"
+$cliOut = Join-Path $OutputRoot "ecode-cli"
 $selfContainedPublished = $false
+$cliPublished = $false
 
 if ($Flavor -in @('All', 'Framework')) {
     $out = Join-Path $OutputRoot "ecode-$Rid"
@@ -278,7 +414,7 @@ if ($Flavor -in @('All', 'SelfContained')) {
 }
 
 if ($Flavor -in @('All', 'Cli')) {
-    $out = Join-Path $OutputRoot "ecode-cli"
+    $out = $cliOut
     $artifacts = Join-Path $BuildRoot 'cli'
     Reset-PublishDir $out
     Invoke-DotnetPublish -Project $CliProj -ArtifactsPath $artifacts -Args @(
@@ -290,6 +426,7 @@ if ($Flavor -in @('All', 'Cli')) {
     $exe = Join-Path $out 'ecode.exe'
     Add-PublishValidation -FlavorName 'Cli' -ExePath $exe
     $ran += "Cli            -> $exe"
+    $cliPublished = $true
 }
 
 if ($Flavor -eq 'Velopack') {
@@ -308,6 +445,36 @@ if ($Flavor -eq 'Velopack') {
     $velopackOut = Join-Path $OutputRoot 'velopack'
     Invoke-VelopackPack -PackDir $selfContainedOut -OutputDir $velopackOut
     $ran += "Velopack       -> $velopackOut"
+}
+
+if ($Flavor -eq 'MSIX') {
+    if (-not $selfContainedPublished) {
+        $artifacts = Join-Path $BuildRoot 'msix-app'
+        Reset-PublishDir $selfContainedOut
+        Invoke-DotnetPublish -Project $MainProj -ArtifactsPath $artifacts -Args @(
+            '-c', $Config,
+            '-r', $Rid,
+            '--self-contained', 'true',
+            '-o', $selfContainedOut
+        )
+        $selfContainedPublished = $true
+    }
+
+    if (-not $cliPublished) {
+        $artifacts = Join-Path $BuildRoot 'msix-cli'
+        Reset-PublishDir $cliOut
+        Invoke-DotnetPublish -Project $CliProj -ArtifactsPath $artifacts -Args @(
+            '-c', $Config,
+            '-r', $Rid,
+            '--self-contained', 'true',
+            '-o', $cliOut
+        )
+        $cliPublished = $true
+    }
+
+    $msixOut = Join-Path $OutputRoot 'msix'
+    Invoke-MsixPack -AppDir $selfContainedOut -CliDir $cliOut -OutputDir $msixOut
+    $ran += "MSIX           -> $msixOut"
 }
 
 Write-Host ""
