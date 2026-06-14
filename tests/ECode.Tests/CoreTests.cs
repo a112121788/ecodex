@@ -374,6 +374,92 @@ public class V2ProtocolTests
     }
 }
 
+public class BrowserScriptingServiceTests
+{
+    [Fact]
+    public void ResolveSurfaceRef_RoutesDirectBrowserSurfaceRef()
+    {
+        var surfaces = new List<BrowserScriptingSurfaceDescriptor>
+        {
+            CreateSurface("browser-1", SurfaceKind.Browser),
+        };
+        var service = new BrowserScriptingService(() => surfaces);
+
+        var result = service.ResolveSurfaceRef(BrowserScriptingService.CreateSurfaceRef("browser-1"));
+
+        result.Success.Should().BeTrue();
+        result.Surface.Should().NotBeNull();
+        result.Surface!.SurfaceId.Should().Be("browser-1");
+        result.Error.Should().BeNull();
+        result.Diagnostics.LiveSurfaceCount.Should().Be(1);
+        result.Diagnostics.LiveBrowserSurfaceCount.Should().Be(1);
+        result.Diagnostics.RegisteredRefCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void ResolveSurfaceRef_ReturnsStaleRefForTrackedSurfaceAfterRemoval()
+    {
+        var surfaces = new List<BrowserScriptingSurfaceDescriptor>
+        {
+            CreateSurface("browser-1", SurfaceKind.Browser),
+        };
+        var service = new BrowserScriptingService(() => surfaces);
+        var surfaceRef = service.TrackSurface(surfaces[0]);
+
+        surfaces.Clear();
+        var result = service.ResolveSurfaceRef(surfaceRef);
+
+        result.Success.Should().BeFalse();
+        result.Surface.Should().BeNull();
+        result.Error.Should().NotBeNull();
+        result.Error!.Code.Should().Be(V2ErrorCodes.StaleRef);
+        result.Diagnostics.SurfaceRef.Should().Be(surfaceRef);
+        result.Diagnostics.LiveSurfaceCount.Should().Be(0);
+        result.Diagnostics.RegisteredRefCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void ResolveSurfaceRef_ReturnsNotSupportedForTerminalSurface()
+    {
+        var surfaces = new List<BrowserScriptingSurfaceDescriptor>
+        {
+            CreateSurface("terminal-1", SurfaceKind.Terminal),
+        };
+        var service = new BrowserScriptingService(() => surfaces);
+
+        var result = service.ResolveSurfaceRef(BrowserScriptingService.CreateSurfaceRef("terminal-1"));
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error!.Code.Should().Be(V2ErrorCodes.NotSupported);
+        result.Diagnostics.LiveBrowserSurfaceCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void ResolveSurfaceRef_ReturnsInvalidRefForMalformedSurfaceRef()
+    {
+        var service = new BrowserScriptingService(() => []);
+
+        var result = service.ResolveSurfaceRef("pane:1");
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error!.Code.Should().Be(V2ErrorCodes.InvalidRef);
+    }
+
+    private static BrowserScriptingSurfaceDescriptor CreateSurface(string surfaceId, SurfaceKind kind)
+    {
+        return new BrowserScriptingSurfaceDescriptor(
+            WorkspaceId: "workspace-1",
+            WorkspaceName: "Project",
+            SurfaceId: surfaceId,
+            SurfaceName: surfaceId,
+            Kind: kind,
+            Url: kind == SurfaceKind.Browser ? "https://example.com" : null,
+            Title: kind == SurfaceKind.Browser ? "Example" : null);
+    }
+}
+
 /// <summary>
 /// 终端环境变量测试 - 验证启动 shell 前注入 ecode 上下文变量。
 /// </summary>

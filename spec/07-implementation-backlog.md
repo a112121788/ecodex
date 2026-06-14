@@ -163,7 +163,7 @@
 
 | ID | 标题 | 关联文件 | 验收 |
 |---|---|---|---|
-| `M4-B-01` | `BrowserScriptingService` 框架（refs / diagnostics / surfaceRef 路由） | `ECode/Services/BrowserScriptingService.cs` | 单测：refs 失效后返回 `stale_ref` |
+| `M4-B-01` | `[x]` `BrowserScriptingService` 框架（refs / diagnostics / surfaceRef 路由） | `ECode/Services/BrowserScriptingService.cs` | 单测：refs 失效后返回 `stale_ref` |
 | `M4-B-02` | `snapshot / find.role / find.text / find.testid / find.first / find.last / find.nth` | 同上 | P0 locator 测试 |
 | `M4-B-03` | `click / fill / hover / press / eval / screenshot` | 同上 | 含空字符串 fill 清空 input |
 | `M4-B-04` | `cookies.get/set/clear` 与 `storage.get/set/clear` | 同上 | 状态测试 |

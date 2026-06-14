@@ -42,6 +42,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - `SplitPaneContainer` 现在可渲染 Browser surface，且 WebView2 Runtime 缺失时会显示下载提示。
 - 新增 `ecode.v2` 协议解析基础类型，可解析 `protocol:"ecode.v2"` 请求并返回结构化错误响应。
 - 新增 v2 浏览器脚本化稳定错误码常量与契约测试，覆盖 `invalid_ref/not_found/stale_ref/not_supported/timeout/internal_error`。
+- 新增 `BrowserScriptingService` 框架，支持 browser surface refs、diagnostics 与 `surfaceRef` 路由。
 - 新增 `ecode browser open|new|open-split <url>` 与 `BROWSER.OPEN*` IPC，可从 CLI 创建或复用 Browser Surface。
 - Browser 工具栏新增停止加载、开发者工具与加载进度状态。
 - `.ecode/ecode.json` 新增 `workspace.surfaces` Browser Surface layout 支持，启动或重载配置时可创建 / 复用浏览器标签页。
