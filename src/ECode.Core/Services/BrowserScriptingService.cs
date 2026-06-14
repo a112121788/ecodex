@@ -13,18 +13,21 @@ public sealed class BrowserScriptingService
     private readonly Func<string, BrowserScriptingSnapshot?> _snapshotProvider;
     private readonly Func<BrowserScriptingActionRequest, BrowserScriptingActionOutcome>? _actionExecutor;
     private readonly Func<BrowserScriptingStateRequest, BrowserScriptingStateOutcome>? _stateExecutor;
+    private readonly Func<BrowserScriptingControlRequest, BrowserScriptingControlOutcome>? _controlExecutor;
     private readonly Dictionary<string, BrowserScriptingRef> _surfaceRefs = new(StringComparer.Ordinal);
 
     public BrowserScriptingService(
         Func<IEnumerable<BrowserScriptingSurfaceDescriptor>> surfaceProvider,
         Func<string, BrowserScriptingSnapshot?>? snapshotProvider = null,
         Func<BrowserScriptingActionRequest, BrowserScriptingActionOutcome>? actionExecutor = null,
-        Func<BrowserScriptingStateRequest, BrowserScriptingStateOutcome>? stateExecutor = null)
+        Func<BrowserScriptingStateRequest, BrowserScriptingStateOutcome>? stateExecutor = null,
+        Func<BrowserScriptingControlRequest, BrowserScriptingControlOutcome>? controlExecutor = null)
     {
         _surfaceProvider = surfaceProvider ?? throw new ArgumentNullException(nameof(surfaceProvider));
         _snapshotProvider = snapshotProvider ?? (_ => null);
         _actionExecutor = actionExecutor;
         _stateExecutor = stateExecutor;
+        _controlExecutor = controlExecutor;
     }
 
     public string TrackSurface(BrowserScriptingSurfaceDescriptor surface)
@@ -247,6 +250,36 @@ public sealed class BrowserScriptingService
         return ExecuteState(surfaceRef, BrowserScriptingStateRequest.StorageClear("", area, key));
     }
 
+    public BrowserScriptingControlResult ConsoleList(string? surfaceRef)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.ConsoleList);
+    }
+
+    public BrowserScriptingControlResult ConsoleClear(string? surfaceRef)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.ConsoleClear);
+    }
+
+    public BrowserScriptingControlResult DialogAccept(string? surfaceRef, string? promptText = null)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.DialogAccept, text: promptText);
+    }
+
+    public BrowserScriptingControlResult DialogDismiss(string? surfaceRef)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.DialogDismiss);
+    }
+
+    public BrowserScriptingControlResult DownloadWait(string? surfaceRef, string? fileName = null, int? timeoutMs = null)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.DownloadWait, fileName: fileName, timeoutMs: timeoutMs);
+    }
+
+    public BrowserScriptingControlResult Highlight(string? surfaceRef, BrowserScriptingLocator locator)
+    {
+        return ExecuteNodeControl(surfaceRef, locator, BrowserScriptingControlKind.Highlight);
+    }
+
     public static string CreateSurfaceRef(string surfaceId)
     {
         return SurfaceRefPrefix + surfaceId;
@@ -441,6 +474,97 @@ public sealed class BrowserScriptingService
                 Value: null,
                 Error: new V2Error(V2ErrorCodes.InternalError, ex.Message),
                 Diagnostics: resolved.Diagnostics);
+        }
+    }
+
+    private BrowserScriptingControlResult ExecuteNodeControl(
+        string? surfaceRef,
+        BrowserScriptingLocator locator,
+        BrowserScriptingControlKind kind)
+    {
+        var target = FindFirst(surfaceRef, locator);
+        if (!target.Success)
+        {
+            return new BrowserScriptingControlResult(
+                Success: false,
+                Value: null,
+                Error: target.Error,
+                Diagnostics: target.Diagnostics);
+        }
+
+        var request = new BrowserScriptingControlRequest(
+            SurfaceId: target.Diagnostics.SurfaceId ?? "",
+            Kind: kind,
+            Node: target.Nodes[0]);
+
+        return ExecuteControl(request, target.Diagnostics);
+    }
+
+    private BrowserScriptingControlResult ExecuteSurfaceControl(
+        string? surfaceRef,
+        BrowserScriptingControlKind kind,
+        string? text = null,
+        string? fileName = null,
+        int? timeoutMs = null)
+    {
+        var resolved = ResolveSurfaceRef(surfaceRef);
+        if (!resolved.Success)
+        {
+            return new BrowserScriptingControlResult(
+                Success: false,
+                Value: null,
+                Error: resolved.Error,
+                Diagnostics: resolved.Diagnostics);
+        }
+
+        var request = new BrowserScriptingControlRequest(
+            SurfaceId: resolved.Surface!.SurfaceId,
+            Kind: kind,
+            Node: null,
+            Text: text,
+            FileName: fileName,
+            TimeoutMs: timeoutMs);
+
+        return ExecuteControl(request, resolved.Diagnostics);
+    }
+
+    private BrowserScriptingControlResult ExecuteControl(
+        BrowserScriptingControlRequest request,
+        BrowserScriptingDiagnostics diagnostics)
+    {
+        if (_controlExecutor == null)
+        {
+            return new BrowserScriptingControlResult(
+                Success: false,
+                Value: null,
+                Error: new V2Error(V2ErrorCodes.NotSupported, $"Browser control operation is not wired: {request.Kind}"),
+                Diagnostics: diagnostics);
+        }
+
+        try
+        {
+            var outcome = _controlExecutor(request);
+            return new BrowserScriptingControlResult(
+                Success: outcome.Success,
+                Value: outcome.Value,
+                Error: outcome.Error,
+                Diagnostics: diagnostics);
+        }
+        catch (TimeoutException ex)
+        {
+            return new BrowserScriptingControlResult(
+                Success: false,
+                Value: null,
+                Error: new V2Error(V2ErrorCodes.Timeout, ex.Message),
+                Diagnostics: diagnostics);
+        }
+        catch (Exception ex)
+        {
+            return new BrowserScriptingControlResult(
+                Success: false,
+                Value: null,
+                Error: new V2Error(V2ErrorCodes.InternalError, ex.Message),
+                Diagnostics: diagnostics);
         }
     }
 
@@ -704,6 +828,42 @@ public sealed record BrowserScriptingStateOutcome(
 }
 
 public sealed record BrowserScriptingStateResult(
+    bool Success,
+    object? Value,
+    V2Error? Error,
+    BrowserScriptingDiagnostics Diagnostics);
+
+public enum BrowserScriptingControlKind
+{
+    ConsoleList,
+    ConsoleClear,
+    DialogAccept,
+    DialogDismiss,
+    DownloadWait,
+    Highlight,
+}
+
+public sealed record BrowserScriptingControlRequest(
+    string SurfaceId,
+    BrowserScriptingControlKind Kind,
+    BrowserScriptingNode? Node = null,
+    string? Text = null,
+    string? FileName = null,
+    int? TimeoutMs = null);
+
+public sealed record BrowserScriptingControlOutcome(
+    bool Success,
+    object? Value = null,
+    V2Error? Error = null)
+{
+    public static BrowserScriptingControlOutcome FromValue(object? value = null) =>
+        new(Success: true, Value: value, Error: null);
+
+    public static BrowserScriptingControlOutcome FromError(string code, string message) =>
+        new(Success: false, Value: null, Error: new V2Error(code, message));
+}
+
+public sealed record BrowserScriptingControlResult(
     bool Success,
     object? Value,
     V2Error? Error,

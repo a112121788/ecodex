@@ -167,7 +167,7 @@
 | `M4-B-02` | `[x]` `snapshot / find.role / find.text / find.testid / find.first / find.last / find.nth` | 同上 | P0 locator 测试 |
 | `M4-B-03` | `[x]` `click / fill / hover / press / eval / screenshot` | 同上 | 含空字符串 fill 清空 input |
 | `M4-B-04` | `[x]` `cookies.get/set/clear` 与 `storage.get/set/clear` | 同上 | 状态测试 |
-| `M4-B-05` | `console.list/clear`、`dialog.accept/dismiss`、`download.wait`、`highlight` | 同上 | 应做范围测试 |
+| `M4-B-05` | `[x]` `console.list/clear`、`dialog.accept/dismiss`、`download.wait`、`highlight` | 同上 | 应做范围测试 |
 | `M4-B-06` | `addinitscript / addscript / addstyle` | 同上 | 可做范围 |
 | `M4-B-07` | NotSupported 矩阵（viewport / geolocation / offline / trace / network.route / screencast / input_mouse / input_keyboard / input_touch） | 同上 | 全部返回 `not_supported` |
 

@@ -593,6 +593,32 @@ public class BrowserScriptingServiceTests
         requests[2].Key.Should().Be("theme");
     }
 
+    [Fact]
+    public void ConsoleDialogDownloadAndHighlight_DispatchControlRequests()
+    {
+        var (service, surfaceRef, requests) = CreateControlService();
+
+        service.ConsoleList(surfaceRef).Success.Should().BeTrue();
+        service.ConsoleClear(surfaceRef).Success.Should().BeTrue();
+        service.DialogAccept(surfaceRef, "ok").Success.Should().BeTrue();
+        service.DialogDismiss(surfaceRef).Success.Should().BeTrue();
+        service.DownloadWait(surfaceRef, "report.csv", timeoutMs: 5000).Success.Should().BeTrue();
+        service.Highlight(surfaceRef, BrowserScriptingLocator.TestId("email-input")).Success.Should().BeTrue();
+
+        requests.Select(request => request.Kind).Should().Equal(
+            BrowserScriptingControlKind.ConsoleList,
+            BrowserScriptingControlKind.ConsoleClear,
+            BrowserScriptingControlKind.DialogAccept,
+            BrowserScriptingControlKind.DialogDismiss,
+            BrowserScriptingControlKind.DownloadWait,
+            BrowserScriptingControlKind.Highlight);
+        requests.All(request => request.SurfaceId == "browser-1").Should().BeTrue();
+        requests[2].Text.Should().Be("ok");
+        requests[4].FileName.Should().Be("report.csv");
+        requests[4].TimeoutMs.Should().Be(5000);
+        requests[5].Node!.NodeId.Should().Be("email");
+    }
+
     private static BrowserScriptingSurfaceDescriptor CreateSurface(string surfaceId, SurfaceKind kind)
     {
         return new BrowserScriptingSurfaceDescriptor(
@@ -658,6 +684,29 @@ public class BrowserScriptingServiceTests
             {
                 requests.Add(request);
                 return BrowserScriptingStateOutcome.FromValue(new { ok = true });
+            });
+
+        return (service, BrowserScriptingService.CreateSurfaceRef("browser-1"), requests);
+    }
+
+    private static (BrowserScriptingService Service, string SurfaceRef, List<BrowserScriptingControlRequest> Requests) CreateControlService()
+    {
+        var surfaces = new List<BrowserScriptingSurfaceDescriptor>
+        {
+            CreateSurface("browser-1", SurfaceKind.Browser),
+        };
+        var snapshots = new Dictionary<string, BrowserScriptingSnapshot>
+        {
+            ["browser-1"] = CreateSnapshot(),
+        };
+        var requests = new List<BrowserScriptingControlRequest>();
+        var service = new BrowserScriptingService(
+            () => surfaces,
+            surfaceId => snapshots.TryGetValue(surfaceId, out var snapshot) ? snapshot : null,
+            controlExecutor: request =>
+            {
+                requests.Add(request);
+                return BrowserScriptingControlOutcome.FromValue(new { ok = true });
             });
 
         return (service, BrowserScriptingService.CreateSurfaceRef("browser-1"), requests);

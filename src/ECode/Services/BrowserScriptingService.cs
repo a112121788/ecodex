@@ -17,10 +17,11 @@ public sealed class BrowserScriptingService
         Func<IEnumerable<WorkspaceViewModel>> workspaceProvider,
         Func<string, BrowserScriptingSnapshot?>? snapshotProvider = null,
         Func<BrowserScriptingActionRequest, BrowserScriptingActionOutcome>? actionExecutor = null,
-        Func<BrowserScriptingStateRequest, BrowserScriptingStateOutcome>? stateExecutor = null)
+        Func<BrowserScriptingStateRequest, BrowserScriptingStateOutcome>? stateExecutor = null,
+        Func<BrowserScriptingControlRequest, BrowserScriptingControlOutcome>? controlExecutor = null)
     {
         _workspaceProvider = workspaceProvider ?? throw new ArgumentNullException(nameof(workspaceProvider));
-        _core = new CoreBrowserScriptingService(GetSurfaceDescriptors, snapshotProvider, actionExecutor, stateExecutor);
+        _core = new CoreBrowserScriptingService(GetSurfaceDescriptors, snapshotProvider, actionExecutor, stateExecutor, controlExecutor);
     }
 
     public BrowserScriptingResolveResult ResolveSurfaceRef(string? surfaceRef)
@@ -141,6 +142,36 @@ public sealed class BrowserScriptingService
         BrowserScriptingStorageArea area = BrowserScriptingStorageArea.Local)
     {
         return _core.StorageClear(surfaceRef, key, area);
+    }
+
+    public BrowserScriptingControlResult ConsoleList(string? surfaceRef)
+    {
+        return _core.ConsoleList(surfaceRef);
+    }
+
+    public BrowserScriptingControlResult ConsoleClear(string? surfaceRef)
+    {
+        return _core.ConsoleClear(surfaceRef);
+    }
+
+    public BrowserScriptingControlResult DialogAccept(string? surfaceRef, string? promptText = null)
+    {
+        return _core.DialogAccept(surfaceRef, promptText);
+    }
+
+    public BrowserScriptingControlResult DialogDismiss(string? surfaceRef)
+    {
+        return _core.DialogDismiss(surfaceRef);
+    }
+
+    public BrowserScriptingControlResult DownloadWait(string? surfaceRef, string? fileName = null, int? timeoutMs = null)
+    {
+        return _core.DownloadWait(surfaceRef, fileName, timeoutMs);
+    }
+
+    public BrowserScriptingControlResult Highlight(string? surfaceRef, BrowserScriptingLocator locator)
+    {
+        return _core.Highlight(surfaceRef, locator);
     }
 
     private IEnumerable<BrowserScriptingSurfaceDescriptor> GetSurfaceDescriptors()
