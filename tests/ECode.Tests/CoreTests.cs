@@ -637,6 +637,33 @@ public class BrowserScriptingServiceTests
         requests[2].Text.Should().Be("body { outline: 1px solid red; }");
     }
 
+    [Theory]
+    [InlineData(BrowserScriptingUnsupportedFeature.Viewport)]
+    [InlineData(BrowserScriptingUnsupportedFeature.Geolocation)]
+    [InlineData(BrowserScriptingUnsupportedFeature.Offline)]
+    [InlineData(BrowserScriptingUnsupportedFeature.Trace)]
+    [InlineData(BrowserScriptingUnsupportedFeature.NetworkRoute)]
+    [InlineData(BrowserScriptingUnsupportedFeature.Screencast)]
+    [InlineData(BrowserScriptingUnsupportedFeature.InputMouse)]
+    [InlineData(BrowserScriptingUnsupportedFeature.InputKeyboard)]
+    [InlineData(BrowserScriptingUnsupportedFeature.InputTouch)]
+    public void NotSupportedMatrix_ReturnsStableNotSupportedCode(BrowserScriptingUnsupportedFeature feature)
+    {
+        var surfaces = new List<BrowserScriptingSurfaceDescriptor>
+        {
+            CreateSurface("browser-1", SurfaceKind.Browser),
+        };
+        var service = new BrowserScriptingService(() => surfaces);
+        var surfaceRef = BrowserScriptingService.CreateSurfaceRef("browser-1");
+
+        var result = service.NotSupported(surfaceRef, feature);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().NotBeNull();
+        result.Error!.Code.Should().Be(V2ErrorCodes.NotSupported);
+        result.Error.Message.Should().Contain(feature.ToString());
+    }
+
     private static BrowserScriptingSurfaceDescriptor CreateSurface(string surfaceId, SurfaceKind kind)
     {
         return new BrowserScriptingSurfaceDescriptor(

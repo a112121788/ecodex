@@ -189,6 +189,13 @@ public sealed class BrowserScriptingService
         return _core.AddStyle(surfaceRef, css);
     }
 
+    public BrowserScriptingControlResult NotSupported(
+        string? surfaceRef,
+        BrowserScriptingUnsupportedFeature feature)
+    {
+        return _core.NotSupported(surfaceRef, feature);
+    }
+
     private IEnumerable<BrowserScriptingSurfaceDescriptor> GetSurfaceDescriptors()
     {
         return _workspaceProvider()

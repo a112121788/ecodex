@@ -295,6 +295,27 @@ public sealed class BrowserScriptingService
         return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.AddStyle, text: css);
     }
 
+    public BrowserScriptingControlResult NotSupported(
+        string? surfaceRef,
+        BrowserScriptingUnsupportedFeature feature)
+    {
+        var resolved = ResolveSurfaceRef(surfaceRef);
+        if (!resolved.Success)
+        {
+            return new BrowserScriptingControlResult(
+                Success: false,
+                Value: null,
+                Error: resolved.Error,
+                Diagnostics: resolved.Diagnostics);
+        }
+
+        return new BrowserScriptingControlResult(
+            Success: false,
+            Value: null,
+            Error: new V2Error(V2ErrorCodes.NotSupported, $"Browser feature is not supported: {feature}"),
+            Diagnostics: resolved.Diagnostics);
+    }
+
     public static string CreateSurfaceRef(string surfaceId)
     {
         return SurfaceRefPrefix + surfaceId;
@@ -859,6 +880,19 @@ public enum BrowserScriptingControlKind
     AddInitScript,
     AddScript,
     AddStyle,
+}
+
+public enum BrowserScriptingUnsupportedFeature
+{
+    Viewport,
+    Geolocation,
+    Offline,
+    Trace,
+    NetworkRoute,
+    Screencast,
+    InputMouse,
+    InputKeyboard,
+    InputTouch,
 }
 
 public sealed record BrowserScriptingControlRequest(
