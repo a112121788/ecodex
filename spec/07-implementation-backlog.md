@@ -232,7 +232,7 @@
 | ID | 标题 | 关联文件 | 验收 |
 |---|---|---|---|
 | `M6-B-01` | `[x]` Velopack 集成（installer + feed） | `src/ECode.Updater`（新增）、`scripts/publish.ps1` | 新版本自动检测 |
-| `M6-B-02` | `ecode update check/install` CLI | `ECode.Cli/Program.cs` | 可后台静默更新 |
+| `M6-B-02` | `[x]` `ecode update check/install` CLI | `ECode.Cli/Program.cs` | 可后台静默更新 |
 | `M6-B-03` | Inno Setup 安装器（fallback 路径） | `installer/ecode.iss` | 卸载干净 |
 | `M6-B-04` | MSIX 打包（可选 enterprise） | `installer/AppXManifest.xml` | `Add-AppxPackage` 成功 |
 | `M6-B-05` | 多 RID CI（`win-x64 / win-x86 / win-arm64`） | `.github/workflows/release.yml` | nightly 出 4 个产物 |

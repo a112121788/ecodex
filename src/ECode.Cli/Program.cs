@@ -5,6 +5,7 @@ using ECode.Core.Config;
 using ECode.Core.IPC;
 using ECode.Core.IPC.V2;
 using ECode.Core.Services;
+using ECode.Updater;
 using Microsoft.Win32;
 
 namespace ECode.Cli;
@@ -71,6 +72,7 @@ public static class Program
                 "config" => await HandleConfig(args[1..]),
                 "profile" => HandleProfile(args[1..]),
                 "setup" => HandleSetup(args[1..]),
+                "update" => await HandleUpdate(args[1..]),
                 "reload-config" => await HandleReloadConfig(),
                 "status" => await HandleStatus(),
                 "health" => await HandleHealth(),
@@ -469,6 +471,124 @@ public static class Program
         };
     }
 
+    private static async Task<int> HandleUpdate(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            Console.Error.WriteLine("Usage: ecode update <check|install>");
+            return 1;
+        }
+
+        var subcommand = args[0].ToLowerInvariant();
+        var parsed = ParseArgs(args[1..]);
+        var feedUri = ResolveUpdateFeedUri(parsed);
+        if (feedUri == null)
+            return Error("Missing update feed. Pass --feed-url <url> or set ECODE_UPDATE_FEED_URL.");
+
+        return subcommand switch
+        {
+            "check" => await HandleUpdateCheck(feedUri),
+            "install" => await HandleUpdateInstall(feedUri, parsed),
+            _ => Error($"Unknown update command: {subcommand}"),
+        };
+    }
+
+    private static async Task<int> HandleUpdateCheck(Uri feedUri)
+    {
+        var result = await CheckUpdates(feedUri);
+        PrintUpdateCheckResult(result);
+        return string.IsNullOrWhiteSpace(result.Error) ? 0 : 1;
+    }
+
+    private static async Task<int> HandleUpdateInstall(Uri feedUri, Dictionary<string, string> args)
+    {
+        var check = await CheckUpdates(feedUri);
+        if (!string.IsNullOrWhiteSpace(check.Error))
+        {
+            PrintUpdateCheckResult(check);
+            return 1;
+        }
+
+        if (!check.UpdateAvailable)
+        {
+            PrintUpdateCheckResult(check);
+            return 0;
+        }
+
+        var packId = GetFirstOption(args, "pack-id") ?? "ECode";
+        var downloadDirectory = GetFirstOption(args, "download-dir")
+            ?? Path.Combine(CompatibilityOptions.GetAppDataDir(), "updates");
+        var setupUrlValue = GetFirstOption(args, "setup-url", "installer-url");
+        var setupUri = Uri.TryCreate(setupUrlValue, UriKind.Absolute, out var parsedSetupUri)
+            ? parsedSetupUri
+            : null;
+        var silent = !string.Equals(GetFirstOption(args, "silent"), "false", StringComparison.OrdinalIgnoreCase);
+        var wait = IsTruthy(GetFirstOption(args, "wait"));
+        var downloadOnly = IsTruthy(GetFirstOption(args, "download-only"));
+
+        var installer = new VelopackUpdateInstaller();
+        var plan = VelopackUpdateInstaller.CreatePlan(feedUri, packId, downloadDirectory, silent, wait, setupUri);
+        var setupPath = await installer.DownloadSetupAsync(plan);
+        VelopackInstallResult? install = null;
+        if (!downloadOnly)
+            install = installer.StartInstaller(plan);
+
+        if (_globalOptions.Json)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                check,
+                setupPath,
+                launched = install != null,
+                processId = install?.ProcessId,
+                exitCode = install?.ExitCode,
+            }, new JsonSerializerOptions { WriteIndented = true }));
+            return install?.ExitCode is null or 0 ? 0 : install.ExitCode.Value;
+        }
+
+        PrintUpdateCheckResult(check);
+        Console.WriteLine($"Downloaded setup: {setupPath}");
+        if (install == null)
+        {
+            Console.WriteLine("Installer launch skipped (--download-only true).");
+        }
+        else if (install.ExitCode.HasValue)
+        {
+            Console.WriteLine($"Installer exited with code {install.ExitCode.Value}.");
+        }
+        else
+        {
+            Console.WriteLine($"Installer started in background (pid {install.ProcessId}).");
+        }
+
+        return install?.ExitCode is null or 0 ? 0 : install.ExitCode.Value;
+    }
+
+    private static async Task<UpdateCheckResult> CheckUpdates(Uri feedUri)
+    {
+        var currentVersion = VersionService.GetInformationalVersion(typeof(Program).Assembly);
+        return await new VelopackFeedChecker().CheckAsync(feedUri, currentVersion);
+    }
+
+    private static void PrintUpdateCheckResult(UpdateCheckResult result)
+    {
+        if (_globalOptions.Json)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+            return;
+        }
+
+        Console.WriteLine("ECode update");
+        Console.WriteLine($"Feed: {result.FeedUrl}");
+        Console.WriteLine($"Current: {result.CurrentVersion}");
+        Console.WriteLine($"Latest: {result.LatestVersion ?? "none"}");
+        Console.WriteLine($"Update available: {(result.UpdateAvailable ? "yes" : "no")}");
+        if (!string.IsNullOrWhiteSpace(result.PackageFile))
+            Console.WriteLine($"Package: {result.PackageFile}");
+        if (!string.IsNullOrWhiteSpace(result.Error))
+            Console.WriteLine($"Error: {result.Error}");
+    }
+
     private static int PrintSetupStatus(ShellSetupState current, string installDirectory, string profilePath)
     {
         Console.WriteLine("ECode setup status");
@@ -783,6 +903,14 @@ public static class Program
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
 
+    private static Uri? ResolveUpdateFeedUri(Dictionary<string, string> args)
+    {
+        var value = GetFirstOption(args, "feed-url", "feed")
+            ?? Environment.GetEnvironmentVariable("ECODE_UPDATE_FEED_URL");
+
+        return Uri.TryCreate(value, UriKind.Absolute, out var feedUri) ? feedUri : null;
+    }
+
     private static ShellSetupState ReadShellSetupState(string profilePath)
     {
         var userPath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? "";
@@ -951,6 +1079,15 @@ public static class Program
                 uninstall           Dry-run cleanup; pass --write true to apply
                   --install-dir <p> CLI directory to add/remove from user PATH
                   --profile <path>  PowerShell profile path override
+
+              update                Check or install Velopack updates
+                check               Check feed for a newer version
+                install             Download and launch the latest setup in background
+                  --feed-url <url>  Velopack feed root or RELEASES URL
+                  --setup-url <url> Direct setup exe URL override
+                  --download-only true
+                                    Download setup without launching it
+                  --wait true       Wait for setup exit and return its exit code
 
               restore-session       Refresh resume bindings and focus first recoverable pane
                 --all               Scan all workspaces/surfaces

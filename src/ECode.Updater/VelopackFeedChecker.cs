@@ -115,11 +115,25 @@ public sealed class VelopackFeedChecker
         return candidate.CompareTo(current) > 0;
     }
 
-    private static Uri ResolveReleasesUri(Uri feedUri)
+    public static Uri ResolveReleasesUri(Uri feedUri)
     {
         return feedUri.AbsolutePath.EndsWith("/RELEASES", StringComparison.OrdinalIgnoreCase)
             ? feedUri
             : new Uri(feedUri.ToString().TrimEnd('/') + "/RELEASES", UriKind.Absolute);
+    }
+
+    public static Uri ResolvePackageUri(Uri feedUri, string packageFile)
+    {
+        return new Uri(GetFeedRootUri(feedUri), packageFile);
+    }
+
+    public static Uri GetFeedRootUri(Uri feedUri)
+    {
+        var value = feedUri.ToString();
+        if (value.EndsWith("/RELEASES", StringComparison.OrdinalIgnoreCase))
+            value = value[..^"/RELEASES".Length];
+
+        return new Uri(value.TrimEnd('/') + "/", UriKind.Absolute);
     }
 
     private static Version ParseVersion(string version)

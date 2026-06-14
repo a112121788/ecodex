@@ -551,6 +551,7 @@ public class PowerShellCompletionScriptTests
         script.Should().Contain("'profile'");
         script.Should().Contain("'doctor'");
         script.Should().Contain("'setup'");
+        script.Should().Contain("'update'");
         script.Should().Contain("'powershell'");
         script.Should().Contain("'window:'");
         script.Should().Contain("'workspace:'");
@@ -760,6 +761,54 @@ public class VelopackFeedCheckerTests
     public void IsNewer_ComparesSemanticVersionCore(string candidate, string current, bool expected)
     {
         VelopackFeedChecker.IsNewer(candidate, current).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ResolveUris_HandlesFeedRootAndReleasesUrl()
+    {
+        var feedRoot = new Uri("https://example.test/ecode");
+        var releases = new Uri("https://example.test/ecode/RELEASES");
+
+        VelopackFeedChecker.ResolveReleasesUri(feedRoot).ToString()
+            .Should().Be("https://example.test/ecode/RELEASES");
+        VelopackFeedChecker.GetFeedRootUri(releases).ToString()
+            .Should().Be("https://example.test/ecode/");
+        VelopackFeedChecker.ResolvePackageUri(releases, "ECode-0.3.0-full.nupkg").ToString()
+            .Should().Be("https://example.test/ecode/ECode-0.3.0-full.nupkg");
+    }
+}
+
+public class VelopackUpdateInstallerTests
+{
+    [Fact]
+    public void CreatePlan_DefaultsToSilentSetupBesideFeed()
+    {
+        var plan = VelopackUpdateInstaller.CreatePlan(
+            new Uri("https://example.test/releases/RELEASES"),
+            "ECode",
+            @"C:\Users\me\.ecode\updates");
+
+        plan.SetupUri.ToString().Should().Be("https://example.test/releases/ECode-Setup.exe");
+        plan.SetupFileName.Should().Be("ECode-Setup.exe");
+        plan.SetupPath.Should().Be(@"C:\Users\me\.ecode\updates\ECode-Setup.exe");
+        plan.Arguments.Should().Equal("--silent");
+    }
+
+    [Fact]
+    public void CreatePlan_UsesExplicitSetupUrlAndCanDisableSilent()
+    {
+        var plan = VelopackUpdateInstaller.CreatePlan(
+            new Uri("https://example.test/releases"),
+            "ECode",
+            @"C:\cache",
+            silent: false,
+            waitForExit: true,
+            setupUri: new Uri("https://cdn.test/ECodePreviewSetup.exe"));
+
+        plan.SetupUri.ToString().Should().Be("https://cdn.test/ECodePreviewSetup.exe");
+        plan.SetupFileName.Should().Be("ECodePreviewSetup.exe");
+        plan.WaitForExit.Should().BeTrue();
+        plan.Arguments.Should().BeEmpty();
     }
 }
 
