@@ -280,6 +280,21 @@ public sealed class BrowserScriptingService
         return ExecuteNodeControl(surfaceRef, locator, BrowserScriptingControlKind.Highlight);
     }
 
+    public BrowserScriptingControlResult AddInitScript(string? surfaceRef, string script)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.AddInitScript, text: script);
+    }
+
+    public BrowserScriptingControlResult AddScript(string? surfaceRef, string script)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.AddScript, text: script);
+    }
+
+    public BrowserScriptingControlResult AddStyle(string? surfaceRef, string css)
+    {
+        return ExecuteSurfaceControl(surfaceRef, BrowserScriptingControlKind.AddStyle, text: css);
+    }
+
     public static string CreateSurfaceRef(string surfaceId)
     {
         return SurfaceRefPrefix + surfaceId;
@@ -841,6 +856,9 @@ public enum BrowserScriptingControlKind
     DialogDismiss,
     DownloadWait,
     Highlight,
+    AddInitScript,
+    AddScript,
+    AddStyle,
 }
 
 public sealed record BrowserScriptingControlRequest(

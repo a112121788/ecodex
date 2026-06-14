@@ -619,6 +619,24 @@ public class BrowserScriptingServiceTests
         requests[5].Node!.NodeId.Should().Be("email");
     }
 
+    [Fact]
+    public void AddScriptStyle_DispatchControlRequests()
+    {
+        var (service, surfaceRef, requests) = CreateControlService();
+
+        service.AddInitScript(surfaceRef, "window.__ready = true;").Success.Should().BeTrue();
+        service.AddScript(surfaceRef, "document.body.dataset.ready = '1';").Success.Should().BeTrue();
+        service.AddStyle(surfaceRef, "body { outline: 1px solid red; }").Success.Should().BeTrue();
+
+        requests.Select(request => request.Kind).Should().Equal(
+            BrowserScriptingControlKind.AddInitScript,
+            BrowserScriptingControlKind.AddScript,
+            BrowserScriptingControlKind.AddStyle);
+        requests[0].Text.Should().Be("window.__ready = true;");
+        requests[1].Text.Should().Be("document.body.dataset.ready = '1';");
+        requests[2].Text.Should().Be("body { outline: 1px solid red; }");
+    }
+
     private static BrowserScriptingSurfaceDescriptor CreateSurface(string surfaceId, SurfaceKind kind)
     {
         return new BrowserScriptingSurfaceDescriptor(

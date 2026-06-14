@@ -174,6 +174,21 @@ public sealed class BrowserScriptingService
         return _core.Highlight(surfaceRef, locator);
     }
 
+    public BrowserScriptingControlResult AddInitScript(string? surfaceRef, string script)
+    {
+        return _core.AddInitScript(surfaceRef, script);
+    }
+
+    public BrowserScriptingControlResult AddScript(string? surfaceRef, string script)
+    {
+        return _core.AddScript(surfaceRef, script);
+    }
+
+    public BrowserScriptingControlResult AddStyle(string? surfaceRef, string css)
+    {
+        return _core.AddStyle(surfaceRef, css);
+    }
+
     private IEnumerable<BrowserScriptingSurfaceDescriptor> GetSurfaceDescriptors()
     {
         return _workspaceProvider()
