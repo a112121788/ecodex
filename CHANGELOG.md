@@ -71,6 +71,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - 新增 `ecode update check/install`，可检查 Velopack feed 并下载/后台静默启动最新 setup。
 - 新增 Inno Setup fallback 安装脚本，支持安装 app/CLI、创建快捷方式并在卸载时只清理安装目录。
 - 新增 MSIX manifest 与 `publish.ps1 -Flavor MSIX`，用于企业可选的 Windows app package 打包。
+- 新增 release artifact workflow，nightly/manual 发布 `win-x64/win-x86/win-arm64` app 与 `win-x64` CLI 四个产物。
 - 新增 `ecode browser open|new|open-split <url>` 与 `BROWSER.OPEN*` IPC，可从 CLI 创建或复用 Browser Surface。
 - Browser 工具栏新增停止加载、开发者工具与加载进度状态。
 - `.ecode/ecode.json` 新增 `workspace.surfaces` Browser Surface layout 支持，启动或重载配置时可创建 / 复用浏览器标签页。

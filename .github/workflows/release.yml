@@ -1,0 +1,60 @@
+name: Release Artifacts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 18 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    name: app-${{ matrix.rid }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, win-x86, win-arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish self-contained app
+        shell: pwsh
+        run: ./scripts/publish.ps1 -Config Release -Rid ${{ matrix.rid }} -Flavor SelfContained
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecode-${{ matrix.rid }}-sc
+          path: publish/ecode-${{ matrix.rid }}-sc/
+          retention-days: 14
+
+  cli:
+    name: cli-win-x64
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish CLI
+        shell: pwsh
+        run: ./scripts/publish.ps1 -Config Release -Rid win-x64 -Flavor Cli
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecode-cli-win-x64
+          path: publish/ecode-cli/
+          retention-days: 14

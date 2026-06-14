@@ -578,6 +578,25 @@ public class InnoSetupScriptTests
     }
 }
 
+public class ReleaseWorkflowTests
+{
+    [Fact]
+    public void ReleaseWorkflow_PublishesThreeAppRidsAndCliArtifact()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, ".github", "workflows", "release.yml");
+        var workflow = File.ReadAllText(path);
+
+        workflow.Should().Contain("workflow_dispatch:");
+        workflow.Should().Contain("schedule:");
+        workflow.Should().Contain("rid: [win-x64, win-x86, win-arm64]");
+        workflow.Should().Contain("-Flavor SelfContained");
+        workflow.Should().Contain("name: ecode-${{ matrix.rid }}-sc");
+        workflow.Should().Contain("-Flavor Cli");
+        workflow.Should().Contain("name: ecode-cli-win-x64");
+        workflow.Should().Contain("actions/upload-artifact@v4");
+    }
+}
+
 public class MsixManifestTests
 {
     [Fact]

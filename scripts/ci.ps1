@@ -50,7 +50,7 @@ param(
 
     [switch]$IncludePublish,
 
-    [ValidateSet('All', 'Framework', 'SelfContained', 'Cli')]
+    [ValidateSet('All', 'Framework', 'SelfContained', 'Cli', 'Velopack', 'MSIX')]
     [string]$PublishFlavor = 'Cli',
 
     [switch]$SkipRestore
