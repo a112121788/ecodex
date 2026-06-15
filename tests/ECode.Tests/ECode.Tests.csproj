@@ -30,11 +30,13 @@
   <ItemGroup>
     <None Include="Fixtures\browser-p0.html" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\scripts\completions\ecode.ps1" Link="scripts\completions\ecode.ps1" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\scripts\discord-notify.ps1" Link="scripts\discord-notify.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\installer\ecode.iss" Link="installer\ecode.iss" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\installer\AppXManifest.xml" Link="installer\AppXManifest.xml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\workflows\release.yml" Link=".github\workflows\release.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\release.yml" Link=".github\release.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\workflows\release-drafter.yml" Link=".github\workflows\release-drafter.yml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.github\workflows\discord-release-notify.yml" Link=".github\workflows\discord-release-notify.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\PULL_REQUEST_TEMPLATE.md" Link=".github\PULL_REQUEST_TEMPLATE.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\ISSUE_TEMPLATE\browser_pane.yml" Link=".github\ISSUE_TEMPLATE\browser_pane.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\ISSUE_TEMPLATE\bug_report.yml" Link=".github\ISSUE_TEMPLATE\bug_report.yml" CopyToOutputDirectory="PreserveNewest" />

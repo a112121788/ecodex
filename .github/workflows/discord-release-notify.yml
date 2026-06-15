@@ -1,0 +1,52 @@
+name: Discord Release Notification
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: Release title for a manual dry run
+        required: false
+        default: Manual release preview
+      release_tag:
+        description: Release tag for a manual dry run
+        required: false
+        default: v0.0.0-preview
+      release_url:
+        description: Release URL for a manual dry run
+        required: false
+        default: https://github.com/a112121788/ecode/releases
+      dry_run:
+        description: Print the Discord payload instead of posting it
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Notify Discord
+        shell: pwsh
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RELEASE_NAME: ${{ github.event.release.name || inputs.release_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag || github.ref_name }}
+          RELEASE_URL: ${{ github.event.release.html_url || inputs.release_url }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease || false }}
+          RELEASE_DRY_RUN: ${{ inputs.dry_run || false }}
+        run: |
+          $dryRun = "$env:RELEASE_DRY_RUN" -ieq "true"
+          if ([string]::IsNullOrWhiteSpace($env:DISCORD_WEBHOOK_URL) -and -not $dryRun) {
+            Write-Host "DISCORD_WEBHOOK_URL is not configured; skipping Discord notification."
+            exit 0
+          }
+
+          $prerelease = "$env:RELEASE_PRERELEASE" -ieq "true"
+          ./scripts/discord-notify.ps1 -Prerelease:$prerelease -DryRun:$dryRun

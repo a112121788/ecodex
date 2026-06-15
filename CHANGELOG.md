@@ -84,6 +84,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - 新增 `CONTRIBUTING.md`，覆盖本地构建、测试、文档、PR 流程、标签与安全注意事项。
 - 新增 `SECURITY.md`，说明漏洞私下报告方式、支持范围、披露流程与敏感日志脱敏要求。
 - 更新 Issue / PR 模板，校正 ECode 命名、运行时路径、测试命令与 bug / feature 提交流程。
+- 新增 Discord release 通知脚本与 `release.published` workflow，可通过 `DISCORD_WEBHOOK_URL` webhook 同步发布公告。
 - 新增 `ecode browser open|new|open-split <url>` 与 `BROWSER.OPEN*` IPC，可从 CLI 创建或复用 Browser Surface。
 - Browser 工具栏新增停止加载、开发者工具与加载进度状态。
 - `.ecode/ecode.json` 新增 `workspace.surfaces` Browser Surface layout 支持，启动或重载配置时可创建 / 复用浏览器标签页。

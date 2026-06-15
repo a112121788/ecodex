@@ -613,6 +613,28 @@ public class ReleaseWorkflowTests
         workflow.Should().Contain("config-name: release.yml");
         workflow.Should().Contain("contents: write");
     }
+
+    [Fact]
+    public void DiscordReleaseNotification_PostsPublishedReleasePayload()
+    {
+        var scriptPath = Path.Combine(AppContext.BaseDirectory, "scripts", "discord-notify.ps1");
+        var workflowPath = Path.Combine(AppContext.BaseDirectory, ".github", "workflows", "discord-release-notify.yml");
+        var script = File.ReadAllText(scriptPath);
+        var workflow = File.ReadAllText(workflowPath);
+
+        script.Should().Contain("DISCORD_WEBHOOK_URL");
+        script.Should().Contain("New-DiscordReleasePayload");
+        script.Should().Contain("allowed_mentions");
+        script.Should().Contain("Invoke-RestMethod");
+        script.Should().Contain("ConvertTo-Json -Depth 8");
+        script.Should().Contain("DryRun");
+        workflow.Should().Contain("release:");
+        workflow.Should().Contain("types: [published]");
+        workflow.Should().Contain("workflow_dispatch:");
+        workflow.Should().Contain("secrets.DISCORD_WEBHOOK_URL");
+        workflow.Should().Contain("RELEASE_PRERELEASE");
+        workflow.Should().Contain("./scripts/discord-notify.ps1 -Prerelease:$prerelease -DryRun:$dryRun");
+    }
 }
 
 public class CommunityTemplateTests

@@ -262,7 +262,7 @@
 | `M7-B-01` | `[x]` `CONTRIBUTING.md` | `CONTRIBUTING.md` | 含构建、测试、PR 流程 |
 | `M7-B-02` | `[x]` `SECURITY.md` | `SECURITY.md` | 含漏洞报告方式 |
 | `M7-B-03` | [x] Issue / PR 模板 | `.github/ISSUE_TEMPLATE/*`、`PULL_REQUEST_TEMPLATE.md` | bug / feature 模板可用 |
-| `M7-B-04` | Discord 同步公告 | `scripts/discord-notify.ps1` | release 时 webhook 触发 |
+| `M7-B-04` | [x] Discord 同步公告 | `scripts/discord-notify.ps1` | release 时 webhook 触发 |
 
 ### 包 C：1.0 门槛
 
