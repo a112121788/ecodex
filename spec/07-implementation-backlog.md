@@ -37,7 +37,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | ID | 状态 | Outcome | Scope | Acceptance |
 |---|---|---|---|---|
-| `SES-01` | blocked | 用户关闭 ECodeX 窗口后，在同一 Windows 登录会话内重新打开，原 Codex / PowerShell 等终端进程仍由 daemon 托管，终端自动 attach 到原会话并可继续输入输出 | 首个切片覆盖“正常关闭主窗口 -> daemon 继续托管终端 -> 重开自动 attach”；涉及 `src/ECodeX` 关闭/启动流程、`src/ECodeX.Core` daemon session mapping、`session.json` pane/session id 持久化、状态可见性与“终止全部保留会话”入口；不覆盖 Windows 重启/关机后的进程存活，不做命令回放；默认先启用保活，设置开关后续再补 | Windows 手测：在 pane 启动 `pwsh` / Codex，关闭 ECodeX，确认后台会话未退出；重开 ECodeX 后恢复 workspace/surface/pane 布局并 attach 到同一进程，`pane.write/read` 可继续交互；无重复 shell；提供可见状态和“终止全部保留会话”入口；daemon 不可达时展示过期/已断开并回退到快照，不静默执行命令 |
+| `SES-01` | done | 用户关闭 ECodeX 窗口后，在同一 Windows 登录会话内重新打开，原 Codex / PowerShell 等终端进程仍由 daemon 托管，终端自动 attach 到原会话并可继续输入输出 | 首个切片覆盖“正常关闭主窗口 -> daemon 继续托管终端 -> 重开自动 attach”；涉及 `src/ECodeX` 关闭/启动流程、`src/ECodeX.Core` daemon session mapping、`session.json` pane/session id 持久化、状态可见性与“终止全部保留会话”入口；不覆盖 Windows 重启/关机后的进程存活，不做命令回放；默认先启用保活，设置开关后续再补 | Windows 手测：在 pane 启动 `pwsh` / Codex，关闭 ECodeX，确认后台会话未退出；重开 ECodeX 后恢复 workspace/surface/pane 布局并 attach 到同一进程，`pane.write/read` 可继续交互；无重复 shell；提供可见状态和“终止全部保留会话”入口；daemon 不可达时展示过期/已断开并回退到快照，不静默执行命令 |
 | `AGL-01` | done | AI loop 修改文档后能快速发现坏链接或旧文件名，降低文档漂移 | 新增 `scripts/check-doc-links.ps1`；`scripts/ci.ps1` 调用独立脚本；同步 `spec/04-build-deploy.md`；顺手修复 `spec/README.md` 对缺失 `08-dotnet-csharp-handbook.md` 的坏链接引用 | `pwsh ./scripts/check-doc-links.ps1` 通过；临时坏链接用例返回失败；脚本语法检查通过 |
 
 ### 1.1 上一冲刺归档：S0 - spec 敏捷化与 AI loop
@@ -196,12 +196,12 @@ AI Agent 启动后按以下顺序选择任务：
 ### Handoff - SES-01
 
 - 目标：ECodeX 重开后自动接回 daemon 托管的后台终端，并提供状态可见性与清理入口。
-- 已完成：启动 S1；将 `SES-01` 标记为 `doing`；完成首个子切片后因 Windows GUI / ConPTY live attach 手测未完成转为 `blocked`；新增 daemon `SESSION_CLOSE_ALL` 协议、客户端调用、daemon 会话清理实现、主窗口 daemon 状态右键“终止全部保留会话”入口；修正 daemon 终端自然退出后 active sessions 不移除的问题；同步公开路线图、session restore 文档与 daemon IPC spec。
+- 已完成：启动 S1；将 `SES-01` 标记为 `doing`；完成首个子切片后经人工确认转为 `done`；新增 daemon `SESSION_CLOSE_ALL` 协议、客户端调用、daemon 会话清理实现、主窗口 daemon 状态右键“终止全部保留会话”入口；修正 daemon 终端自然退出后 active sessions 不移除的问题；同步公开路线图、session restore 文档与 daemon IPC spec。
 - 已改文件：`docs/roadmap.md`、`docs/session-restore.md`、`spec/03-data-and-ipc.md`、`spec/05-cli-commands.md`、`spec/07-implementation-backlog.md`、`src/ECodeX.Core/IPC/DaemonMessages.cs`、`src/ECodeX.Core/IPC/DaemonClient.cs`、`src/ECodeX.Daemon/DaemonSessionManager.cs`、`src/ECodeX.Daemon/DaemonPipeServer.cs`、`src/ECodeX/Views/MainWindow.xaml`、`src/ECodeX/Views/MainWindow.xaml.cs`、`tests/ECodeX.Tests/CoreTests.cs`。
 - 已验证：`git diff --check` 通过；`rg -n "SessionCloseAll|SESSION_CLOSE_ALL|终止全部保留会话|CloseAllSessions|Handoff - SES-01|active sessions" src tests docs spec` 命中预期位置；PATH 上的 `dotnet test tests\ECodeX.Tests\ECodeX.Tests.csproj --filter DaemonMessageRoundTripTests --no-restore` 已尝试执行但未解析到 SDK；改用 `.\.dotnet\dotnet.exe test tests\ECodeX.Tests\ECodeX.Tests.csproj --filter DaemonMessageRoundTripTests --no-restore` 后通过 5/5；`.\.dotnet\dotnet.exe build ECodeX.sln -c Debug` 通过，0 警告、0 错误；`Start-Process .\.dotnet\dotnet.exe run --project src\ECodeX\ECodeX.csproj -c Debug --no-build` 可启动主程序，检测到 `ecodex-app.exe` PID 13496/14868 与 `ecodex-daemon.exe` PID 11712。
-- 未验证 / 原因：Windows GUI / ConPTY live attach 手测仍需在 Windows 图形环境完成。
-- 当前阻塞：完整验收需要在 Windows GUI 环境完成 live attach 手测。
-- 下一步建议：做 Windows 手测：启动终端、关闭窗口、重开 attach、右键 daemon 状态终止保留会话。
+- 未验证 / 原因：无；Windows GUI / ConPTY live attach 验收已由人工确认完成。
+- 当前阻塞：无。
+- 下一步建议：按 ready 队列继续推进下一项。
 - 根因审计：公开路线图当前重点停留在 M7 的内容来自 `0d7cdf64 docs: localize docs site to simplified chinese`，S0 spec 敏捷化后未同步 `docs/roadmap.md`；daemon 自然退出未移除 active session 的原始逻辑来自 `7e9dc296`（旧 `src/Cmux.Daemon/DaemonSessionManager.cs`）。
 - 回滚点：移除 `SESSION_CLOSE_ALL` 协议、UI 菜单与相关文档；保留自然退出移除 active session 的修正可单独评估。
 
