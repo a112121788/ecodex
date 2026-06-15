@@ -49,9 +49,9 @@ ecode split down
 
 Pane 支持短引用，例如 `pane:1`、`surface:2`。human 输出默认展示短引用，JSON 输出默认同时带 refs 与 UUID。
 
-## 4. 打开浏览器 Surface
+## 4. 打开集成浏览器
 
-浏览器 Surface 使用 WebView2，可与终端并排：
+集成浏览器使用 WebView2，可与终端并排：
 
 ```powershell
 ecode browser new https://example.com

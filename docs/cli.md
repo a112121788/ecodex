@@ -1,6 +1,6 @@
 # 命令行
 
-`ecode` 是 ECode 的控制入口：既能运行本地诊断与安装集成命令，也能连接主应用 pipe，驱动 Workspace、Surface、Pane、通知、浏览器 Surface 和会话恢复。
+`ecode` 是 ECode 的控制入口：既能运行本地诊断与安装集成命令，也能连接主应用 pipe，驱动 Workspace、Surface、Pane、通知、集成浏览器和会话恢复。
 
 ## 先用这几条
 
@@ -10,7 +10,7 @@
 | 查看主应用状态 | `ecode status` |
 | 机器可读输出，适合脚本 | `ecode --json status` |
 | 管理项目命令配置 | `ecode config reload` / `ecode config diagnostics` |
-| 打开浏览器 Surface | `ecode browser open https://example.com` |
+| 打开集成浏览器 | `ecode browser open https://example.com` |
 | 安装 shell 集成 | `ecode setup install --write true` |
 
 ## 命令模型
@@ -158,10 +158,10 @@ ecode health
 
 ## 浏览器命令
 
-浏览器命令用于打开 WebView2 Surface，并对页面执行 snapshot、点击、输入、键盘、脚本和截图操作。详情见 [浏览器 API](./browser-api.md)。
+浏览器命令用于打开 WebView2 集成浏览器，并对页面执行 snapshot、点击、输入、键盘、脚本和截图操作。详情见 [浏览器 API](./browser-api.md)。
 
 ```powershell
-# 打开或创建浏览器 Surface
+# 打开或创建集成浏览器
 ecode browser open https://example.com
 ecode browser new https://example.com
 ecode browser open-split https://example.com --direction right

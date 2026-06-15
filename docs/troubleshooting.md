@@ -12,7 +12,7 @@ ecode --json doctor
 | 检查项 | 状态 | 说明 |
 |---|---|---|
 | `conpty` | `ok` / `fail` | Windows 10 1809 / build 17763 或更新版本才支持 ConPTY。 |
-| `webview2` | `ok` / `warn` | 浏览器 Surface 需要 WebView2 Runtime。 |
+| `webview2` | `ok` / `warn` | 集成浏览器需要 WebView2 Runtime。 |
 | `path` | `ok` / `warn` | 命令行目录是否在 PATH 中。 |
 | `daemon` | `ok` / `warn` | 主应用 pipe 是否可连接。 |
 | `config` | `ok` / `warn` | `%USERPROFILE%\.ecode` 是否存在。 |
@@ -53,7 +53,7 @@ Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 120
 
 ## WebView2 不可用
 
-症状：浏览器 Surface 显示 Runtime 缺失。
+症状：集成浏览器显示 Runtime 缺失。
 
 处理：
 

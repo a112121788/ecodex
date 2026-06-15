@@ -1,18 +1,18 @@
 # 浏览器 API
 
-ECode 浏览器 Surface 基于 WebView2。命令行可以打开网页、读取可访问快照、定位元素、执行点击/输入/键盘/脚本和截图，适合本地开发 smoke、登录表单检查、页面状态读取与发布前验证。
+ECode 集成浏览器基于 WebView2。命令行可以打开网页、读取可访问快照、定位元素、执行点击/输入/键盘/脚本和截图，适合本地开发 smoke、登录表单检查、页面状态读取与发布前验证。
 
 ## 推荐流程
 
 | 步骤 | 命令 | 目的 |
 | --- | --- | --- |
-| 1. 打开页面 | `ecode browser open https://example.com` | 创建或复用浏览器 Surface。 |
+| 1. 打开页面 | `ecode browser open https://example.com` | 创建或复用集成浏览器。 |
 | 2. 记录引用 | 读取返回的 `surfaceRef` | 后续命令稳定定位目标 Surface。 |
 | 3. 读取快照 | `ecode browser snapshot --surfaceRef surface:1` | 查看 role、name、text、testid。 |
 | 4. 执行动作 | `ecode browser click --role button --name Submit` | 用 locator 驱动页面。 |
 | 5. 验证结果 | `ecode browser eval "document.title"` / `ecode browser screenshot` | 读取状态或保存截图。 |
 
-## 打开浏览器 Surface
+## 打开集成浏览器
 
 ```powershell
 ecode browser open https://example.com
@@ -22,9 +22,9 @@ ecode browser open-split https://example.com --direction right
 
 | 命令 | 行为 |
 | --- | --- |
-| `open` | 优先复用当前浏览器 Surface；没有可用 Surface 时创建新的。 |
-| `new` | 总是创建新的浏览器 Surface。 |
-| `open-split` | 兼容入口；当前实现会创建新的浏览器 Surface，并返回 `fallbackMode: "new-surface"`。 |
+| `open` | 优先复用当前集成浏览器；没有可用 Surface 时创建新的。 |
+| `new` | 总是创建新的集成浏览器。 |
+| `open-split` | 兼容入口；当前实现会创建新的集成浏览器，并返回 `fallbackMode: "new-surface"`。 |
 
 返回值会包含 `surfaceId`、`surfaceRef`、`workspaceName`、`surfaceName`、`url` 等字段。
 
@@ -40,7 +40,7 @@ ecode browser snapshot --surfaceRef $surfaceRef
 ecode browser eval "document.title" --surfaceRef $surfaceRef
 ```
 
-如果不传 `surfaceRef`，命令行会尝试使用当前选中的浏览器 Surface；如果当前 Surface 不是浏览器 Surface，则使用当前 Workspace 中第一个浏览器 Surface。
+如果不传 `surfaceRef`，命令行会尝试使用当前选中的集成浏览器；如果当前 Surface 不是集成浏览器，则使用当前 Workspace 中第一个集成浏览器。
 
 ## browser snapshot 工作流
 
@@ -161,7 +161,7 @@ $title.result.value
 
 | 现象 | 建议 |
 | --- | --- |
-| 找不到浏览器 Surface | 先运行 `ecode browser open <url>`，或显式传 `--surfaceRef`。 |
+| 找不到集成浏览器 | 先运行 `ecode browser open <url>`，或显式传 `--surfaceRef`。 |
 | locator 找不到元素 | 运行 `ecode browser snapshot --surfaceRef <ref>`，确认 `--testid`、`--text`、`--role` 是否存在。 |
 | 动作报 `stale_ref` | 页面刷新后节点 id 失效；重新 snapshot 后再执行。 |
 | `eval` 失败 | 检查脚本是否能在页面上下文中执行；严格 CSP 页面可能限制脚本注入。 |

@@ -6,7 +6,7 @@ ECode 是 Windows 原生 WPF 应用，面向高强度终端、多项目分屏、
 
 | 组件 | 说明 |
 |---|---|
-| `src/ECode` | WPF 主应用，承载 Workspace、Surface、Pane、浏览器 Surface 与设置窗口。 |
+| `src/ECode` | WPF 主应用，承载 Workspace、Surface、Pane、集成浏览器与设置窗口。 |
 | `src/ECode.Core` | Core 模型、终端缓冲区、ConPTY、IPC、配置、会话恢复与 浏览器脚本契约。 |
 | `src/ECode.Cli` | `ecode` 命令行，负责本地命令、v1 pipe 兼容与 `ecode.v2` 请求。 |
 | `src/ECode.Daemon` | daemon 托管终端会话、快照与 attach/reconnect。 |

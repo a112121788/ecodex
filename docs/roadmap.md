@@ -1,6 +1,6 @@
 # 路线图
 
-ECode 是 Windows 原生 SuperTerminal：把终端 Workspace、浏览器 Surface、脚本化控制、会话恢复和 Windows 安装更新整合到一个桌面工作流中。
+ECode 是 Windows 原生 SuperTerminal：把终端 Workspace、集成浏览器、脚本化控制、会话恢复和 Windows 安装更新整合到一个桌面工作流中。
 
 本公开路线图同步 `spec/06-roadmap.md` 中稳定、面向用户的内容；具体 PR 级任务以 `spec/07-implementation-backlog.md` 为准。
 
@@ -49,7 +49,7 @@ ECode 是 Windows 原生 SuperTerminal：把终端 Workspace、浏览器 Surface
 
 ### M3 - 浏览器 Pane 基础
 
-- 浏览器 Surface 持久化与分屏渲染。
+- 集成浏览器持久化与分屏渲染。
 - WebView2 Runtime 缺失提示。
 - 浏览器 toolbar、URL/title/history 状态与命令行 `open` 命令。
 - `workspace.surfaces` 支持 浏览器标签页。

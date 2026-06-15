@@ -1,6 +1,6 @@
 # 自定义命令
 
-ECode 使用 `ecode.json` 定义项目命令、动作和启动布局。它适合把常用构建、测试、服务启动、浏览器 Surface 与命令面板入口固化到仓库中。
+ECode 使用 `ecode.json` 定义项目命令、动作和启动布局。它适合把常用构建、测试、服务启动、集成浏览器与命令面板入口固化到仓库中。
 
 ## 加载位置
 
@@ -60,7 +60,7 @@ ecode config reload
 
 ## `actions`
 
-`actions` 适合定义按钮、快捷动作或浏览器 Surface 入口。
+`actions` 适合定义按钮、快捷动作或集成浏览器入口。
 
 ```json
 {
@@ -103,7 +103,7 @@ ecode config reload
 
 ## Workspace 启动布局
 
-`workspace.surfaces` 可在启动或 reload 时创建 / 复用 terminal 与 browser Surface：
+`workspace.surfaces` 可在启动或 reload 时创建 / 复用 `terminal` 与 `browser`（集成浏览器）类型的 Surface：
 
 ```json
 {
@@ -135,7 +135,7 @@ ecode config reload
 ecode config diagnostics
 ```
 
-`Ctrl+Shift+,` 会触发配置重载。重载会刷新命令面板并尽量复用已存在的浏览器 Surface。
+`Ctrl+Shift+,` 会触发配置重载。重载会刷新命令面板并尽量复用已存在的集成浏览器。
 
 ## 安全建议
 

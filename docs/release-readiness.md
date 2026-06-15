@@ -63,5 +63,5 @@ npm run docs:build
 - Workspace / Surface / Pane 布局持久化与通知跳转。
 - `ecode.json` 加载、合并、命令面板展示、reload diagnostics。
 - Session restore、trusted resume bindings、敏感环境剔除。
-- 浏览器 Surface 创建与 `ecode browser` snapshot/click/fill/eval。
+- 集成浏览器创建与 `ecode browser` snapshot/click/fill/eval。
 - Installer、setup、doctor、updater、uninstall 数据保留策略。
