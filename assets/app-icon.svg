@@ -1,6 +1,6 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ECodeX">
   <defs>
-    <linearGradient id="cloud" x1="256" y1="80" x2="256" y2="432" gradientUnits="userSpaceOnUse">
+    <linearGradient id="cloud" x1="256" y1="44" x2="256" y2="468" gradientUnits="userSpaceOnUse">
       <stop offset="0%"   stop-color="#A5B4FC"/>
       <stop offset="50%"  stop-color="#4F46E5"/>
       <stop offset="100%" stop-color="#A5B4FC"/>
@@ -13,20 +13,16 @@
   <!-- White squircle background -->
   <rect width="512" height="512" rx="112" fill="#FFFFFF"/>
 
-  <!-- 6 equal circles (r=85), 3+3 peak+dip, fully symmetric (except for E's letter shape) -->
+  <!-- 6 equal circles (r=120), expanded to halve the gap to the outer frame. -->
   <g filter="url(#halo)">
-    <circle cx="160" cy="196" r="85" fill="url(#cloud)"/>
-    <circle cx="256" cy="166" r="85" fill="url(#cloud)"/>
-    <circle cx="352" cy="196" r="85" fill="url(#cloud)"/>
-    <circle cx="160" cy="316" r="85" fill="url(#cloud)"/>
-    <circle cx="256" cy="346" r="85" fill="url(#cloud)"/>
-    <circle cx="352" cy="316" r="85" fill="url(#cloud)"/>
+    <circle cx="160" cy="196" r="120" fill="url(#cloud)"/>
+    <circle cx="256" cy="166" r="120" fill="url(#cloud)"/>
+    <circle cx="352" cy="196" r="120" fill="url(#cloud)"/>
+    <circle cx="160" cy="316" r="120" fill="url(#cloud)"/>
+    <circle cx="256" cy="346" r="120" fill="url(#cloud)"/>
+    <circle cx="352" cy="316" r="120" fill="url(#cloud)"/>
   </g>
 
-  <!-- White capital E, 160x224 (was 200x280), centered in the cloud.
-       Now ~63px top/bottom and ~101px left/right gap to the cloud silhouette. -->
-  <rect x="176" y="144" width="40"  height="224" rx="10" fill="#FFFFFF"/>
-  <rect x="176" y="144" width="160" height="48"  rx="10" fill="#FFFFFF"/>
-  <rect x="176" y="232" width="160" height="48"  rx="10" fill="#FFFFFF"/>
-  <rect x="176" y="320" width="160" height="48"  rx="10" fill="#FFFFFF"/>
+  <!-- Sharper white capital E: one solid path with angled terminals. -->
+  <path fill="#FFFFFF" d="M176 144H328L336 152V184L328 192H216V232H328L336 240V272L328 280H216V320H328L336 328V360L328 368H176Z"/>
 </svg>
