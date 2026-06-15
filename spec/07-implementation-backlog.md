@@ -59,6 +59,19 @@ AI Agent 启动后按以下顺序选择任务：
 | 风险 | 后台进程残留、资源泄漏、用户误以为关闭等于退出、Agent 长任务继续产生副作用、pane id / session id 映射过期 |
 | 回滚 | 设置项或命令禁用默认保活，关闭窗口恢复为终止本地会话 + 仅保存快照；必要时清理 daemon 会话并保留 `session.json` 快照恢复 |
 
+### `PKG-02` - Inno 安装与卸载向导中文化
+
+| 字段 | 内容 |
+|---|---|
+| 状态 | ready |
+| 优先级 | P1 |
+| Outcome | 使用 Inno Setup 安装包的用户，在安装、升级覆盖、创建快捷方式、完成页、卸载确认与卸载进度等流程中看到一致的简体中文界面 |
+| Scope | 调整 `installer/ecode.iss` 的语言配置、安装任务描述、运行后提示和必要的自定义消息；同步 `docs/installation.md` 的构建/验收说明；不改变安装目录、卸载数据保留策略、Velopack/MSIX 行为或发布产物命名 |
+| 关联 | `installer/ecode.iss`、`docs/installation.md`、`04-build-deploy.md` §Installer / Update |
+| 验收 | Windows 环境使用 Inno Setup Compiler 编译通过；安装向导、覆盖安装向导、卸载向导、开始菜单/桌面快捷方式任务与完成页用户可见文案均为简体中文；静默安装/卸载不受影响；卸载仍只清理 `{app}`，保留 `%USERPROFILE%\.ecode` |
+| 风险 | 构建机缺少 `compiler:Languages\ChineseSimplified.isl` 导致编译失败；自定义英文文案遗漏；第三方系统按钮或 Windows 控件文案不能被 Inno 脚本完全覆盖 |
+| 回滚 | 移除新增自定义消息与强制语言配置，恢复 Inno 默认语言行为；保留现有 `ChineseSimplified.isl` 引用不影响安装功能 |
+
 ### `AGL-01` - 增加 spec/docs 链接检查脚本
 
 | 字段 | 内容 |
