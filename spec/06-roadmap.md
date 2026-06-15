@@ -207,7 +207,7 @@ var version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0";
 
 ```jsonc
 {
-  "version": "0.2.0",
+  "version": "1.0.0",
   "protocol": "v1",
   "workspaces": 3,
   "selectedWorkspace": "...",
@@ -944,18 +944,22 @@ docs/
 
 ## 7. 风险登记
 
+> 1.0.0 发布前刷新：2026-06-15。P0/P1 issue 检查结果为 P0=0、P1=0；详见 `docs/release-readiness.md`。
+
 | ID | 风险 | 严重度 | 概率 | 触发信号 | 缓解 |
 |---|---|---|---|---|---|
-| R01 | ConPTY 在 CI / 旧 Windows 上行为不一致 | 高 | 中 | Smoke test flaky | 限定 Windows 10 1809+；CI 用固定 runner；失败记录原始字节 |
+| R01 | ConPTY 在 CI / 旧 Windows 上行为不一致 | 高 | 中 | Smoke test flaky | 限定 Windows 10 1809+；CI 用固定 runner；CI 已加入 `中文 目录/项目/` smoke |
 | R02 | WebView2 引入内存膨胀 | 中 | 高 | 2 browser 后内存 > 1GB | browser lazy load；关闭 surface 立即 Dispose |
 | R03 | v2 协议重构破坏 v1 CLI | 高 | 中 | 旧脚本失败 | v1 tests 固化；兼容垫片 |
 | R04 | `ecode.json` 执行恶意命令 | 高 | 中 | 首次运行即执行未知命令 | fingerprint 信任 + confirm |
 | R05 | MSIX 与 ConPTY 不兼容 | 中 | 中 | 安装版无法创建 PTY | 保留 Velopack/Inno fallback |
 | R06 | Shell / profile setup 误改用户配置 | 中 | 中 | PATH 或 profile 异常 | setup 输出 diff；带 marker；uninstall 可逆 |
 | R07 | 多窗口与 daemon event 分发错位 | 高 | 中 | 输出进入错误 pane | event 中只使用 paneId UUID，不用 index；强测试 |
-| R08 | 大量 scrollback 保存卡 UI | 中 | 中 | 关闭窗口卡顿 | 后台保存 + snapshot line limit |
+| R08 | 大量 scrollback 保存卡 UI | 中 | 中 | 关闭窗口卡顿 | 后台保存 + snapshot line limit；release 上传 `ecode-perf-report` |
 | R09 | Browser automation 被页面 CSP 阻止 | 中 | 中 | ExecuteScriptAsync 失败 | WebView2 devtools protocol fallback |
 | R10 | 中文路径/空格路径导致发布或 CLI 出错 | 中 | 高 | 用户路径失败 | 全部路径 quote；CI 加中文路径 smoke |
+| R11 | Release webhook / token 缺失导致公告或产物同步失败 | 中 | 中 | release workflow 跳过 Discord 或 artifact 上传失败 | `DISCORD_WEBHOOK_URL` 缺失时不阻断发布；release notes 可手动复制 |
+| R12 | 性能预算随功能增长漂移 | 中 | 中 | `ecode-perf-report` p95 超预算 | `scripts/perf/measure.ps1` 每次 release 产出报告；失败项进入 P1/P2 triage |
 
 ---
 

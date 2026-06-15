@@ -30,6 +30,7 @@
   <ItemGroup>
     <None Include="Fixtures\browser-p0.html" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\scripts\ci.ps1" Link="scripts\ci.ps1" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\scripts\publish.ps1" Link="scripts\publish.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\scripts\completions\ecode.ps1" Link="scripts\completions\ecode.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\scripts\discord-notify.ps1" Link="scripts\discord-notify.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\scripts\perf\measure.ps1" Link="scripts\perf\measure.ps1" CopyToOutputDirectory="PreserveNewest" />
@@ -50,7 +51,12 @@
     <None Include="..\..\.github\ISSUE_TEMPLATE\session_restore.yml" Link=".github\ISSUE_TEMPLATE\session_restore.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\CONTRIBUTING.md" Link="CONTRIBUTING.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\SECURITY.md" Link="SECURITY.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Directory.Build.props" Link="Directory.Build.props" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\package.json" Link="package.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\spec\06-roadmap.md" Link="spec\06-roadmap.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\spec\07-implementation-backlog.md" Link="spec\07-implementation-backlog.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\ECode\Views\SettingsWindow.xaml" Link="src\ECode\Views\SettingsWindow.xaml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\.vitepress\config.mts" Link="docs\.vitepress\config.mts" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\index.md" Link="docs\index.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\installation.md" Link="docs\installation.md" CopyToOutputDirectory="PreserveNewest" />

@@ -59,7 +59,7 @@ CLI 5 秒超时（`NamedPipeClient.SendCommand` 默认 `timeoutMs=5000`）；超
 | `PANE.FOCUS` | 同上 + `paneId?`/`paneName?`/`paneIndex?` | 切换面板焦点；返回 `{ok, workspaceId, workspaceName, surfaceId, surfaceName, paneId, paneIndex, paneName}` |
 | `PANE.WRITE` | 同上 + `text` `submit` `submitKey` | 写入文本；`submit=true` 时自动追加 submit 序列；`submitKey ∈ {auto, enter, linefeed, crlf, none}`；同时调用 `RegisterCommandSubmission` |
 | `PANE.READ` | 同上 + `lines ∈ [1,5000]` `maxChars ∈ [512,200000]` | 返回 `{ok, ..., lines, maxChars, text}`（`Buffer.ExportPlainText` + `TailLines`） |
-| `STATUS` | — | 返回 `{version, workspaces, selectedWorkspace, unreadNotifications}`（`version` 当前为 `0.2.0` 程序集版本；roadmap 规划将从 `0.1.x` 重启发布线） |
+| `STATUS` | — | 返回 `{version, workspaces, selectedWorkspace, unreadNotifications}`（`version` 当前为 `1.0.0` 程序集版本） |
 | 未知命令 | — | 返回 `{error:"Unknown command: …"}` |
 
 > 索引解析（`TryResolveCollectionIndex`）：正整数（1-based） 或 0 起（0-based）；越界返回错误。

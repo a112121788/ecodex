@@ -585,6 +585,7 @@ public class ReleaseWorkflowTests
     {
         var path = Path.Combine(AppContext.BaseDirectory, ".github", "workflows", "release.yml");
         var workflow = File.ReadAllText(path);
+        var publishScript = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scripts", "publish.ps1"));
 
         workflow.Should().Contain("workflow_dispatch:");
         workflow.Should().Contain("schedule:");
@@ -594,6 +595,7 @@ public class ReleaseWorkflowTests
         workflow.Should().Contain("-Flavor Cli");
         workflow.Should().Contain("name: ecode-cli-win-x64");
         workflow.Should().Contain("actions/upload-artifact@v4");
+        publishScript.Should().Contain("-p:NuGetAudit=false");
     }
 
     [Fact]
@@ -1018,6 +1020,53 @@ public class MsixManifestTests
             .Should().NotBeNull();
         doc.SelectSingleNode("/m:Package/m:Dependencies/m:TargetDeviceFamily[@Name='Windows.Desktop']", ns)
             .Should().NotBeNull();
+    }
+}
+
+public class ReleaseVersionTests
+{
+    [Fact]
+    public void ReleaseFiles_ArePinnedToVersionOne()
+    {
+        var props = new System.Xml.XmlDocument();
+        props.Load(Path.Combine(AppContext.BaseDirectory, "Directory.Build.props"));
+
+        var manifest = new System.Xml.XmlDocument();
+        manifest.Load(Path.Combine(AppContext.BaseDirectory, "installer", "AppXManifest.xml"));
+        var ns = new System.Xml.XmlNamespaceManager(manifest.NameTable);
+        ns.AddNamespace("m", "http://schemas.microsoft.com/appx/manifest/foundation/windows10");
+
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "CHANGELOG.md"))
+            .Should().Contain("## [1.0.0] - 2026-06-15");
+        props.SelectSingleNode("/Project/PropertyGroup/Version")!.InnerText.Should().Be("1.0.0");
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "installer", "ecode.iss"))
+            .Should().Contain("#define MyAppVersion \"1.0.0\"");
+        manifest.SelectSingleNode("/m:Package/m:Identity[@Version='1.0.0.0']", ns)
+            .Should().NotBeNull();
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECode", "Views", "SettingsWindow.xaml"))
+            .Should().Contain("Text=\"v1.0.0\"");
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "installation.md"))
+            .Should().Contain("ECode-win-x64-1.0.0.0.msix");
+    }
+}
+
+public class RiskRegistryTests
+{
+    [Fact]
+    public void RoadmapRiskRegistry_IsRefreshedForOnePointOh()
+    {
+        var roadmapSpec = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "spec", "06-roadmap.md"));
+        var backlog = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "spec", "07-implementation-backlog.md"));
+
+        roadmapSpec.Should().Contain("1.0.0 发布前刷新：2026-06-15");
+        roadmapSpec.Should().Contain("P0=0、P1=0");
+        roadmapSpec.Should().Contain("CI 已加入 `中文 目录/项目/` smoke");
+        roadmapSpec.Should().Contain("release 上传 `ecode-perf-report`");
+        roadmapSpec.Should().Contain("R11");
+        roadmapSpec.Should().Contain("Release webhook / token 缺失");
+        roadmapSpec.Should().Contain("R12");
+        roadmapSpec.Should().Contain("性能预算随功能增长漂移");
+        backlog.Should().Contain("| `X-03` | [x] 风险登记刷新");
     }
 }
 

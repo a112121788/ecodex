@@ -130,7 +130,7 @@ pwsh ./scripts/publish.ps1 \
 Install a signed package:
 
 ```powershell
-Add-AppxPackage .\publish\msix\ECode-win-x64-0.2.0.0.msix
+Add-AppxPackage .\publish\msix\ECode-win-x64-1.0.0.0.msix
 ```
 
 Unsigned packages require a trusted test certificate and developer/test deployment policy before installation.

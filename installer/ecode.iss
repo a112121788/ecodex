@@ -4,7 +4,7 @@
 #define MyCliExeName "ecode.exe"
 #define MyAppVersion GetEnv("ECODE_VERSION")
 #if MyAppVersion == ""
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "1.0.0"
 #endif
 
 [Setup]

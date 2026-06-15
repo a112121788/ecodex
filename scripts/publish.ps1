@@ -124,7 +124,7 @@ function Invoke-DotnetPublish {
 
     Write-Host ""
     Write-Host ">> dotnet publish $Project --artifacts-path $ArtifactsPath $($Args -join ' ')" -ForegroundColor Cyan
-    $publishArgs = @('publish', $Project, '--artifacts-path', $ArtifactsPath) + $Args
+    $publishArgs = @('publish', $Project, '--artifacts-path', $ArtifactsPath, '-p:NuGetAudit=false') + $Args
     & dotnet @publishArgs
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet publish failed for $Project (exit $LASTEXITCODE)"

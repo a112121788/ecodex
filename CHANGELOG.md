@@ -8,6 +8,8 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-15
+
 ### Added
 
 - 新增 `scripts/ci.ps1` 本地 CI 入口，串联 restore/build/test，并对 smoke/publish 提供显式开关与 dry-run gate。
@@ -90,6 +92,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - 新增公开 Roadmap 页面，按 `spec/06-roadmap.md` 稳定内容展示版本线、M0-M7 里程碑与 1.0 gate。
 - CI smoke 现在运行 Windows 中文路径 `中文 目录/项目/` 场景，验证 ConPTY child process 能在该 working directory 中读写文件。
 - 新增 `scripts/perf/measure.ps1` 性能预算报告，release workflow 会上传 `ecode-perf-report` 产物。
+- 刷新 1.0.0 发布前风险登记，确认 P0=0、P1=0，并记录 release webhook 与性能预算漂移风险。
 - 新增 `ecode browser open|new|open-split <url>` 与 `BROWSER.OPEN*` IPC，可从 CLI 创建或复用 Browser Surface。
 - Browser 工具栏新增停止加载、开发者工具与加载进度状态。
 - `.ecode/ecode.json` 新增 `workspace.surfaces` Browser Surface layout 支持，启动或重载配置时可创建 / 复用浏览器标签页。
