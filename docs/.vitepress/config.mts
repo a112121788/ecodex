@@ -14,6 +14,7 @@ export default defineConfig({
     logo: '/app-icon.png',
     nav: [
       { text: '指南', link: '/getting-started' },
+      { text: '安装', link: '/installation' },
       { text: 'CLI', link: '/cli' },
       { text: 'Browser API', link: '/browser-api' },
       { text: '路线图', link: '/roadmap' }
@@ -54,9 +55,9 @@ export default defineConfig({
         ]
       }
     ],
-    search: {
-      provider: 'local'
-    },
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/a112121788/ecode' }
+    ],
     footer: {
       message: '基于 MIT License 发布。',
       copyright: 'Copyright (c) ECode contributors'
