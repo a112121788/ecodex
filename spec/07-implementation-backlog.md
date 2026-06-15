@@ -1,4 +1,4 @@
-# ECode 敏捷实施 Backlog
+# ECodeX 敏捷实施 Backlog
 
 > 本文是 AI Agent 的可执行队列。路线图只讲方向；本文件必须能直接指导下一轮开发。
 >
@@ -46,16 +46,16 @@ AI Agent 启动后按以下顺序选择任务：
 
 ## 2. Ready 队列（Now）
 
-### `SES-01` - ECode 重开自动接回后台终端进程
+### `SES-01` - ECodeX 重开自动接回后台终端进程
 
 | 字段 | 内容 |
 |---|---|
 | 状态 | ready |
 | 优先级 | P0 |
-| Outcome | 用户关闭 ECode 窗口后，在同一 Windows 登录会话内重新打开，原 Codex / PowerShell 等终端进程仍由 daemon 托管，终端自动 attach 到原会话并可继续输入输出 |
-| Scope | 首个切片覆盖“正常关闭主窗口 -> daemon 继续托管终端 -> 重开自动 attach”；涉及 `src/ECode` 关闭/启动流程、`src/ECode.Core` daemon session mapping、`session.json` pane/session id 持久化、状态可见性与“终止全部保留会话”入口；不覆盖 Windows 重启/关机后的进程存活，不做命令回放 |
+| Outcome | 用户关闭 ECodeX 窗口后，在同一 Windows 登录会话内重新打开，原 Codex / PowerShell 等终端进程仍由 daemon 托管，终端自动 attach 到原会话并可继续输入输出 |
+| Scope | 首个切片覆盖“正常关闭主窗口 -> daemon 继续托管终端 -> 重开自动 attach”；涉及 `src/ECodeX` 关闭/启动流程、`src/ECodeX.Core` daemon session mapping、`session.json` pane/session id 持久化、状态可见性与“终止全部保留会话”入口；不覆盖 Windows 重启/关机后的进程存活，不做命令回放 |
 | 关联 | `01-architecture.md` §6.1/§6.4、`03-data-and-ipc.md` §3.8/§4、`docs/session-restore.md` |
-| 验收 | Windows 手测：在 pane 启动 `pwsh` / Codex，关闭 ECode，确认后台会话未退出；重开 ECode 后恢复 workspace/surface/pane 布局并 attach 到同一进程，`pane.write/read` 可继续交互；无重复 shell；提供可见状态和“终止全部保留会话”入口；daemon 不可达时展示过期/已断开并回退到快照，不静默执行命令 |
+| 验收 | Windows 手测：在 pane 启动 `pwsh` / Codex，关闭 ECodeX，确认后台会话未退出；重开 ECodeX 后恢复 workspace/surface/pane 布局并 attach 到同一进程，`pane.write/read` 可继续交互；无重复 shell；提供可见状态和“终止全部保留会话”入口；daemon 不可达时展示过期/已断开并回退到快照，不静默执行命令 |
 | 风险 | 后台进程残留、资源泄漏、用户误以为关闭等于退出、Agent 长任务继续产生副作用、pane id / session id 映射过期 |
 | 回滚 | 设置项或命令禁用默认保活，关闭窗口恢复为终止本地会话 + 仅保存快照；必要时清理 daemon 会话并保留 `session.json` 快照恢复 |
 
@@ -66,9 +66,9 @@ AI Agent 启动后按以下顺序选择任务：
 | 状态 | ready |
 | 优先级 | P1 |
 | Outcome | 使用 Inno Setup 安装包的用户，在安装、升级覆盖、创建快捷方式、完成页、卸载确认与卸载进度等流程中看到一致的简体中文界面 |
-| Scope | 调整 `installer/ecode.iss` 的语言配置、安装任务描述、运行后提示和必要的自定义消息；同步 `docs/installation.md` 的构建/验收说明；不改变安装目录、卸载数据保留策略、Velopack/MSIX 行为或发布产物命名 |
-| 关联 | `installer/ecode.iss`、`docs/installation.md`、`04-build-deploy.md` §Installer / Update |
-| 验收 | Windows 环境使用 Inno Setup Compiler 编译通过；安装向导、覆盖安装向导、卸载向导、开始菜单/桌面快捷方式任务与完成页用户可见文案均为简体中文；静默安装/卸载不受影响；卸载仍只清理 `{app}`，保留 `%USERPROFILE%\.ecode` |
+| Scope | 调整 `installer/ecodex.iss` 的语言配置、安装任务描述、运行后提示和必要的自定义消息；同步 `docs/installation.md` 的构建/验收说明；不改变安装目录、卸载数据保留策略、Velopack/MSIX 行为或发布产物命名 |
+| 关联 | `installer/ecodex.iss`、`docs/installation.md`、`04-build-deploy.md` §Installer / Update |
+| 验收 | Windows 环境使用 Inno Setup Compiler 编译通过；安装向导、覆盖安装向导、卸载向导、开始菜单/桌面快捷方式任务与完成页用户可见文案均为简体中文；静默安装/卸载不受影响；卸载仍只清理 `{app}`，保留 `%USERPROFILE%\.ecodex` |
 | 风险 | 构建机缺少 `compiler:Languages\ChineseSimplified.isl` 导致编译失败；自定义英文文案遗漏；第三方系统按钮或 Windows 控件文案不能被 Inno 脚本完全覆盖 |
 | 回滚 | 移除新增自定义消息与强制语言配置，恢复 Inno 默认语言行为；保留现有 `ChineseSimplified.isl` 引用不影响安装功能 |
 
@@ -98,30 +98,30 @@ AI Agent 启动后按以下顺序选择任务：
 | 风险 | 模板过重导致普通 PR 填写成本上升 |
 | 回滚 | 从 PR 模板移除该块，保留本文 §7 作为内部手册 |
 
-### `DOG-01` - 新增 ECode 自举 dogfood 配置样例
+### `DOG-01` - 新增 ECodeX 自举 dogfood 配置样例
 
 | 字段 | 内容 |
 |---|---|
 | 状态 | ready |
 | 优先级 | P2 |
-| Outcome | 维护者能用 ECode 命令面板一键执行本仓常用 build/test/docs 命令 |
-| Scope | 新增示例 `.ecode/ecode.example.json` 或 `docs/configuration.md` 示例；不写入用户真实本地配置 |
+| Outcome | 维护者能用 ECodeX 命令面板一键执行本仓常用 build/test/docs 命令 |
+| Scope | 新增示例 `.ecodex/ecodex.example.json` 或 `docs/configuration.md` 示例；不写入用户真实本地配置 |
 | 关联 | `05-cli-commands.md`、`docs/custom-commands.md` |
 | 验收 | 示例包含 build、unit test、docs build、status/health；所有高风险命令 `confirm:true` |
 | 风险 | 示例路径在 macOS / Windows 不一致 |
 | 回滚 | 删除示例文件，不影响源码 |
 
-### `DOG-02` - 设计 ecode.v2 本地 smoke 脚本
+### `DOG-02` - 设计 ecodex.v2 本地 smoke 脚本
 
 | 字段 | 内容 |
 |---|---|
 | 状态 | ready |
 | 优先级 | P2 |
-| Outcome | 用 ECode 自身自动化 API 验证 workspace / pane / browser 的最小闭环 |
+| Outcome | 用 ECodeX 自身自动化 API 验证 workspace / pane / browser 的最小闭环 |
 | Scope | 先写 spec 或脚本草案；涉及 live app 的执行标记 Windows-only；不要求当前环境跑通 WPF |
 | 关联 | `03-data-and-ipc.md`、`05-cli-commands.md` |
 | 验收 | 脚本步骤覆盖 status -> workspace.create -> pane.write/read -> browser.open -> browser.snapshot；缺环境时输出清晰 skip |
-| 风险 | 依赖正在运行的 ECode 主应用 |
+| 风险 | 依赖正在运行的 ECodeX 主应用 |
 | 回滚 | 脚本不接 CI，仅作为手动 smoke |
 
 ### `REL-01` - 发布前证据清单自动化
@@ -170,13 +170,20 @@ AI Agent 启动后按以下顺序选择任务：
 | 范围 | 状态 | 归档位置 |
 |---|---|---|
 | M0 工程基线 | done | `CHANGELOG.md`、`docs/roadmap.md` |
-| M1 UI/UX 与 `ecode.json` | done | `CHANGELOG.md`、`docs/roadmap.md` |
+| M1 UI/UX 与 `ecodex.json` | done | `CHANGELOG.md`、`docs/roadmap.md` |
 | M2 会话恢复 | done | `CHANGELOG.md`、`docs/session-restore.md` |
 | M3 Browser Pane | done | `CHANGELOG.md`、`docs/getting-started.md` |
 | M4 Browser scripting | done | `CHANGELOG.md`、`docs/browser-api.md` |
 | M5 v2 协议 | done | `CHANGELOG.md`、`docs/cli.md` |
 | M6 安装更新 | done | `CHANGELOG.md`、`docs/installation.md` |
 | M7 文档与社区 | done | `CHANGELOG.md`、`CONTRIBUTING.md`、`SECURITY.md` |
+
+### 5.2 1.0 发布前专项归档
+
+| ID | 状态 | 说明 |
+|---|---|---|
+| `M7-A-03` | done | 文档站统一为简体中文单语，不再维护同页中英双语内容 |
+| `X-03` | [x] 风险登记刷新 | 2026-06-15 发布前同步 P0/P1 门槛、CI Unicode smoke 与 release perf artifact 风险 |
 
 ---
 

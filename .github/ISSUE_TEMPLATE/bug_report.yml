@@ -1,5 +1,5 @@
 name: Bug Report
-description: 报告 ECode 缺陷。终端渲染、IPC、CLI、ConPTY、守护进程、WebView2、Toast、发布产物等任何不符合预期行为。
+description: 报告 ECodeX 缺陷。终端渲染、IPC、CLI、ConPTY、守护进程、WebView2、Toast、发布产物等任何不符合预期行为。
 title: "[Bug] <一句话描述>"
 labels: ["bug", "triage"]
 assignees: []
@@ -14,11 +14,11 @@ body:
         - 已搜索过现有 issue，没有重复。
 
   - type: input
-    id: ecode_version
+    id: ecodex_version
     attributes:
-      label: ECode 版本
+      label: ECodeX 版本
       description: |
-        `ecode version` 或 `STATUS.version` 的输出（roadmap 已从 0.1.x 起步）。
+        `ecodex version` 或 `STATUS.version` 的输出（roadmap 已从 0.1.x 起步）。
       placeholder: "0.1.0 (commit 44154c5)"
     validations:
       required: true
@@ -51,10 +51,10 @@ body:
     attributes:
       label: 重现步骤
       description: |
-        编号列出操作步骤；可附带 ecode CLI 命令。
+        编号列出操作步骤；可附带 ecodex CLI 命令。
         例如：
-        1. 启动 ecode-app.exe
-        2. `ecode workspace create --name demo`
+        1. 启动 ecodex-app.exe
+        2. `ecodex workspace create --name demo`
         3. 在终端中执行 `pwsh -c "1..200 | ForEach-Object { Write-Output $_ }"`
         4. 观察 scrollback 渲染
       placeholder: |
@@ -85,7 +85,7 @@ body:
     attributes:
       label: 关键日志
       description: |
-        优先附 `%USERPROFILE%/.ecode/daemon-debug.log` 关键行；
+        优先附 `%USERPROFILE%/.ecodex/daemon-debug.log` 关键行；
         注意脱敏 API key / token / 私有路径。
       placeholder: |
         [HH:mm:ss.fff] [component] event=pane.write paneId=...

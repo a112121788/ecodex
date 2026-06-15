@@ -25,7 +25,7 @@
 
 | ID | 严重度 | 范围 | 状态 | 规避方案 |
 |---|---|---|---|---|
-| 无 | P0/P1 | terminal/layout/notification/session restore/ecode.json/browser/v2 命令行/install/update | 当前无发布阻塞项 | N/A |
+| 无 | P0/P1 | terminal/layout/notification/session restore/ecodex.json/browser/v2 命令行/install/update | 当前无发布阻塞项 | N/A |
 
 ## 必跑验证
 
@@ -33,11 +33,11 @@
 
 ```powershell
 npm run docs:build
-.\.dotnet\dotnet.exe test tests\ECode.Tests\ECode.Tests.csproj -p:NuGetAudit=false
-.\.dotnet\dotnet.exe build ECode.sln -c Debug -p:NuGetAudit=false
+.\.dotnet\dotnet.exe test tests\ECodeX.Tests\ECodeX.Tests.csproj -p:NuGetAudit=false
+.\.dotnet\dotnet.exe build ECodeX.sln -c Debug -p:NuGetAudit=false
 ```
 
-发布产物 workflow 还会上传 `ecode-perf-report`，本地可运行：
+发布产物 workflow 还会上传 `ecodex-perf-report`，本地可运行：
 
 ```powershell
 .\scripts\perf\measure.ps1 -OutputDir artifacts\perf -Samples 1
@@ -61,7 +61,7 @@ npm run docs:build
 
 - Terminal 创建、ConPTY attach、scrollback、输入。
 - Workspace / Surface / Pane 布局持久化与通知跳转。
-- `ecode.json` 加载、合并、命令面板展示、reload diagnostics。
+- `ecodex.json` 加载、合并、命令面板展示、reload diagnostics。
 - Session restore、trusted resume bindings、敏感环境剔除。
-- 集成浏览器创建与 `ecode browser` snapshot/click/fill/eval。
+- 集成浏览器创建与 `ecodex browser` snapshot/click/fill/eval。
 - Installer、setup、doctor、updater、uninstall 数据保留策略。

@@ -6,12 +6,15 @@ const base = rawBase === '/' ? '/' : `/${rawBase.replace(/^\/|\/$/g, '')}/`
 
 export default defineConfig({
   base,
-  title: 'ECode',
+  title: 'ECodeX',
   description: 'Windows 原生 SuperTerminal 文档',
   cleanUrls: true,
   lastUpdated: true,
   themeConfig: {
     logo: '/app-icon.png',
+    search: {
+      provider: 'local'
+    },
     nav: [
       { text: '指南', link: '/getting-started' },
       { text: '安装', link: '/installation' },
@@ -56,11 +59,11 @@ export default defineConfig({
       }
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/a112121788/ecode' }
+      { icon: 'github', link: 'https://github.com/a112121788/ecodex' }
     ],
     footer: {
       message: '基于 MIT License 发布。',
-      copyright: 'Copyright (c) ECode contributors'
+      copyright: 'Copyright (c) ECodeX contributors'
     }
   }
 })

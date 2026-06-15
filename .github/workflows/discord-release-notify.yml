@@ -16,7 +16,7 @@ on:
       release_url:
         description: Release URL for a manual dry run
         required: false
-        default: https://github.com/a112121788/ecode/releases
+        default: https://github.com/a112121788/ecodex/releases
       dry_run:
         description: Print the Discord payload instead of posting it
         type: boolean

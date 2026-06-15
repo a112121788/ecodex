@@ -1,10 +1,10 @@
 # Contributing
 
-Thanks for helping improve ECode. This guide covers the local build, test, and pull request flow for the Windows-native app and CLI.
+Thanks for helping improve ECodeX. This guide covers the local build, test, and pull request flow for the Windows-native app and CLI.
 
 ## Project Scope
 
-ECode is a Windows desktop terminal built with WPF, ConPTY, WebView2, named pipes, and .NET 10. Keep changes aligned with the current roadmap and backlog:
+ECodeX is a Windows desktop terminal built with WPF, ConPTY, WebView2, named pipes, and .NET 10. Keep changes aligned with the current roadmap and backlog:
 
 - `spec/06-roadmap.md` for product direction.
 - `spec/07-implementation-backlog.md` for implementation items and acceptance notes.
@@ -29,9 +29,9 @@ Optional but useful:
 ## First-Time Setup
 
 ```powershell
-git clone <repo-url> ecode
-cd ecode
-dotnet restore ECode.sln
+git clone <repo-url> ecodex
+cd ecodex
+dotnet restore ECodeX.sln
 npm install
 ```
 
@@ -46,19 +46,19 @@ If NuGet advisory lookup fails in your environment with `NU1900`, retry local bu
 Use the checked-in SDK wrapper when available:
 
 ```powershell
-.\.dotnet\dotnet.exe build ECode.sln -c Debug -p:NuGetAudit=false
+.\.dotnet\dotnet.exe build ECodeX.sln -c Debug -p:NuGetAudit=false
 ```
 
 Or use the SDK on PATH:
 
 ```powershell
-dotnet build ECode.sln -c Debug
+dotnet build ECodeX.sln -c Debug
 ```
 
 Run the WPF app:
 
 ```powershell
-dotnet run --project src\ECode\ECode.csproj -c Debug
+dotnet run --project src\ECodeX\ECodeX.csproj -c Debug
 ```
 
 Build the docs site:
@@ -72,7 +72,7 @@ npm run docs:build
 Fast unit tests:
 
 ```powershell
-.\.dotnet\dotnet.exe test tests\ECode.Tests\ECode.Tests.csproj -p:NuGetAudit=false
+.\.dotnet\dotnet.exe test tests\ECodeX.Tests\ECodeX.Tests.csproj -p:NuGetAudit=false
 ```
 
 Full local CI entrypoint:
@@ -103,8 +103,8 @@ User docs live in `docs/` and are built with VitePress.
 When adding or changing docs:
 
 - Update the matching page under `docs/`.
-- Add or adjust assertions in `tests/ECode.Tests/CoreTests.cs` when the page is part of a backlog acceptance item.
-- Ensure the file is copied by `tests/ECode.Tests/ECode.Tests.csproj` if tests read it from the test output directory.
+- Add or adjust assertions in `tests/ECodeX.Tests/CoreTests.cs` when the page is part of a backlog acceptance item.
+- Ensure the file is copied by `tests/ECodeX.Tests/ECodeX.Tests.csproj` if tests read it from the test output directory.
 - Run `npm run docs:build`.
 
 ## Coding Guidelines
@@ -127,7 +127,7 @@ For CLI/API changes:
 
 - Document new commands in `docs/cli.md`.
 - Update PowerShell completion when adding public CLI commands.
-- Add contract tests for new `ecode.v2` methods.
+- Add contract tests for new `ecodex.v2` methods.
 - Preserve v1 compatibility commands unless the roadmap explicitly removes them.
 
 ## Pull Request Flow
@@ -140,8 +140,8 @@ Before opening a PR:
 
 ```powershell
 npm run docs:build
-.\.dotnet\dotnet.exe test tests\ECode.Tests\ECode.Tests.csproj -p:NuGetAudit=false
-.\.dotnet\dotnet.exe build ECode.sln -c Debug -p:NuGetAudit=false
+.\.dotnet\dotnet.exe test tests\ECodeX.Tests\ECodeX.Tests.csproj -p:NuGetAudit=false
+.\.dotnet\dotnet.exe build ECodeX.sln -c Debug -p:NuGetAudit=false
 ```
 
 4. For Browser, daemon, installer, update, or setup changes, also run the relevant optional checks from `scripts/ci.ps1`.
@@ -167,7 +167,7 @@ Use labels that help release notes:
 ## Security And Secrets
 
 - Never commit API keys, tokens, passwords, or private certificates.
-- Scrub `%USERPROFILE%\.ecode\resume.json`, command logs, transcripts, and `daemon-debug.log` before attaching them to issues.
+- Scrub `%USERPROFILE%\.ecodex\resume.json`, command logs, transcripts, and `daemon-debug.log` before attaching them to issues.
 - For suspected vulnerabilities, use `SECURITY.md` once available instead of opening a public issue.
 
 ## Release Notes

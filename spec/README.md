@@ -1,6 +1,6 @@
-# ECode 设计文档（`spec/`）
+# ECodeX 设计文档（`spec/`）
 
-本目录是 ECode 的工程内部设计与敏捷交付控制台。它不同于面向最终用户的 `README.md` / `docs/`，目标是：
+本目录是 ECodeX 的工程内部设计与敏捷交付控制台。它不同于面向最终用户的 `README.md` / `docs/`，目标是：
 
 - 让新贡献者在 30 分钟内理解项目结构、关键模块、数据契约与发布流程。
 - 让 AI Agent 能自动读取路线图与 backlog，按小步 loop 持续开发。
@@ -9,7 +9,7 @@
 
 > 范围：本仓库主线是 **Windows 原生版**（WPF + ConPTY + WebView2 + Named Pipe + .NET 10）。macOS 可用于部分 Core / CLI / Tests 验证，但不能替代 Windows GUI / ConPTY / WebView2 验证。
 >
-> 品牌：项目代号 **ECode**（旧称 `cmux-windows`，参见 `CHANGELOG.md` 的 “Breaking changes” 段）。`cmux` 一词在 spec/ 中仅作为上游 macOS 原版（`manaflow-ai/cmux`）的引用、协议 v1 命令名（`WORKSPACE.* / PANE.*`）与配置文件兼容名（`cmux.json`）出现。
+> 品牌：项目代号 **ECodeX**（旧称 `cmux-windows`，参见 `CHANGELOG.md` 的 “Breaking changes” 段）。`cmux` 一词在 spec/ 中仅作为上游 macOS 原版（`manaflow-ai/cmux`）的引用、协议 v1 命令名（`WORKSPACE.* / PANE.*`）与配置文件兼容名（`cmux.json`）出现。
 
 ---
 
@@ -28,7 +28,7 @@
 2. [`02-modules.md`](02-modules.md) — 按模块 / 类梳理职责、关键方法、协作链路。
 3. [`03-data-and-ipc.md`](03-data-and-ipc.md) — 数据模型、命名管道协议、JSON 形状、错误码。
 4. [`04-build-deploy.md`](04-build-deploy.md) — 解决方案布局、构建脚本、发布形态、运行依赖、故障排查。
-5. [`05-cli-commands.md`](05-cli-commands.md) — `ecode.exe` CLI 与 IPC 命令参考。
+5. [`05-cli-commands.md`](05-cli-commands.md) — `ecodex.exe` CLI 与 IPC 命令参考。
 6. [`08-dotnet-csharp-handbook.md`](08-dotnet-csharp-handbook.md) — 给只有 Ruby / Python 经验的贡献者准备的 .NET 10 / C# 速通手册。
 
 ---
@@ -70,6 +70,6 @@
 | `06-roadmap.md` | 重构为 Now / Next / Later 敏捷路线图 | 本次 spec 重构 |
 | `07-implementation-backlog.md` | 重构为 AI 可执行敏捷 backlog | 本次 spec 重构 |
 | `08-dotnet-csharp-handbook.md` | .NET / C# 贡献者速通手册 | 1.0 基线 |
-| `2026-06-11-ecode-rename-plan.md` | 历史重命名计划归档 | 0.1.0 归档 |
+| `2026-06-11-ecodex-rename-plan.md` | 历史重命名计划归档 | 0.1.0 归档 |
 
 > 验证方法：在每个 PR 合并前，至少跑一次 `wc -l spec/*.md` 与 `git diff --stat spec/` 复核改动量；涉及 docs 导航时再运行 `npm run docs:build`。

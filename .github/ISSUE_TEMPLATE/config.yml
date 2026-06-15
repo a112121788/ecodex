@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: 项目设计文档（spec/）
-    url: https://github.com/a112121788/ecode/blob/main/spec/README.md
+    url: https://github.com/a112121788/ecodex/blob/main/spec/README.md
     about: 仓库内 spec/ 目录是设计文档单一可信来源；任何协议/数据/UI 行为变更请先更新 spec。
   - name: 用户文档（docs/）
-    url: https://a112121788.github.io/ecode/
+    url: https://a112121788.github.io/ecodex/
     about: 安装、入门、自定义命令、Browser API、CLI 与排障文档入口。
   - name: 实施 Backlog（07-implementation-backlog.md）
-    url: https://github.com/a112121788/ecode/blob/main/spec/07-implementation-backlog.md
+    url: https://github.com/a112121788/ecodex/blob/main/spec/07-implementation-backlog.md
     about: roadmap 的可执行切片；新工作请先在 backlog 中查找是否已有对应 ID。

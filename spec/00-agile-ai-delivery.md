@@ -8,7 +8,7 @@
 
 ## 1. 交付目标
 
-ECode 的研发方式调整为 **敏捷交付 + AI 自动化开发**：
+ECodeX 的研发方式调整为 **敏捷交付 + AI 自动化开发**：
 
 1. 每次只交付一个可验证的用户或工程价值切片。
 2. 由 `spec/06-roadmap.md` 提供方向，由 `spec/07-implementation-backlog.md` 提供下一步。
@@ -130,10 +130,10 @@ AI Agent 可以自动进入下一轮，条件是：
 | 改动类型 | 最小验证 | 完整验证 |
 |---|---|---|
 | spec-only | `rg -n "新增链接|旧文件名" spec` + 人工读 diff | `npm run docs:build`（若 docs 导航引用 spec） |
-| Core 逻辑 | `dotnet test tests/ECode.Tests/ECode.Tests.csproj` | `dotnet build ECode.sln -c Debug` |
-| CLI / IPC | contract tests + `ecode ... --json` 手测 | v1 / v2 兼容 smoke |
+| Core 逻辑 | `dotnet test tests/ECodeX.Tests/ECodeX.Tests.csproj` | `dotnet build ECodeX.sln -c Debug` |
+| CLI / IPC | contract tests + `ecodex ... --json` 手测 | v1 / v2 兼容 smoke |
 | UI / WPF | build + 截图 / 录屏 | Windows 真机手测 |
-| ConPTY | unit tests + smoke dry-run | `tests/ECode.Smoke` Windows 环境 |
+| ConPTY | unit tests + smoke dry-run | `tests/ECodeX.Smoke` Windows 环境 |
 | Browser / WebView2 | Browser service tests | Windows-only WebView2 integration |
 | Installer / Update | publish dry-run | release workflow + 手工安装 / 卸载 |
 

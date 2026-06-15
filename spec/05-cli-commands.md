@@ -1,10 +1,10 @@
 # CLI 与 IPC 命令参考
 
-> 这份清单汇总 `ecode`（CLI）、`\\.\pipe\ecode`（主应用通道）、`\\.\pipe\ecode-daemon`（守护进程通道）三处对外暴露的命令与消息。字段名、默认值、约束均来自源码（`src/ECode.Cli/Program.cs`、`src/ECode/ViewModels/MainViewModel.cs`、`src/ECode.Daemon/DaemonPipeServer.cs`、`src/ECode.Core/IPC/*`）。
+> 这份清单汇总 `ecodex`（CLI）、`\\.\pipe\ecodex`（主应用通道）、`\\.\pipe\ecodex-daemon`（守护进程通道）三处对外暴露的命令与消息。字段名、默认值、约束均来自源码（`src/ECodeX.Cli/Program.cs`、`src/ECodeX/ViewModels/MainViewModel.cs`、`src/ECodeX.Daemon/DaemonPipeServer.cs`、`src/ECodeX.Core/IPC/*`）。
 
 ---
 
-## 1. `ecode.exe`（ECode.Cli）
+## 1. `ecodex.exe`（ECodeX.Cli）
 
 ### 1.1 全局参数约定
 
@@ -63,9 +63,9 @@
 | `new <url>` | `--workspaceId/Name/Index`、`--name <text>` | `BROWSER.NEW`；始终创建并选中新 Browser Surface |
 | `open-split <url>` / `split <url>` | `--direction <right|down>`、`--workspaceId/Name/Index`、`--name <text>` | `BROWSER.OPEN_SPLIT`；v1 兼容入口，当前以 `fallbackMode:"new-surface"` 创建 Browser Surface |
 
-#### `ecode.json` workspace layout
+#### `ecodex.json` workspace layout
 
-`ecode reload-config` 与应用启动会读取当前项目的 `.ecode/ecode.json`；`workspace.surfaces` 可声明 Terminal / Browser Surface，Browser Surface 会按 `name` 或 `url` 复用，避免重复创建。
+`ecodex reload-config` 与应用启动会读取当前项目的 `.ecodex/ecodex.json`；`workspace.surfaces` 可声明 Terminal / Browser Surface，Browser Surface 会按 `name` 或 `url` 复用，避免重复创建。
 
 ```jsonc
 {
@@ -90,7 +90,7 @@
 
 #### `version` / `--version` / `-v`
 
-打印 `ecode 1.0.0 (Windows)`。
+打印 `ecodex 1.0.0 (Windows)`。
 
 ### 1.3 退出码
 
@@ -99,7 +99,7 @@
 | `0` | 成功 |
 | `1` | 解析错误 / 连接超时 / 服务端返回 `error` / 未知命令 |
 
-## 2. `\\.\pipe\ecode` 主应用通道
+## 2. `\\.\pipe\ecodex` 主应用通道
 
 ### 2.1 请求行
 
@@ -148,7 +148,7 @@ COMMAND [k=v [k=v ...]]
 
 未知命令 / 未找到目标 / 缺少必填参数 → `{error:"…"}`；成功 → `{ok:true, ...}` 或直接返回对象数组。
 
-## 3. `\\.\pipe\ecode-daemon` 守护进程通道
+## 3. `\\.\pipe\ecodex-daemon` 守护进程通道
 
 ### 3.1 消息格式
 
@@ -211,7 +211,7 @@ COMMAND [k=v [k=v ...]]
 
 ```text
 启动
- ├─ 单实例互斥体 Global\ECodeDaemon
+ ├─ 单实例互斥体 Global\ECodeXDaemon
  ├─ 后台 Accept 线程（PipeServer-Accept）
  └─ 主线程每 5 分钟轮询：
      if 客户端==0 && 会话==0 && 距 lastActivity > 24h → 优雅退出
@@ -222,48 +222,48 @@ COMMAND [k=v [k=v ...]]
 ### 4.1 自动化脚本触发通知
 
 ```powershell
-ecode notify --title "Build" --body "等待输入"
+ecodex notify --title "Build" --body "等待输入"
 ```
 
 ### 4.2 保存 / 查看恢复绑定
 
 ```powershell
 # 保存当前 pane 的 tmux resume 命令
-ecode surface resume set --kind tmux --shell "tmux attach -t work" --checkpoint "sprint-1" --trusted true --approvedPrefix "tmux attach"
+ecodex surface resume set --kind tmux --shell "tmux attach -t work" --checkpoint "sprint-1" --trusted true --approvedPrefix "tmux attach"
 
 # 查看当前 pane 绑定
-ecode surface resume show
+ecodex surface resume show
 
 # 查看当前 Surface 下全部绑定
-ecode surface resume show --all
+ecodex surface resume show --all
 
 # 清理当前 pane 绑定，或用 --id 精确删除
-ecode surface resume clear
-ecode surface resume clear --id <binding-id>
+ecodex surface resume clear
+ecodex surface resume clear --id <binding-id>
 ```
 
 ### 4.3 自动化建会话并写入命令
 
 ```powershell
 # 创建项目
-ecode workspace create --name "My Project"
+ecodex workspace create --name "My Project"
 
 # 新建 Surface
-ecode surface create
+ecodex surface create
 
 # 在当前聚焦面板写入 + 提交（当前 CLI 顶层仅支持 status/notify/workspace/surface/split；pane 写入请直接通过 IPC 或 M5 v2 协议）
-ecode status
+ecodex status
 # 等价于 PANE.WRITE / PANE.READ（用 PowerShell 调 NamedPipe 客户端；详见 spec/03-data-and-ipc.md §2）：
 [script:pane-write] ...
 
 # 读取最近 50 行输出
-ecode pane read --lines 50
+ecodex pane read --lines 50
 ```
 
 ### 4.4 编程方式直接调 IPC（PowerShell）
 
 ```powershell
-$pipe = New-Object System.IO.Pipes.NamedPipeClientStream('.', 'ecode', 'InOut')
+$pipe = New-Object System.IO.Pipes.NamedPipeClientStream('.', 'ecodex', 'InOut')
 $pipe.Connect(3000)
 $writer = New-Object System.IO.StreamWriter($pipe, [System.Text.Encoding]::UTF8)
 $reader = New-Object System.IO.StreamReader($pipe, [System.Text.Encoding]::UTF8)
@@ -290,8 +290,8 @@ $pipe.Close()
 
 | 来源 | 触发 | 结果 |
 |---|---|---|
-| `ecode.exe` | 连接超时 | stderr `Error: Could not connect to ecode. Is it running?` 退出码 1 |
-| `ecode.exe` | 命令未知 | stderr `Error: Unknown command: …` 退出码 1 |
+| `ecodex.exe` | 连接超时 | stderr `Error: Could not connect to ecodex. Is it running?` 退出码 1 |
+| `ecodex.exe` | 命令未知 | stderr `Error: Unknown command: …` 退出码 1 |
 | `NamedPipeServer` | 未注册 `OnCommand` | 响应 `{"error":"No handler registered"}` |
 | `MainViewModel.HandlePipeCommand` | 未知命令 / 未找到目标 | 响应 `{"error":"…"}` |
 | `DaemonPipeServer.ProcessRequest` | 异常 | 响应 `{success:false, error:<ex.Message>}` |

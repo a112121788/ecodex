@@ -1,20 +1,20 @@
 # 自定义命令
 
-ECode 使用 `ecode.json` 定义项目命令、动作和启动布局。它适合把常用构建、测试、服务启动、集成浏览器与命令面板入口固化到仓库中。
+ECodeX 使用 `ecodex.json` 定义项目命令、动作和启动布局。它适合把常用构建、测试、服务启动、集成浏览器与命令面板入口固化到仓库中。
 
 ## 加载位置
 
 按优先级读取：
 
-1. 当前项目：`.ecode/ecode.json`
-2. 用户配置：`%USERPROFILE%\.config\ecode\ecode.json`
+1. 当前项目：`.ecodex/ecodex.json`
+2. 用户配置：`%USERPROFILE%\.config\ecodex\ecodex.json`
 3. 兼容读取：`.cmux/cmux.json`（仅兼容迁移）
 
 排查命令：
 
 ```powershell
-ecode config diagnostics
-ecode config reload
+ecodex config diagnostics
+ecodex config reload
 ```
 
 ## 最小示例
@@ -130,16 +130,16 @@ ecode config reload
 ## 热重载
 
 ```powershell
-ecode reload-config
-ecode config reload
-ecode config diagnostics
+ecodex reload-config
+ecodex config reload
+ecodex config diagnostics
 ```
 
 `Ctrl+Shift+,` 会触发配置重载。重载会刷新命令面板并尽量复用已存在的集成浏览器。
 
 ## 安全建议
 
-- 不要把真实 API key / token 写入 `ecode.json`。
+- 不要把真实 API key / token 写入 `ecodex.json`。
 - 对会执行外部命令、安装依赖、删除文件的 action 使用 `confirm: true`。
 - 浏览器 action 只保存 URL，不保存 cookie 或 localStorage。
-- 如果配置来自旧 `.cmux/cmux.json`，建议迁移到 `.ecode/ecode.json`。
+- 如果配置来自旧 `.cmux/cmux.json`，建议迁移到 `.ecodex/ecodex.json`。

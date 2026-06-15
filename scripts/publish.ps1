@@ -1,12 +1,12 @@
 ﻿<#
 .SYNOPSIS
-  为 Windows 构建并发布 ECode（ECode + ECode.Cli）。
+  为 Windows 构建并发布 ECodeX（ECodeX + ECodeX.Cli）。
 
 .DESCRIPTION
   复现 README.md 中记录的三种发布形态：
-    1) 框架依赖版          -> publish/ecode-win-x64       （体积最小，需要 .NET 10 Desktop Runtime）
-    2) 自包含目录版        -> publish/ecode-win-x64-sc    （文件夹形式，可在任意 win-x64 上运行）
-    3) CLI                 -> publish/ecode-cli           （自包含，可直接放入 PATH）
+    1) 框架依赖版          -> publish/ecodex-win-x64       （体积最小，需要 .NET 10 Desktop Runtime）
+    2) 自包含目录版        -> publish/ecodex-win-x64-sc    （文件夹形式，可在任意 win-x64 上运行）
+    3) CLI                 -> publish/ecodex-cli           （自包含，可直接放入 PATH）
     4) Velopack            -> publish/velopack            （installer + RELEASES feed）
     5) MSIX                -> publish/msix                （enterprise opt-in package）
 
@@ -56,9 +56,9 @@ param(
 
     [string]$OutputRoot,
 
-    [string]$VelopackPackId = 'ECode',
+    [string]$VelopackPackId = 'ECodeX',
 
-    [string]$VelopackAuthors = 'ECode',
+    [string]$VelopackAuthors = 'ECodeX',
 
     [string]$VpkCommand = 'vpk',
 
@@ -66,9 +66,9 @@ param(
 
     [string]$SignToolCommand = 'signtool.exe',
 
-    [string]$MsixPackageName = 'ECode',
+    [string]$MsixPackageName = 'ECodeX',
 
-    [string]$MsixPublisher = 'CN=ECode',
+    [string]$MsixPublisher = 'CN=ECodeX',
 
     [string]$MsixCertPath,
 
@@ -89,8 +89,8 @@ if ($OutputRoot) {
     $OutputRoot = Join-Path $RepoRoot 'publish'
 }
 
-$MainProj = Join-Path $RepoRoot 'src/ECode/ECode.csproj'
-$CliProj  = Join-Path $RepoRoot 'src/ECode.Cli/ECode.Cli.csproj'
+$MainProj = Join-Path $RepoRoot 'src/ECodeX/ECodeX.csproj'
+$CliProj  = Join-Path $RepoRoot 'src/ECodeX.Cli/ECodeX.Cli.csproj'
 $Validations = @()
 
 function Get-ProjectVersion {
@@ -233,7 +233,7 @@ function Invoke-VelopackPack {
         '--packVersion', $version,
         '--packAuthors', $VelopackAuthors,
         '--packDir', $PackDir,
-        '--mainExe', 'ecode-app.exe',
+        '--mainExe', 'ecodex-app.exe',
         '--outputDir', $OutputDir
     )
 
@@ -249,7 +249,7 @@ function Invoke-VelopackPack {
     if ($setup) {
         Add-FileValidation -FlavorName 'VelopackSetup' -FilePath $setup.FullName
     } else {
-        Add-FileValidation -FlavorName 'VelopackSetup' -FilePath (Join-Path $OutputDir 'ECodeSetup.exe')
+        Add-FileValidation -FlavorName 'VelopackSetup' -FilePath (Join-Path $OutputDir 'ECodeXSetup.exe')
     }
 }
 
@@ -321,7 +321,7 @@ function Invoke-MsixPack {
 
     $assetsDir = Join-Path $staging 'Assets'
     Ensure-Dir $assetsDir
-    $sourceIcon = Join-Path $RepoRoot 'src/ECode/Assets/app-icon.png'
+    $sourceIcon = Join-Path $RepoRoot 'src/ECodeX/Assets/app-icon.png'
     New-ResizedPngAsset -SourcePng $sourceIcon -DestinationPng (Join-Path $assetsDir 'StoreLogo.png') -Width 50 -Height 50
     New-ResizedPngAsset -SourcePng $sourceIcon -DestinationPng (Join-Path $assetsDir 'Square44x44Logo.png') -Width 44 -Height 44
     New-ResizedPngAsset -SourcePng $sourceIcon -DestinationPng (Join-Path $assetsDir 'Square150x150Logo.png') -Width 150 -Height 150
@@ -374,16 +374,16 @@ Ensure-Dir $OutputRoot
 $BuildRoot = Join-Path $OutputRoot '.build'
 
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-Write-Host "=== ECode publish === Config=$Config Rid=$Rid Flavor=$Flavor Time=$stamp ===" -ForegroundColor Yellow
+Write-Host "=== ECodeX publish === Config=$Config Rid=$Rid Flavor=$Flavor Time=$stamp ===" -ForegroundColor Yellow
 
 $ran = @()
-$selfContainedOut = Join-Path $OutputRoot "ecode-$Rid-sc"
-$cliOut = Join-Path $OutputRoot "ecode-cli"
+$selfContainedOut = Join-Path $OutputRoot "ecodex-$Rid-sc"
+$cliOut = Join-Path $OutputRoot "ecodex-cli"
 $selfContainedPublished = $false
 $cliPublished = $false
 
 if ($Flavor -in @('All', 'Framework')) {
-    $out = Join-Path $OutputRoot "ecode-$Rid"
+    $out = Join-Path $OutputRoot "ecodex-$Rid"
     $artifacts = Join-Path $BuildRoot 'framework'
     Reset-PublishDir $out
     Invoke-DotnetPublish -Project $MainProj -ArtifactsPath $artifacts -Args @(
@@ -392,7 +392,7 @@ if ($Flavor -in @('All', 'Framework')) {
         '--self-contained', 'false',
         '-o', $out
     )
-    $exe = Join-Path $out 'ecode-app.exe'
+    $exe = Join-Path $out 'ecodex-app.exe'
     Add-PublishValidation -FlavorName 'Framework' -ExePath $exe
     $ran += "Framework      -> $exe"
 }
@@ -407,7 +407,7 @@ if ($Flavor -in @('All', 'SelfContained')) {
         '--self-contained', 'true',
         '-o', $out
     )
-    $exe = Join-Path $out 'ecode-app.exe'
+    $exe = Join-Path $out 'ecodex-app.exe'
     Add-PublishValidation -FlavorName 'SelfContained' -ExePath $exe
     $ran += "SelfContained  -> $exe"
     $selfContainedPublished = $true
@@ -423,7 +423,7 @@ if ($Flavor -in @('All', 'Cli')) {
         '--self-contained', 'true',
         '-o', $out
     )
-    $exe = Join-Path $out 'ecode.exe'
+    $exe = Join-Path $out 'ecodex.exe'
     Add-PublishValidation -FlavorName 'Cli' -ExePath $exe
     $ran += "Cli            -> $exe"
     $cliPublished = $true

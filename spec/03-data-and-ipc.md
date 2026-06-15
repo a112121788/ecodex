@@ -1,6 +1,6 @@
 # 数据模型与 IPC 协议
 
-> 描述 ecode 在 IPC 与持久化层面的所有"线缆级"约定：消息类型、JSON 形状、字节边界、错误码。
+> 描述 ecodex 在 IPC 与持久化层面的所有"线缆级"约定：消息类型、JSON 形状、字节边界、错误码。
 
 ---
 
@@ -8,14 +8,14 @@
 
 | 管道 | 端点 | 消息形态 | 用途 |
 |---|---|---|---|
-| `\\.\pipe\ecode`（或 `\\.\pipe\ecode-{tag}`） | WPF 端 `NamedPipeServer` ↔ CLI 端 `NamedPipeClient` | 单行文本请求 + 单行 JSON 响应 | CLI 自动化与外部 hook |
-| `\\.\pipe\ecode-daemon` | WPF 端 `DaemonClient` ↔ 守护进程 `DaemonPipeServer` | 多行 JSON（请求 / 响应 / 事件共享同一字节流） | 终端会话托管与事件订阅 |
+| `\\.\pipe\ecodex`（或 `\\.\pipe\ecodex-{tag}`） | WPF 端 `NamedPipeServer` ↔ CLI 端 `NamedPipeClient` | 单行文本请求 + 单行 JSON 响应 | CLI 自动化与外部 hook |
+| `\\.\pipe\ecodex-daemon` | WPF 端 `DaemonClient` ↔ 守护进程 `DaemonPipeServer` | 多行 JSON（请求 / 响应 / 事件共享同一字节流） | 终端会话托管与事件订阅 |
 
 两份协议均要求 `PipeOptions.Asynchronous`（重叠 I/O），否则同一句柄上同步读写会死锁。
 
 ---
 
-## 2. 主应用 ↔ CLI 协议（`\\.\pipe\ecode`）
+## 2. 主应用 ↔ CLI 协议（`\\.\pipe\ecodex`）
 
 ### 2.1 请求行格式
 
@@ -24,7 +24,7 @@ COMMAND [key1=value1] [key2=value2] ...
 ```
 
 - 命令名大写（服务端 `ToUpperInvariant` 后分派）
-- `ECode.Cli` 默认发送 `COMMAND {json}`，用于稳定传输带空格 / 引号的命令参数
+- `ECodeX.Cli` 默认发送 `COMMAND {json}`，用于稳定传输带空格 / 引号的命令参数
 - 参数解析支持三种形态（`NamedPipeServer.ParseArgs`）：
   1. JSON 对象（首字符为 `{`）
   2. `key=value`，值带空格可用 `"..."` 或 `'...'`
@@ -34,7 +34,7 @@ COMMAND [key1=value1] [key2=value2] ...
 
 服务端返回一行 JSON（任意自定义形状）。CLI 收到后若能解析则 `JsonSerializer` 美化输出，否则原样打印。
 
-CLI 5 秒超时（`NamedPipeClient.SendCommand` 默认 `timeoutMs=5000`）；超时抛 `TimeoutException`，CLI 打印 `"Error: Could not connect to ecode. Is it running?"`。
+CLI 5 秒超时（`NamedPipeClient.SendCommand` 默认 `timeoutMs=5000`）；超时抛 `TimeoutException`，CLI 打印 `"Error: Could not connect to ecodex. Is it running?"`。
 
 ### 2.3 命令清单
 
@@ -48,7 +48,7 @@ CLI 5 秒超时（`NamedPipeClient.SendCommand` 默认 `timeoutMs=5000`）；超
 | `WORKSPACE.SELECT` | `index?` `id?` `name?` | 按 index（0/1-based）/ id / 名称匹配；`name` 支持精确与 `Contains`；返回 `{ok:true}` |
 | `SURFACE.CREATE` | — | 新建 Surface；返回 `{ok:true}` |
 | `SURFACE.SELECT` | `workspaceId?`/`workspaceName?`/`workspaceIndex?` + `surfaceId?`/`surfaceName?`/`surfaceIndex?` | 切换项目 + Surface；返回 `{ok, workspaceId, workspaceName, surfaceId, surfaceName}` |
-| `SURFACE.RESUME.SHOW` | 同上 + `paneId?`/`paneName?`/`paneIndex?` 或 `all=true` | 读取 `%USERPROFILE%\.ecode\resume.json`，返回 `{ok, workspace, surface, pane, bindings}`；默认只返回当前聚焦 pane |
+| `SURFACE.RESUME.SHOW` | 同上 + `paneId?`/`paneName?`/`paneIndex?` 或 `all=true` | 读取 `%USERPROFILE%\.ecodex\resume.json`，返回 `{ok, workspace, surface, pane, bindings}`；默认只返回当前聚焦 pane |
 | `SURFACE.RESUME.SET` | 同上 + pane 定位 + `shell` 或 `_arg*`、`kind?`、`checkpoint?`、`workingDirectory?`/`cwd?`、`trusted?`、`approvedPrefix?` | 写入 / 替换当前 pane 的恢复绑定；`kind ∈ {agent, tmux, custom}`，默认 `custom`；未传 cwd 时使用当前 session cwd |
 | `SURFACE.RESUME.CLEAR` | `id?` 或同上 + pane 定位 | `id` 存在时按 binding ID 删除；否则删除当前 / 指定 pane 的所有绑定；返回 `{ok, removed, ...}` |
 | `BROWSER.OPEN` | `url?`/`_arg0?` + `workspaceId?`/`workspaceName?`/`workspaceIndex?` + `surfaceId?`/`surfaceName?`/`surfaceIndex?` + `name?`/`title?` | 打开 URL；若目标 Surface 是 Browser 则复用，否则创建 Browser Surface；返回 `{ok, created, workspaceId, workspaceName, surfaceId, surfaceName, kind, url, title}` |
@@ -67,30 +67,30 @@ CLI 5 秒超时（`NamedPipeClient.SendCommand` 默认 `timeoutMs=5000`）；超
 
 ### 2.4 CLI 顶层命令
 
-`ecode.exe`（即 `ECode.Cli`）的 argv 入口：
+`ecodex.exe`（即 `ECodeX.Cli`）的 argv 入口：
 
 ```text
-ecode notify       --title <text> --body <text> --subtitle <text>
-ecode workspace    list | create [--name <text>] | select [--index <n>|--id <id>|--name <text>]
+ecodex notify       --title <text> --body <text> --subtitle <text>
+ecodex workspace    list | create [--name <text>] | select [--index <n>|--id <id>|--name <text>]
                   | next | previous | prev
-ecode surface      create | next | previous | prev
-ecode surface      resume show [--all] [--paneIndex <n>|--paneId <id>|--paneName <name>]
-ecode surface      resume set --shell <cmd> [--kind agent|tmux|custom] [--checkpoint <id>] [--cwd <path>] [--trusted true]
-ecode surface      resume clear [--id <bindingId>|--paneIndex <n>|--paneId <id>|--paneName <name>]
-ecode browser      open <url> [--workspaceName <name>|--surfaceName <name>]
-ecode browser      new <url> [--workspaceName <name>] [--name <surface-name>]
-ecode browser      open-split <url> [--direction right|down]
-ecode split        right | vertical | v | down | horizontal | h
-ecode status
-ecode help | --help | -h
-ecode version | --version | -v
+ecodex surface      create | next | previous | prev
+ecodex surface      resume show [--all] [--paneIndex <n>|--paneId <id>|--paneName <name>]
+ecodex surface      resume set --shell <cmd> [--kind agent|tmux|custom] [--checkpoint <id>] [--cwd <path>] [--trusted true]
+ecodex surface      resume clear [--id <bindingId>|--paneIndex <n>|--paneId <id>|--paneName <name>]
+ecodex browser      open <url> [--workspaceName <name>|--surfaceName <name>]
+ecodex browser      new <url> [--workspaceName <name>] [--name <surface-name>]
+ecodex browser      open-split <url> [--direction right|down]
+ecodex split        right | vertical | v | down | horizontal | h
+ecodex status
+ecodex help | --help | -h
+ecodex version | --version | -v
 ```
 
 退出码：`0` 成功，`1` 失败（连接超时 / 参数错误 / 未知命令）。
 
 ---
 
-## 3. 主应用 ↔ 守护进程协议（`\\.\pipe\ecode-daemon`）
+## 3. 主应用 ↔ 守护进程协议（`\\.\pipe\ecodex-daemon`）
 
 ### 3.1 字节流
 
@@ -130,7 +130,7 @@ public static class DaemonMessageTypes {
   "paneId": "pane-uuid",
   "cols":   120,                   // CREATE / RESIZE
   "rows":   30,
-  "workspaceId": "workspace-uuid", // 可选，CREATE；注入为 ECODE_WORKSPACE_ID
+  "workspaceId": "workspace-uuid", // 可选，CREATE；注入为 ECODEX_WORKSPACE_ID
   "workingDirectory": "C:\\repo",  // 可选，CREATE
   "command": "pwsh.exe",           // 可选，CREATE（覆盖默认 shell）
   "data":   "SGVsbG8="             // Base64 字节；WRITE
@@ -191,7 +191,7 @@ public class DaemonSessionInfo {
 
 ```text
 启动
-  ├─ 命名互斥体 Global\ECodeDaemon 单实例
+  ├─ 命名互斥体 Global\ECodeXDaemon 单实例
   ├─ 创建 DaemonSessionManager + DaemonPipeServer
   ├─ 后台线程 PipeServer-Accept 持续 AcceptNewConnection
   └─ 主线程每 5 分钟轮询：
@@ -201,7 +201,7 @@ public class DaemonSessionInfo {
 
 ---
 
-## 4. 会话持久化（`%USERPROFILE%/.ecode/session.json`）
+## 4. 会话持久化（`%USERPROFILE%/.ecodex/session.json`）
 
 ### 4.1 Schema（`SessionState`）
 
@@ -297,7 +297,7 @@ Browser surface 示例：
 
 ---
 
-## 5. 命令日志（`%USERPROFILE%/.ecode/logs/`）
+## 5. 命令日志（`%USERPROFILE%/.ecodex/logs/`）
 
 ### 5.1 文件结构
 
@@ -315,7 +315,7 @@ logs/
 ### 5.2 终端脚本文件（`.log`）
 
 ```text
-# ecode terminal transcript
+# ecodex terminal transcript
 # captured-at: 2026-06-11T14:32:05.0000000Z
 # workspace-id: …
 # surface-id: …
@@ -345,10 +345,10 @@ Shell 写入 `\e]133;A` / `\e]133;B;<command>` / `\e]133;C` / `\e]133;D;<exitcod
 
 | 字段 | 含义 |
 |---|---|
-| `ECodeSettings.CommandLogRetentionDays` | 命令日志按日清理（默认 90，`0` = 永久保留） |
-| `ECodeSettings.TranscriptRetentionDays` | 脚本日志按文件 `LastWriteTime` 清理（默认 90，`0` = 永久保留） |
-| `ECodeSettings.CaptureTranscriptsOnClose` | Surface/Pane 关闭 / 清理时是否落盘脚本 |
-| `ECodeSettings.CaptureTranscriptsOnClear` | 清屏时是否落盘脚本 |
+| `ECodeXSettings.CommandLogRetentionDays` | 命令日志按日清理（默认 90，`0` = 永久保留） |
+| `ECodeXSettings.TranscriptRetentionDays` | 脚本日志按文件 `LastWriteTime` 清理（默认 90，`0` = 永久保留） |
+| `ECodeXSettings.CaptureTranscriptsOnClose` | Surface/Pane 关闭 / 清理时是否落盘脚本 |
+| `ECodeXSettings.CaptureTranscriptsOnClear` | 清屏时是否落盘脚本 |
 
 应用启动 + `SettingsChanged` 时调用 `ApplyRetentionPolicy / ApplyTranscriptRetentionPolicy / ScrubSensitiveData…`。
 
@@ -377,7 +377,7 @@ public NotificationSource Source; // Osc9 / Osc99 / Osc777 / Cli
 
 ---
 
-## 7. 代码片段（`%USERPROFILE%/.ecode/snippets.json`）
+## 7. 代码片段（`%USERPROFILE%/.ecodex/snippets.json`）
 
 `List<Snippet>` JSON 数组；`Snippet.Content` 支持 `{{key}}` 占位符：
 
@@ -388,7 +388,7 @@ public NotificationSource Source; // Osc9 / Osc99 / Osc777 / Cli
 
 ---
 
-## 8. Agent 会话（`%USERPROFILE%/.ecode/agent/`）
+## 8. Agent 会话（`%USERPROFILE%/.ecodex/agent/`）
 
 ```
 agent/
@@ -406,7 +406,7 @@ agent/
 
 ---
 
-## 9. 加密存储（`%USERPROFILE%/.ecode/secrets.json`）
+## 9. 加密存储（`%USERPROFILE%/.ecodex/secrets.json`）
 
 ```jsonc
 {
@@ -426,7 +426,7 @@ agent/
 
 ## 10. 守护进程诊断日志
 
-`%USERPROFILE%/.ecode/daemon-debug.log`：
+`%USERPROFILE%/.ecodex/daemon-debug.log`：
 
 - 由 `DaemonClient.LogDaemon` 写入（共享追加 `FileShare.ReadWrite`，避免客户端与守护进程互锁）
 - 行格式：`ts=<ISO8601> component=<name> event=<name> paneId=<id-or-> message=<quoted>`

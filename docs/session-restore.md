@@ -1,14 +1,14 @@
 # 会话恢复
 
-ECode 会保存窗口、Workspace、Surface、Pane 布局，以及终端与集成浏览器的关键状态。目标是在重启后尽量恢复工作上下文，同时避免自动执行不可信命令。
+ECodeX 会保存窗口、Workspace、Surface、Pane 布局，以及终端与集成浏览器的关键状态。目标是在重启后尽量恢复工作上下文，同时避免自动执行不可信命令。
 
 ## 运行时文件
 
 | 文件 | 说明 |
 |---|---|
-| `%USERPROFILE%\.ecode\session.json` | Window / Workspace / Surface 布局、terminal pane snapshots、集成浏览器元数据。 |
-| `%USERPROFILE%\.ecode\resume.json` | tmux、agent、shell 等恢复绑定。 |
-| `%USERPROFILE%\.ecode\daemon-debug.log` | 恢复、attach、daemon 与 IPC 诊断日志。 |
+| `%USERPROFILE%\.ecodex\session.json` | Window / Workspace / Surface 布局、terminal pane snapshots、集成浏览器元数据。 |
+| `%USERPROFILE%\.ecodex\resume.json` | tmux、agent、shell 等恢复绑定。 |
+| `%USERPROFILE%\.ecodex\daemon-debug.log` | 恢复、attach、daemon 与 IPC 诊断日志。 |
 
 ## `session.json`
 
@@ -88,26 +88,26 @@ resume binding 记录如何恢复某个 Pane 的外部会话，例如 tmux：
 - `AutoResumeTrustedBindings`：控制可信 binding 是否自动执行。
 - “信任并恢复”会记录用户批准的 prefix。
 
-未信任 binding 必须由用户确认；ECode 不会静默执行未知命令。
+未信任 binding 必须由用户确认；ECodeX 不会静默执行未知命令。
 
 ## 命令行操作
 
 ```powershell
-ecode surface resume set --pane pane:1 --kind tmux --command "tmux attach -t demo" --trusted false
-ecode surface resume show
-ecode surface resume clear --pane pane:1
-ecode restore-session
+ecodex surface resume set --pane pane:1 --kind tmux --command "tmux attach -t demo" --trusted false
+ecodex surface resume show
+ecodex surface resume clear --pane pane:1
+ecodex restore-session
 ```
 
-`ecode restore-session` 会刷新恢复绑定并定位第一个可恢复 Pane。快捷键：`Ctrl+Shift+O`。
+`ecodex restore-session` 会刷新恢复绑定并定位第一个可恢复 Pane。快捷键：`Ctrl+Shift+O`。
 
-## `ECODE_WORKSPACE_ID`
+## `ECODEX_WORKSPACE_ID`
 
-启动 shell 时，ECode 会注入 `ECODE_WORKSPACE_ID`。本地 ConPTY 与 daemon 托管会话都可读取该变量，用于脚本判断当前 Workspace。
+启动 shell 时，ECodeX 会注入 `ECODEX_WORKSPACE_ID`。本地 ConPTY 与 daemon 托管会话都可读取该变量，用于脚本判断当前 Workspace。
 
 ## 排查
 
-- 恢复提示未出现：检查 `%USERPROFILE%\.ecode\resume.json` 与 `daemon-debug.log`。
+- 恢复提示未出现：检查 `%USERPROFILE%\.ecodex\resume.json` 与 `daemon-debug.log`。
 - 自动恢复未执行：确认 binding 是 `trusted: true`，且 `AutoResumeTrustedBindings` 已启用。
 - 恢复命令不正确：先用 `trusted: false` 手动确认，再切换可信。
 - 数据异常：备份后删除 `resume.json` 可重建绑定。

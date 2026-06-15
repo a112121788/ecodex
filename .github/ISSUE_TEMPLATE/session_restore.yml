@@ -1,5 +1,5 @@
 name: Session Restore / Resume
-description: 报告会话恢复、resume binding、`%USERPROFILE%/.ecode/resume.json`、自动 / 手动恢复相关的行为问题。
+description: 报告会话恢复、resume binding、`%USERPROFILE%/.ecodex/resume.json`、自动 / 手动恢复相关的行为问题。
 title: "[Resume] <一句话描述>"
 labels: ["resume", "triage"]
 assignees: []
@@ -19,8 +19,8 @@ body:
         - layout / cwd / scrollback 恢复
         - resume binding 写入 / 读取
         - 敏感环境剔除
-        - ECODE_WORKSPACE_ID 注入
-        - '`ecode surface resume set/show/clear`'
+        - ECODEX_WORKSPACE_ID 注入
+        - '`ecodex surface resume set/show/clear`'
         - '`AutoResumeTrustedBindings` 开关'
         - 恢复确认 UI
         - agent session id 映射
@@ -46,7 +46,7 @@ body:
     attributes:
       label: 实际行为与日志
       description: |
-        可附 `%USERPROFILE%/.ecode/resume.json` 脱敏片段；
+        可附 `%USERPROFILE%/.ecodex/resume.json` 脱敏片段；
         可附 `daemon-debug.log` 关键行。
     validations:
       required: true

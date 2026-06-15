@@ -63,7 +63,7 @@ function New-DiscordReleasePayload {
 
     $safeRepo = Get-ValueOrFallback $Repo "unknown repository"
     $safeTag = Get-ValueOrFallback $Tag "untagged release"
-    $safeName = Get-ValueOrFallback $Name "ECode release"
+    $safeName = Get-ValueOrFallback $Name "ECodeX release"
     $channel = if ($IsPrerelease) { "Prerelease" } else { "Stable" }
     $color = if ($IsPrerelease) { 0xF59E0B } else { 0x2563EB }
     $summary = Limit-DiscordText $Body 1200
@@ -74,7 +74,7 @@ function New-DiscordReleasePayload {
     }
 
     $embed = [ordered]@{
-        title = "ECode $safeTag published"
+        title = "ECodeX $safeTag published"
         description = ($descriptionParts -join "`n`n")
         color = $color
         fields = @(
@@ -90,8 +90,8 @@ function New-DiscordReleasePayload {
     }
 
     return [ordered]@{
-        username = "ECode Releases"
-        content = "ECode $channel release is available."
+        username = "ECodeX Releases"
+        content = "ECodeX $channel release is available."
         allowed_mentions = [ordered]@{ parse = @() }
         embeds = @($embed)
     }

@@ -32,8 +32,8 @@ jobs:
       - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ecode-${{ matrix.rid }}-sc
-          path: publish/ecode-${{ matrix.rid }}-sc/
+          name: ecodex-${{ matrix.rid }}-sc
+          path: publish/ecodex-${{ matrix.rid }}-sc/
           retention-days: 14
 
   cli:
@@ -54,18 +54,18 @@ jobs:
 
       - name: Generate performance budget report
         shell: pwsh
-        run: ./scripts/perf/measure.ps1 -OutputDir artifacts/perf -CliPath publish/ecode-cli/ecode.exe -Samples 1
+        run: ./scripts/perf/measure.ps1 -OutputDir artifacts/perf -CliPath publish/ecodex-cli/ecodex.exe -Samples 1
 
       - name: Upload CLI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ecode-cli-win-x64
-          path: publish/ecode-cli/
+          name: ecodex-cli-win-x64
+          path: publish/ecodex-cli/
           retention-days: 14
 
       - name: Upload performance report
         uses: actions/upload-artifact@v4
         with:
-          name: ecode-perf-report
+          name: ecodex-perf-report
           path: artifacts/perf/
           retention-days: 14

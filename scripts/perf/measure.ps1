@@ -113,9 +113,9 @@ function Invoke-ColdStartProxy {
     }
 }
 
-function Invoke-EcodeStatus {
+function Invoke-EcodexStatus {
     if (-not $MeasureLiveCli) {
-        throw 'Live CLI timing disabled; pass -MeasureLiveCli when the ECode app pipe is available.'
+        throw 'Live CLI timing disabled; pass -MeasureLiveCli when the ECodeX app pipe is available.'
     }
 
     if ([string]::IsNullOrWhiteSpace($CliPath) -or -not (Test-Path -LiteralPath $CliPath -PathType Leaf)) {
@@ -124,7 +124,7 @@ function Invoke-EcodeStatus {
 
     & $CliPath status | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        throw "ecode status exited with $LASTEXITCODE. Start ECode first or omit -MeasureLiveCli."
+        throw "ecodex status exited with $LASTEXITCODE. Start ECodeX first or omit -MeasureLiveCli."
     }
 }
 
@@ -140,7 +140,7 @@ function Invoke-BrowserSnapshot {
 }
 
 function Invoke-SyntheticSaveSession {
-    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("ecode-perf-session-" + [Guid]::NewGuid().ToString('N') + ".json")
+    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("ecodex-perf-session-" + [Guid]::NewGuid().ToString('N') + ".json")
     try {
         $workspaces = @()
         $workspace = [ordered]@{
@@ -198,7 +198,7 @@ function Write-MarkdownReport {
     )
 
     $lines = New-Object System.Collections.Generic.List[string]
-    $lines.Add('# ECode Performance Budget Report')
+    $lines.Add('# ECodeX Performance Budget Report')
     $lines.Add('')
     $lines.Add("Generated: $((Get-Date).ToUniversalTime().ToString('o'))")
     $lines.Add('')
@@ -223,7 +223,7 @@ if ($MeasureColdStart) {
     $results += New-PerfResult -Name 'cold_start_no_restore' -Display 'Cold start to ready (no restore)' -BudgetMs 1500 -Status 'skipped' -Notes 'Pass -MeasureColdStart with -AppPath to run this check.'
 }
 
-$results += Measure-Operation -Name 'ecode_status' -Display 'ecode status' -BudgetMs 100 -Operation { Invoke-EcodeStatus } -Notes 'Requires a running ECode app pipe.'
+$results += Measure-Operation -Name 'ecodex_status' -Display 'ecodex status' -BudgetMs 100 -Operation { Invoke-EcodexStatus } -Notes 'Requires a running ECodeX app pipe.'
 $results += Measure-Operation -Name 'browser_snapshot' -Display 'browser.snapshot' -BudgetMs 500 -Operation { Invoke-BrowserSnapshot } -Notes 'Pass -SnapshotCommand when a browser surface is available.'
 $results += Measure-Operation -Name 'save_session_10_panes_3000_lines' -Display 'Save session (10 panes x 3000 lines)' -BudgetMs 300 -Operation { Invoke-SyntheticSaveSession } -Notes 'Synthetic session.json serialization budget.'
 
@@ -234,7 +234,7 @@ $report = [ordered]@{
     samples = $Samples
     budgets = [ordered]@{
         coldStartNoRestoreMs = 1500
-        ecodeStatusMs = 100
+        ecodexStatusMs = 100
         browserSnapshotMs = 500
         saveSession10Panes3000LinesMs = 300
     }

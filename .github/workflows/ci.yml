@@ -45,11 +45,11 @@ jobs:
       - name: Upload App Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ecode-windows-x64
-          path: publish/ecode-win-x64-sc/
+          name: ecodex-windows-x64
+          path: publish/ecodex-win-x64-sc/
 
       - name: Upload CLI Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ecode-cli-windows-x64
-          path: publish/ecode-cli/
+          name: ecodex-cli-windows-x64
+          path: publish/ecodex-cli/

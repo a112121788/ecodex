@@ -1,10 +1,10 @@
 # Security Policy
 
-Thank you for helping keep ECode users safe. Please report suspected vulnerabilities privately so maintainers have time to investigate and prepare a fix before details are public.
+Thank you for helping keep ECodeX users safe. Please report suspected vulnerabilities privately so maintainers have time to investigate and prepare a fix before details are public.
 
 ## Supported Versions
 
-ECode is still pre-1.0. Security fixes are prioritized on the `main` branch and the latest published release line.
+ECodeX is still pre-1.0. Security fixes are prioritized on the `main` branch and the latest published release line.
 
 | Version | Supported |
 |---|---|
@@ -15,8 +15,8 @@ ECode is still pre-1.0. Security fixes are prioritized on the `main` branch and 
 If you are unsure whether a build is supported, include the output of:
 
 ```powershell
-ecode version
-ecode --json doctor
+ecodex version
+ecodex --json doctor
 ```
 
 ## Report A Vulnerability
@@ -44,20 +44,20 @@ Include as much of the following as you can safely share:
 Please redact secrets and sensitive local data before attaching files:
 
 - API keys, tokens, passwords, private certificates, SSH keys, and cookies.
-- `%USERPROFILE%\.ecode\resume.json` command text that contains internal hostnames or credentials.
-- Command logs and terminal transcripts under `%USERPROFILE%\.ecode\logs\`.
-- `%USERPROFILE%\.ecode\daemon-debug.log` lines containing private paths, commands, or environment details.
-- Project-specific `.ecode\ecode.json` entries that run private deployment or migration commands.
+- `%USERPROFILE%\.ecodex\resume.json` command text that contains internal hostnames or credentials.
+- Command logs and terminal transcripts under `%USERPROFILE%\.ecodex\logs\`.
+- `%USERPROFILE%\.ecodex\daemon-debug.log` lines containing private paths, commands, or environment details.
+- Project-specific `.ecodex\ecodex.json` entries that run private deployment or migration commands.
 
 ## Scope
 
-Security reports are in scope when they affect ECode or its distributed tooling, including:
+Security reports are in scope when they affect ECodeX or its distributed tooling, including:
 
-- WPF app, CLI, daemon, named-pipe IPC, and `ecode.v2` APIs.
+- WPF app, CLI, daemon, named-pipe IPC, and `ecodex.v2` APIs.
 - Browser surface automation and WebView2 integration.
 - Installer/update flows, including Velopack feed handling and package scripts.
 - Resume bindings, command logs, transcript capture, and secret redaction.
-- PATH/profile setup changes made by `ecode setup`.
+- PATH/profile setup changes made by `ecodex setup`.
 
 Out of scope:
 

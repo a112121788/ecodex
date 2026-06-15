@@ -3,11 +3,11 @@
 本页按常见症状列出检查路径。优先运行：
 
 ```powershell
-ecode doctor
-ecode --json doctor
+ecodex doctor
+ecodex --json doctor
 ```
 
-## `ecode doctor` 字段
+## `ecodex doctor` 字段
 
 | 检查项 | 状态 | 说明 |
 |---|---|---|
@@ -15,20 +15,20 @@ ecode --json doctor
 | `webview2` | `ok` / `warn` | 集成浏览器需要 WebView2 Runtime。 |
 | `path` | `ok` / `warn` | 命令行目录是否在 PATH 中。 |
 | `daemon` | `ok` / `warn` | 主应用 pipe 是否可连接。 |
-| `config` | `ok` / `warn` | `%USERPROFILE%\.ecode` 是否存在。 |
+| `config` | `ok` / `warn` | `%USERPROFILE%\.ecodex` 是否存在。 |
 
 ## 日志位置
 
 | 文件 | 用途 |
 |---|---|
-| `%USERPROFILE%\.ecode\daemon-debug.log` | App/daemon 连接、session create/attach、pipe、fallback、shutdown。 |
-| `%TEMP%\ecode-smoke.log` | ConPTY smoke 测试日志。 |
+| `%USERPROFILE%\.ecodex\daemon-debug.log` | App/daemon 连接、session create/attach、pipe、fallback、shutdown。 |
+| `%TEMP%\ecodex-smoke.log` | ConPTY smoke 测试日志。 |
 | `artifacts/perf*/perf-report.md` | 性能预算报告。 |
 
 查看日志：
 
 ```powershell
-Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 120
+Get-Content "$env:USERPROFILE\.ecodex\daemon-debug.log" -Tail 120
 ```
 
 ## 安装后启动出现 `VerifyAccess` 严重错误
@@ -38,8 +38,8 @@ Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 120
 处理：
 
 1. 升级到包含 WPF Dispatcher 调度修复的版本。
-2. 如果仍复现，确认是否使用旧安装目录中的 `ecode-app.exe`，并重新安装最新包。
-3. 附上弹窗堆栈、`ecode version`、`ecode doctor` 和 `daemon-debug.log` 尾部日志提交 issue。
+2. 如果仍复现，确认是否使用旧安装目录中的 `ecodex-app.exe`，并重新安装最新包。
+3. 附上弹窗堆栈、`ecodex version`、`ecodex doctor` 和 `daemon-debug.log` 尾部日志提交 issue。
 
 ## `daemon-debug.log` 字段
 
@@ -52,14 +52,14 @@ Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 120
 
 ## 命令行连不上主应用
 
-症状：`Error: Could not connect to ecode. Is it running?`
+症状：`Error: Could not connect to ecodex. Is it running?`
 
 处理：
 
-1. 启动 `ecode-app.exe`。
-2. 运行 `ecode status`。
+1. 启动 `ecodex-app.exe`。
+2. 运行 `ecodex status`。
 3. 查看 `daemon-debug.log` 是否有 pipe 错误。
-4. 如果只需要本地命令，可使用 `ecode setup status`、`ecode doctor`、`ecode completion powershell`、`ecode version`。
+4. 如果只需要本地命令，可使用 `ecodex setup status`、`ecodex doctor`、`ecodex completion powershell`、`ecodex version`。
 
 ## WebView2 不可用
 
@@ -68,40 +68,40 @@ Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 120
 处理：
 
 1. 安装 Microsoft Edge WebView2 Runtime。
-2. 重启 ECode。
-3. 运行 `ecode doctor` 确认 `webview2` 状态。
+2. 重启 ECodeX。
+3. 运行 `ecodex doctor` 确认 `webview2` 状态。
 
 ## PATH / shell profile 问题
 
 先看 dry-run：
 
 ```powershell
-ecode setup status
-ecode setup install --write false
+ecodex setup status
+ecodex setup install --write false
 ```
 
 确认 diff 后再写入：
 
 ```powershell
-ecode setup install --write true
+ecodex setup install --write true
 ```
 
 撤销：
 
 ```powershell
-ecode setup uninstall --write true
+ecodex setup uninstall --write true
 ```
 
-## `ecode.json` 不生效
+## `ecodex.json` 不生效
 
 ```powershell
-ecode config diagnostics
-ecode config reload
+ecodex config diagnostics
+ecodex config reload
 ```
 
 检查：
 
-- 路径是否为 `.ecode/ecode.json` 或 `%USERPROFILE%\.config\ecode\ecode.json`。
+- 路径是否为 `.ecodex/ecodex.json` 或 `%USERPROFILE%\.config\ecodex\ecodex.json`。
 - JSON 是否有尾逗号或注释。
 - `commands` / `actions` 字段是否符合 [自定义命令](./custom-commands.md)。
 - 旧 `.cmux/cmux.json` 是否依赖兼容开关。
@@ -109,8 +109,8 @@ ecode config reload
 ## 会话恢复异常
 
 ```powershell
-ecode surface resume show
-ecode restore-session
+ecodex surface resume show
+ecodex restore-session
 ```
 
 检查：
@@ -122,16 +122,16 @@ ecode restore-session
 
 ## 浏览器 API 找不到元素
 
-1. 先运行 `ecode browser snapshot --surfaceRef <ref>`。
+1. 先运行 `ecodex browser snapshot --surfaceRef <ref>`。
 2. 确认目标 role / text / testid 在 snapshot 中。
-3. 再执行 `ecode browser click`、`ecode browser fill`、`ecode browser eval`。
+3. 再执行 `ecodex browser click`、`ecodex browser fill`、`ecodex browser eval`。
 4. 严格 CSP 页面可能限制脚本注入。
 
 ## 更新失败
 
 ```powershell
-ecode update check --feed <feed-url>
-ecode update install --feed <feed-url>
+ecodex update check --feed <feed-url>
+ecodex update install --feed <feed-url>
 ```
 
 检查：
@@ -146,8 +146,8 @@ ecode update install --feed <feed-url>
 
 ```powershell
 npm run docs:build
-.\.dotnet\dotnet.exe test tests\ECode.Tests\ECode.Tests.csproj -p:NuGetAudit=false
-.\.dotnet\dotnet.exe build ECode.sln -c Debug -p:NuGetAudit=false
+.\.dotnet\dotnet.exe test tests\ECodeX.Tests\ECodeX.Tests.csproj -p:NuGetAudit=false
+.\.dotnet\dotnet.exe build ECodeX.sln -c Debug -p:NuGetAudit=false
 ```
 
 如果 NuGet audit 因证书或网络失败，本地验证可临时加 `NuGetAudit=false`。CI / release 环境应保持网络与证书链正常。
@@ -157,9 +157,9 @@ npm run docs:build
 请附：
 
 ```powershell
-ecode version
-ecode doctor
-Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 200 > daemon-debug-tail.log
+ecodex version
+ecodex doctor
+Get-Content "$env:USERPROFILE\.ecodex\daemon-debug.log" -Tail 200 > daemon-debug-tail.log
 ```
 
 上传前请脱敏 token、API key、私有路径和项目名称。

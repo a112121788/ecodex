@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>ECodeX.Daemon</RootNamespace>
+    <AssemblyName>ecodex-daemon</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ECodeX.Core\ECodeX.Core.csproj" />
+  </ItemGroup>
+
+</Project>

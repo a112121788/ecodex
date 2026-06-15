@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ECodeX Browser Scripting P0</title>
+</head>
+<body>
+  <h1>Browser scripting fixture</h1>
+  <input data-testid="email-input" aria-label="Email" value="" />
+  <button data-testid="save-button" aria-label="Save">Save</button>
+  <pre data-testid="status">idle</pre>
+  <script>
+    window.__ecodexFixture = { clicked: 0, email: '' };
+    document.querySelector('[data-testid="save-button"]').addEventListener('click', () => {
+      window.__ecodexFixture.clicked += 1;
+      document.querySelector('[data-testid="status"]').textContent = 'saved';
+    });
+  </script>
+</body>
+</html>

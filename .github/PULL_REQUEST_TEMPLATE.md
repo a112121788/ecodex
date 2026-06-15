@@ -20,18 +20,18 @@
 
 ## 改动摘要
 
-- 关键文件与新增 / 修改的 public 表面（类、方法、IPC 命令、CLI 命令、ecode.json 字段、SQL/JSON schema）。
-- 数据 / 协议影响：`\\.\pipe\ecode`、`\\.\pipe\ecode-daemon`、`%USERPROFILE%\.ecode\*.json`、ecode.json。
+- 关键文件与新增 / 修改的 public 表面（类、方法、IPC 命令、CLI 命令、ecodex.json 字段、SQL/JSON schema）。
+- 数据 / 协议影响：`\\.\pipe\ecodex`、`\\.\pipe\ecodex-daemon`、`%USERPROFILE%\.ecodex\*.json`、ecodex.json。
 - 持久化兼容：旧 `session.json` / `settings.json` / `resume.json` 能否继续工作？是否涉及兼容开关或迁移说明？
 
 ## 测试
 
-- [ ] `.\.dotnet\dotnet.exe build ECode.sln -c Debug -p:NuGetAudit=false` 零警告。
-- [ ] `.\.dotnet\dotnet.exe test tests\ECode.Tests\ECode.Tests.csproj -p:NuGetAudit=false` 全绿。
+- [ ] `.\.dotnet\dotnet.exe build ECodeX.sln -c Debug -p:NuGetAudit=false` 零警告。
+- [ ] `.\.dotnet\dotnet.exe test tests\ECodeX.Tests\ECodeX.Tests.csproj -p:NuGetAudit=false` 全绿。
 - [ ] `npm run docs:build`（涉及 docs / README / spec 链接时）。
 - [ ] 涉及 UI：附截图或短录屏。
-- [ ] 涉及 IPC / CLI / ecode.json：附 contract 测试或手测脚本。
-- [ ] 涉及 ConPTY：附 `tests/ECode.Smoke` 输出。
+- [ ] 涉及 IPC / CLI / ecodex.json：附 contract 测试或手测脚本。
+- [ ] 涉及 ConPTY：附 `tests/ECodeX.Smoke` 输出。
 - [ ] 涉及 WebView2：标注为 Windows-only integration 或已在 CI 跳过。
 
 ## spec / 文档同步

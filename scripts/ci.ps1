@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Runs the local ECode CI checks.
+  Runs the local ECodeX CI checks.
 
 .DESCRIPTION
   This script is the single local entrypoint for the M0 engineering baseline.
@@ -61,9 +61,9 @@ Set-StrictMode -Version Latest
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Resolve-Path (Join-Path $ScriptDir '..')
-$Solution = Join-Path $RepoRoot 'ECode.sln'
-$UnitTestProject = Join-Path $RepoRoot 'tests/ECode.Tests/ECode.Tests.csproj'
-$SmokeProject = Join-Path $RepoRoot 'tests/ECode.Smoke/ECode.Smoke.csproj'
+$Solution = Join-Path $RepoRoot 'ECodeX.sln'
+$UnitTestProject = Join-Path $RepoRoot 'tests/ECodeX.Tests/ECodeX.Tests.csproj'
+$SmokeProject = Join-Path $RepoRoot 'tests/ECodeX.Smoke/ECodeX.Smoke.csproj'
 $PublishScript = Join-Path $RepoRoot 'scripts/publish.ps1'
 
 $StepCount = 0
@@ -174,7 +174,7 @@ function Test-MarkdownRelativeLinks {
 
 Push-Location $RepoRoot
 try {
-    Write-Host "=== ECode local CI === Config=$Config Rid=$Rid PublishFlavor=$PublishFlavor Time=$($StartedAt.ToString('yyyy-MM-dd HH:mm:ss')) ===" -ForegroundColor Yellow
+    Write-Host "=== ECodeX local CI === Config=$Config Rid=$Rid PublishFlavor=$PublishFlavor Time=$($StartedAt.ToString('yyyy-MM-dd HH:mm:ss')) ===" -ForegroundColor Yellow
 
     Write-Step 'Toolchain check'
     $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -222,7 +222,7 @@ try {
         Write-Host 'Running ConPTY smoke, including Windows path / Chinese path case: 中文 目录/项目/.' -ForegroundColor DarkYellow
         Invoke-Checked $dotnet.Source @('run', '--project', $SmokeProject, '--configuration', $Config)
     } else {
-        Write-Host 'Dry-run only: use -IncludeSmoke on Windows to run tests/ECode.Smoke, including 中文 目录/项目/.' -ForegroundColor DarkYellow
+        Write-Host 'Dry-run only: use -IncludeSmoke on Windows to run tests/ECodeX.Smoke, including 中文 目录/项目/.' -ForegroundColor DarkYellow
     }
 
     Write-Step 'Publish gate'

@@ -1,5 +1,5 @@
 name: Browser Pane / WebView2 / Browser API
-description: 报告内置浏览器 surface（WebView2）以及 `ecode browser ...` 脚本化 API（v2 协议）相关问题。
+description: 报告内置浏览器 surface（WebView2）以及 `ecodex browser ...` 脚本化 API（v2 协议）相关问题。
 title: "[Browser] <一句话描述>"
 labels: ["browser", "webview2", "triage"]
 assignees: []
@@ -46,8 +46,8 @@ body:
       description: |
         推荐给出：URL、CLI 调用、期望结果、实际结果。
         例子：
-        1. `ecode browser open-split https://example.com --direction right`
-        2. `ecode browser snapshot`
+        1. `ecodex browser open-split https://example.com --direction right`
+        2. `ecodex browser snapshot`
         3. 期望：返回 a11y 树 + refs；实际：返回 `{ok:false, error:{code:"..."}}`
     validations:
       required: true

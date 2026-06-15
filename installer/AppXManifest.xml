@@ -6,14 +6,14 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="ECode"
-    Publisher="CN=ECode"
+    Name="ECodeX"
+    Publisher="CN=ECodeX"
     Version="1.0.0.0"
     ProcessorArchitecture="x64" />
 
   <Properties>
-    <DisplayName>ECode</DisplayName>
-    <PublisherDisplayName>ECode</PublisherDisplayName>
+    <DisplayName>ECodeX</DisplayName>
+    <PublisherDisplayName>ECodeX</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -30,12 +30,12 @@
 
   <Applications>
     <Application
-      Id="ECode"
-      Executable="ecode-app.exe"
+      Id="ECodeX"
+      Executable="ecodex-app.exe"
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="ECode"
-        Description="ECode SuperTerminal"
+        DisplayName="ECodeX"
+        Description="ECodeX SuperTerminal"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
         BackgroundColor="#101418" />
