@@ -1,8 +1,18 @@
-# Browser API
+# 浏览器 API
 
-ECode Browser Surface 基于 WebView2，可通过 CLI 和 `ecode.v2` 协议进行脚本化控制。它适合本地开发 smoke、表单检查、页面状态读取和截图。
+ECode 浏览器 Surface 基于 WebView2。命令行可以打开网页、读取可访问快照、定位元素、执行点击/输入/键盘/脚本和截图，适合本地开发 smoke、登录表单检查、页面状态读取与发布前验证。
 
-## 打开 Browser Surface
+## 推荐流程
+
+| 步骤 | 命令 | 目的 |
+| --- | --- | --- |
+| 1. 打开页面 | `ecode browser open https://example.com` | 创建或复用浏览器 Surface。 |
+| 2. 记录引用 | 读取返回的 `surfaceRef` | 后续命令稳定定位目标 Surface。 |
+| 3. 读取快照 | `ecode browser snapshot --surfaceRef surface:1` | 查看 role、name、text、testid。 |
+| 4. 执行动作 | `ecode browser click --role button --name Submit` | 用 locator 驱动页面。 |
+| 5. 验证结果 | `ecode browser eval "document.title"` / `ecode browser screenshot` | 读取状态或保存截图。 |
+
+## 打开浏览器 Surface
 
 ```powershell
 ecode browser open https://example.com
@@ -10,82 +20,130 @@ ecode browser new https://example.com
 ecode browser open-split https://example.com --direction right
 ```
 
-`open` 会复用当前 Browser Surface；`new` 会创建新 Surface；`open-split` 会在当前布局旁边创建 Browser Pane。
+| 命令 | 行为 |
+| --- | --- |
+| `open` | 优先复用当前浏览器 Surface；没有可用 Surface 时创建新的。 |
+| `new` | 总是创建新的浏览器 Surface。 |
+| `open-split` | 兼容入口；当前实现会创建新的浏览器 Surface，并返回 `fallbackMode: "new-surface"`。 |
+
+返回值会包含 `surfaceId`、`surfaceRef`、`workspaceName`、`surfaceName`、`url` 等字段。
 
 ## Surface 引用
 
-Browser 命令通过 `surfaceRef` 定位目标。可使用短引用或 UUID：
+浏览器命令通过 `surfaceRef` 定位目标。常用格式是 `surface:<id>`，可以直接使用 `open` / `new` 的返回值：
+
+```powershell
+$response = ecode --json browser open https://example.com | ConvertFrom-Json
+$surfaceRef = $response.surfaceRef
+
+ecode browser snapshot --surfaceRef $surfaceRef
+ecode browser eval "document.title" --surfaceRef $surfaceRef
+```
+
+如果不传 `surfaceRef`，命令行会尝试使用当前选中的浏览器 Surface；如果当前 Surface 不是浏览器 Surface，则使用当前 Workspace 中第一个浏览器 Surface。
+
+## browser snapshot 工作流
 
 ```powershell
 ecode browser snapshot --surfaceRef surface:1
-ecode browser eval "document.title" --surfaceRef surface:1
 ```
 
-human 输出默认展示 refs，JSON 输出默认同时包含 refs 与 UUID。
+`browser snapshot` 返回页面可访问树，节点包含：
 
-## Snapshot 快照
+| 字段 | 说明 |
+| --- | --- |
+| `nodeId` | ECode 注入的临时节点 id，用于动作执行。 |
+| `role` | 由显式 `role` 或 HTML 标签推导，例如 `button`、`link`、`textbox`。 |
+| `name` | 来自 `aria-label`、`alt`、`title`、`placeholder`、value 或文本。 |
+| `text` | 节点文本，最多保留一段摘要。 |
+| `testId` | `data-testid` 或 `data-test-id`。 |
+| `visible` | 是否可见。 |
 
-```powershell
-ecode browser snapshot --surfaceRef surface:1
-```
-
-对应 v2 方法：`browser.snapshot`。
-
-返回内容包含可访问树、refs、URL、标题和诊断信息。常见用途：先 snapshot，确认按钮或输入框的 ref，再执行 click/fill。
+推荐先 snapshot，再根据输出选择 `--testid`、`--text` 或 `--role`。
 
 ## Locator 定位器
 
-核心契约支持：
-
-- `find.role`
-- `find.text`
-- `find.testid`
-- `find.first`
-- `find.last`
-- `find.nth`
-
-CLI 动作通常通过参数表达 locator：
+命令行动作支持三种主定位方式：
 
 ```powershell
-ecode browser click --role button --name Submit
-ecode browser fill --testid email --value user@example.com
-ecode browser click --text "登录"
+# 最稳定：推荐给可控页面加 data-testid
+ecode browser click --testid save-button --surfaceRef surface:1
+
+# 适合文案稳定的按钮或链接
+ecode browser click --text "登录" --surfaceRef surface:1
+
+# 适合语义明确的控件，可额外指定 name
+ecode browser click --role button --name Submit --surfaceRef surface:1
 ```
+
+| 参数 | 匹配规则 |
+| --- | --- |
+| `--testid` / `--test-id` | 精确匹配 `data-testid` 或 `data-test-id`。 |
+| `--text` | 在节点 `text` 或 `name` 中做不区分大小写的包含匹配。 |
+| `--role` + `--name` | `role` 不区分大小写匹配；`name` 可选。 |
+
+Core 契约中还保留 `find.first`、`find.last`、`find.nth` 组合定位；命令行当前动作默认取第一个匹配节点执行。
 
 ## 动作命令
 
-| CLI | v2 方法 | 说明 |
-|---|---|---|
-| `ecode browser click` | `browser.click` | 点击元素。 |
-| `ecode browser fill` | `browser.fill` | 输入文本；空字符串会清空 input。 |
-| `ecode browser hover` | `browser.hover` | 悬停元素。 |
-| `ecode browser press` | `browser.press` | 发送键盘按键。 |
-| `ecode browser eval` | `browser.eval` | 执行 JavaScript 并返回结果。 |
-| `ecode browser screenshot` | `browser.screenshot` | 保存截图。 |
+| 命令行 | Pipe 命令 | 说明 |
+| --- | --- | --- |
+| `ecode browser click` | `BROWSER.CLICK` | 点击第一个匹配元素。 |
+| `ecode browser fill` | `BROWSER.FILL` | 输入文本；空字符串会清空 input。 |
+| `ecode browser hover` | `BROWSER.HOVER` | 触发 `mouseover` / `mouseenter`。 |
+| `ecode browser press` | `BROWSER.PRESS` | 对匹配元素发送键盘事件；默认 `Enter`。 |
+| `ecode browser eval` | `BROWSER.EVAL` | 执行 JavaScript 并返回 JSON 值。 |
+| `ecode browser screenshot` | `BROWSER.SCREENSHOT` | 返回 PNG 的 base64 JSON。 |
 
 示例：
 
 ```powershell
-ecode browser fill --testid search --value "ECode"
-ecode browser press --key Enter
-ecode browser screenshot --path .\artifacts\browser.png
+ecode browser fill --testid email --value user@example.com --surfaceRef surface:1
+ecode browser fill password "secret" --surfaceRef surface:1
+ecode browser press --testid password --key Enter --surfaceRef surface:1
+ecode browser eval "document.location.href" --surfaceRef surface:1
+ecode browser screenshot --surfaceRef surface:1
 ```
 
-## 状态与控制
+`screenshot` 返回 base64 JSON。如需落盘，可在 PowerShell 中解码：
 
-| v2 方法 | 说明 |
-|---|---|
+```powershell
+$shot = ecode --json browser screenshot --surfaceRef surface:1 | ConvertFrom-Json
+[IO.File]::WriteAllBytes("browser.png", [Convert]::FromBase64String($shot.result.value.data))
+```
+
+## 自动化脚本示例
+
+```powershell
+$open = ecode --json browser new https://example.com/login | ConvertFrom-Json
+$ref = $open.surfaceRef
+
+ecode browser snapshot --surfaceRef $ref
+ecode browser fill --testid email --value user@example.com --surfaceRef $ref
+ecode browser fill --testid password --value "secret" --surfaceRef $ref
+ecode browser click --role button --name "登录" --surfaceRef $ref
+
+$title = ecode --json browser eval "document.title" --surfaceRef $ref | ConvertFrom-Json
+$title.result.value
+```
+
+## 状态与控制契约
+
+核心浏览器契约 预留了状态与控制类方法；如果当前运行时没有接线，会稳定返回 `not_supported` 或对应错误码。
+
+| 契约方法 | 说明 |
+| --- | --- |
 | `browser.cookies.get` / `browser.cookies.set` / `browser.cookies.clear` | 读取、写入、清理 cookie。 |
 | `browser.storage.get` / `browser.storage.set` / `browser.storage.clear` | 操作 local/session storage。 |
-| `browser.console.list` | 读取 console 事件。 |
+| `browser.console.list` / `browser.console.clear` | 读取或清理 console 事件。 |
 | `browser.dialog.accept` / `browser.dialog.dismiss` | 处理 dialog。 |
-| `browser.download.list` | 查看下载状态。 |
+| `browser.download.wait` | 等待下载完成。 |
 | `browser.highlight` | 高亮目标元素，辅助调试。 |
 | `browser.addinitscript` / `browser.addscript` / `browser.addstyle` | 注入脚本或样式。 |
 
 ## not_supported 矩阵
 
-M4 阶段明确返回 `not_supported` 的能力包括：
+当前阶段明确返回 `not_supported` 的能力包括：
 
 - `browser.viewport.*`
 - `browser.geolocation.*`
@@ -93,13 +151,18 @@ M4 阶段明确返回 `not_supported` 的能力包括：
 - `browser.trace.*`
 - `browser.network.route`
 - `browser.screencast.*`
-- `browser.input_*`
+- `browser.input_mouse`
+- `browser.input_keyboard`
+- `browser.input_touch`
 
 稳定错误码：`invalid_ref`、`not_found`、`stale_ref`、`not_supported`、`timeout`、`internal_error`。
 
 ## 排查建议
 
-1. 先运行 `ecode browser snapshot --surfaceRef <ref>`。
-2. 如果 locator 找不到，检查文本、role、test id 是否在 snapshot 中出现。
-3. 严格 CSP 页面可能限制脚本注入；优先使用 WebView2 原生能力。
-4. 错误响应中的 `hint`、`snapshotExcerpt` 可帮助定位问题。
+| 现象 | 建议 |
+| --- | --- |
+| 找不到浏览器 Surface | 先运行 `ecode browser open <url>`，或显式传 `--surfaceRef`。 |
+| locator 找不到元素 | 运行 `ecode browser snapshot --surfaceRef <ref>`，确认 `--testid`、`--text`、`--role` 是否存在。 |
+| 动作报 `stale_ref` | 页面刷新后节点 id 失效；重新 snapshot 后再执行。 |
+| `eval` 失败 | 检查脚本是否能在页面上下文中执行；严格 CSP 页面可能限制脚本注入。 |
+| 截图无法直接打开 | `ecode browser screenshot` 返回 base64 JSON，需要先解码保存。 |

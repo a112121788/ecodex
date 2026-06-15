@@ -37,7 +37,7 @@ ecode config reload
 - 监听旧主应用管道（`cmux`）。
 - 监听旧 daemon 管道 / Mutex（`cmux-daemon`）。
 - 读取旧配置文件 `.cmux/cmux.json`。
-- 接受旧 CLI 命令别名。
+- 接受旧命令行命令别名。
 
 兼容能力只用于迁移；新配置应统一写入 `.ecode/ecode.json`。
 

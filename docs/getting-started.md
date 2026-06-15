@@ -15,7 +15,7 @@ ecode doctor
 
 ## 2. 创建 Workspace
 
-Workspace 表示一个项目或工作上下文。你可以从 UI 创建，也可以用 CLI：
+Workspace 表示一个项目或工作上下文。你可以从 UI 创建，也可以用命令行：
 
 ```powershell
 ecode workspace create --name demo
@@ -49,27 +49,27 @@ ecode split down
 
 Pane 支持短引用，例如 `pane:1`、`surface:2`。human 输出默认展示短引用，JSON 输出默认同时带 refs 与 UUID。
 
-## 4. 打开 Browser Surface
+## 4. 打开浏览器 Surface
 
-Browser Surface 使用 WebView2，可与终端并排：
+浏览器 Surface 使用 WebView2，可与终端并排：
 
 ```powershell
 ecode browser new https://example.com
 ecode browser open-split https://example.com --direction right
 ```
 
-检查 Browser API：
+检查 浏览器 API：
 
 ```powershell
 ecode browser snapshot
 ecode browser eval "document.title"
 ```
 
-更多命令见 [Browser API](./browser-api.md)。
+更多命令见 [浏览器 API](./browser-api.md)。
 
 ## 5. 尝试通知与跳转
 
-ECode 会记录终端通知并在 sidebar / tab 上显示未读状态。CLI 示例：
+ECode 会记录终端通知并在 sidebar / tab 上显示未读状态。命令行示例：
 
 ```powershell
 ecode notify --title Build --body "Tests finished"
@@ -105,7 +105,7 @@ ecode config diagnostics
 
 ## 7. 会话恢复
 
-ECode 会保存布局、cwd、终端快照、Browser URL / history。手动恢复入口：
+ECode 会保存布局、cwd、终端快照、浏览器 URL / history。手动恢复入口：
 
 ```powershell
 ecode restore-session
@@ -117,6 +117,6 @@ ecode surface resume show
 
 ## 8. 下一步
 
-- 阅读 [CLI 参考](./cli.md) 熟悉 `ecode.v2` 命令组。
+- 阅读 [命令行](./cli.md) 熟悉 `ecode.v2` 命令组。
 - 阅读 [安装](./installation.md) 选择 zip、Velopack、Inno Setup 或 MSIX。
 - 阅读 [故障排查](./troubleshooting.md) 处理启动、WebView2、PATH、daemon 或 update 问题。

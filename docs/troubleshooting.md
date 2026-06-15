@@ -12,8 +12,8 @@ ecode --json doctor
 | 检查项 | 状态 | 说明 |
 |---|---|---|
 | `conpty` | `ok` / `fail` | Windows 10 1809 / build 17763 或更新版本才支持 ConPTY。 |
-| `webview2` | `ok` / `warn` | Browser Surface 需要 WebView2 Runtime。 |
-| `path` | `ok` / `warn` | CLI 目录是否在 PATH 中。 |
+| `webview2` | `ok` / `warn` | 浏览器 Surface 需要 WebView2 Runtime。 |
+| `path` | `ok` / `warn` | 命令行目录是否在 PATH 中。 |
 | `daemon` | `ok` / `warn` | 主应用 pipe 是否可连接。 |
 | `config` | `ok` / `warn` | `%USERPROFILE%\.ecode` 是否存在。 |
 
@@ -40,7 +40,7 @@ Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 120
 - `event=`：事件，例如 `session.create`、`pane.write`。
 - `paneId=`：Pane UUID 或短引用上下文。
 
-## CLI 连不上主应用
+## 命令行连不上主应用
 
 症状：`Error: Could not connect to ecode. Is it running?`
 
@@ -53,7 +53,7 @@ Get-Content "$env:USERPROFILE\.ecode\daemon-debug.log" -Tail 120
 
 ## WebView2 不可用
 
-症状：Browser Surface 显示 Runtime 缺失。
+症状：浏览器 Surface 显示 Runtime 缺失。
 
 处理：
 
@@ -110,7 +110,7 @@ ecode restore-session
 - `AutoResumeTrustedBindings` 是否启用。
 - `daemon-debug.log` 是否出现 `SESSION_CREATE`、`session.create`、`session.created`。
 
-## Browser API 找不到元素
+## 浏览器 API 找不到元素
 
 1. 先运行 `ecode browser snapshot --surfaceRef <ref>`。
 2. 确认目标 role / text / testid 在 snapshot 中。

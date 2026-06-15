@@ -1,6 +1,6 @@
 # 自定义命令
 
-ECode 使用 `ecode.json` 定义项目命令、动作和启动布局。它适合把常用构建、测试、服务启动、Browser Surface 与命令面板入口固化到仓库中。
+ECode 使用 `ecode.json` 定义项目命令、动作和启动布局。它适合把常用构建、测试、服务启动、浏览器 Surface 与命令面板入口固化到仓库中。
 
 ## 加载位置
 
@@ -60,7 +60,7 @@ ecode config reload
 
 ## `actions`
 
-`actions` 适合定义按钮、快捷动作或 Browser Surface 入口。
+`actions` 适合定义按钮、快捷动作或浏览器 Surface 入口。
 
 ```json
 {
@@ -135,11 +135,11 @@ ecode config reload
 ecode config diagnostics
 ```
 
-`Ctrl+Shift+,` 会触发配置重载。重载会刷新命令面板并尽量复用已存在的 Browser Surface。
+`Ctrl+Shift+,` 会触发配置重载。重载会刷新命令面板并尽量复用已存在的浏览器 Surface。
 
 ## 安全建议
 
 - 不要把真实 API key / token 写入 `ecode.json`。
 - 对会执行外部命令、安装依赖、删除文件的 action 使用 `confirm: true`。
-- Browser action 只保存 URL，不保存 cookie 或 localStorage。
+- 浏览器 action 只保存 URL，不保存 cookie 或 localStorage。
 - 如果配置来自旧 `.cmux/cmux.json`，建议迁移到 `.ecode/ecode.json`。

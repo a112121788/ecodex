@@ -15,8 +15,8 @@ export default defineConfig({
     nav: [
       { text: '指南', link: '/getting-started' },
       { text: '安装', link: '/installation' },
-      { text: 'CLI', link: '/cli' },
-      { text: 'Browser API', link: '/browser-api' },
+      { text: '命令行', link: '/cli' },
+      { text: '浏览器 API', link: '/browser-api' },
       { text: '路线图', link: '/roadmap' }
     ],
     sidebar: [
@@ -40,8 +40,8 @@ export default defineConfig({
       {
         text: '自动化',
         items: [
-          { text: 'Browser API', link: '/browser-api' },
-          { text: 'CLI 参考', link: '/cli' }
+          { text: '浏览器 API', link: '/browser-api' },
+          { text: '命令行', link: '/cli' }
         ]
       },
       {
