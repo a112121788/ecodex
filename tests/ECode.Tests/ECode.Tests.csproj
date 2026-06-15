@@ -29,10 +29,13 @@
 
   <ItemGroup>
     <None Include="Fixtures\browser-p0.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\scripts\ci.ps1" Link="scripts\ci.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\scripts\completions\ecode.ps1" Link="scripts\completions\ecode.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\scripts\discord-notify.ps1" Link="scripts\discord-notify.ps1" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\tests\ECode.Smoke\Program.cs" Link="tests\ECode.Smoke\Program.cs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\installer\ecode.iss" Link="installer\ecode.iss" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\installer\AppXManifest.xml" Link="installer\AppXManifest.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\.github\workflows\ci.yml" Link=".github\workflows\ci.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\workflows\release.yml" Link=".github\workflows\release.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\release.yml" Link=".github\release.yml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\.github\workflows\release-drafter.yml" Link=".github\workflows\release-drafter.yml" CopyToOutputDirectory="PreserveNewest" />

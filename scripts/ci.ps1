@@ -219,9 +219,10 @@ try {
         if (-not (Test-IsWindows)) {
             throw 'ConPTY smoke test requires Windows. Re-run on Windows or omit -IncludeSmoke.'
         }
-        Invoke-Checked $dotnet.Source @('run', '--project', $SmokeProject, '--configuration', $Config, '--no-build')
+        Write-Host 'Running ConPTY smoke, including Windows path / Chinese path case: 中文 目录/项目/.' -ForegroundColor DarkYellow
+        Invoke-Checked $dotnet.Source @('run', '--project', $SmokeProject, '--configuration', $Config)
     } else {
-        Write-Host 'Dry-run only: use -IncludeSmoke on Windows to run tests/ECode.Smoke.' -ForegroundColor DarkYellow
+        Write-Host 'Dry-run only: use -IncludeSmoke on Windows to run tests/ECode.Smoke, including 中文 目录/项目/.' -ForegroundColor DarkYellow
     }
 
     Write-Step 'Publish gate'

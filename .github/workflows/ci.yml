@@ -23,7 +23,7 @@ jobs:
 
       - name: Local CI
         shell: pwsh
-        run: ./scripts/ci.ps1 -Config ${{ matrix.configuration }}
+        run: ./scripts/ci.ps1 -Config ${{ matrix.configuration }} -IncludeSmoke
 
   publish:
     runs-on: windows-latest

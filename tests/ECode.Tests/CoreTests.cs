@@ -637,6 +637,28 @@ public class ReleaseWorkflowTests
     }
 }
 
+public class SmokeWorkflowTests
+{
+    [Fact]
+    public void CiRunsSmokeWithUnicodeWorkingDirectory()
+    {
+        var workflow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, ".github", "workflows", "ci.yml"));
+        var ciScript = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scripts", "ci.ps1"));
+        var smoke = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "tests", "ECode.Smoke", "Program.cs"));
+
+        workflow.Should().Contain("-IncludeSmoke");
+        ciScript.Should().Contain("中文 目录/项目/");
+        ciScript.Should().Contain("'run', '--project', $SmokeProject, '--configuration', $Config");
+        smoke.Should().Contain("UnicodeRelativePathForCi = \"中文 目录/项目/\"");
+        smoke.Should().Contain("TestUnicodeWorkingDirectory");
+        smoke.Should().Contain("workingDirectory: unicodeProjectDir");
+        smoke.Should().Contain("childProofFileName");
+        smoke.Should().Contain("WaitForFile");
+        smoke.Should().Contain("echo OK>");
+        smoke.Should().Contain("ECODE_SMOKE_UNICODE");
+    }
+}
+
 public class CommunityTemplateTests
 {
     [Fact]

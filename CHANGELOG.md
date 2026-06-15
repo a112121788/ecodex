@@ -88,6 +88,7 @@ ECode 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3.
 - 新增 1.0 Release Readiness 文档，记录 P0/P1 bug gate、当前 blocker ledger 与发布前验证命令。
 - 新增 1.0.0 Release Notes 页面，覆盖下载选择、新特性、升级步骤、已知限制与文档入口。
 - 新增公开 Roadmap 页面，按 `spec/06-roadmap.md` 稳定内容展示版本线、M0-M7 里程碑与 1.0 gate。
+- CI smoke 现在运行 Windows 中文路径 `中文 目录/项目/` 场景，验证 ConPTY child process 能在该 working directory 中读写文件。
 - 新增 `ecode browser open|new|open-split <url>` 与 `BROWSER.OPEN*` IPC，可从 CLI 创建或复用 Browser Surface。
 - Browser 工具栏新增停止加载、开发者工具与加载进度状态。
 - `.ecode/ecode.json` 新增 `workspace.surfaces` Browser Surface layout 支持，启动或重载配置时可创建 / 复用浏览器标签页。

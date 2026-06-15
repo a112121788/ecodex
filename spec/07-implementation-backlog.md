@@ -278,7 +278,7 @@
 
 | ID | 标题 | 关联里程碑 | 关联文件 | 验收 |
 |---|---|---|---|---|
-| `X-01` | Windows 路径 / 中文路径 smoke | M0 起 | `tests/ECode.Smoke` | CI 中含 `中文 目录/项目/` |
+| `X-01` | [x] Windows 路径 / 中文路径 smoke | M0 起 | `tests/ECode.Smoke` | CI 中含 `中文 目录/项目/` |
 | `X-02` | 性能预算监控（冷启动 / status / snapshot / save session） | M1 起 | `scripts/perf/*` | 报告产出并入 release |
 | `X-03` | 风险登记刷新 | 持续 | `06-roadmap.md` §7 | 每迭代更新 |
 | `X-04` | 与上游 `manaflow-ai/ecode` 对齐检查 | M2 起 | `scripts/upstream-sync.md` | 月度报告 |
