@@ -30,17 +30,25 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"; Flags: unchecked
 
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\cli"
+Type: files; Name: "{app}\ecode.deps.json"
+Type: files; Name: "{app}\ecode.dll"
+Type: files; Name: "{app}\ecode.exe"
+Type: files; Name: "{app}\ecode.pdb"
+Type: files; Name: "{app}\ecode.runtimeconfig.json"
+
 [Files]
 Source: "..\publish\ecode-win-x64-sc\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\publish\ecode-cli\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\publish\ecode-cli\*"; DestDir: "{app}\cli"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\ECode"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\ECode CLI"; Filename: "{app}\{#MyCliExeName}"
-Name: "{autodesktop}\ECode"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{group}\ECode"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{group}\ECode CLI"; Filename: "{app}\cli\{#MyCliExeName}"; WorkingDir: "{app}\cli"
+Name: "{autodesktop}\ECode"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch ECode"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch ECode"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
