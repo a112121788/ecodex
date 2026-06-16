@@ -1,11 +1,11 @@
 ﻿<#
 .SYNOPSIS
-  为 Windows 构建并发布 ECodex（ECodex + ECodex.Cli）。
+  为 Windows 构建并发布 ECodex（ECodex + ECodex.Daemon + ECodex.Cli）。
 
 .DESCRIPTION
   复现 README.md 中记录的三种发布形态：
-    1) 框架依赖版          -> publish/ecodex-win-x64       （体积最小，需要 .NET 10 Desktop Runtime）
-    2) 自包含目录版        -> publish/ecodex-win-x64-sc    （文件夹形式，可在任意 win-x64 上运行）
+    1) 框架依赖版          -> publish/ecodex-win-x64       （含 daemon，需要 .NET 10 Desktop Runtime）
+    2) 自包含目录版        -> publish/ecodex-win-x64-sc    （含 daemon，可在任意 win-x64 上运行）
     3) CLI                 -> publish/ecodex-cli           （自包含，可直接放入 PATH）
     4) Velopack            -> publish/velopack            （installer + RELEASES feed）
     5) MSIX                -> publish/msix                （enterprise opt-in package）
@@ -89,8 +89,9 @@ if ($OutputRoot) {
     $OutputRoot = Join-Path $RepoRoot 'publish'
 }
 
-$MainProj = Join-Path $RepoRoot 'src/ECodex/ECodex.csproj'
-$CliProj  = Join-Path $RepoRoot 'src/ECodex.Cli/ECodex.Cli.csproj'
+$MainProj   = Join-Path $RepoRoot 'src/ECodex/ECodex.csproj'
+$DaemonProj = Join-Path $RepoRoot 'src/ECodex.Daemon/ECodex.Daemon.csproj'
+$CliProj    = Join-Path $RepoRoot 'src/ECodex.Cli/ECodex.Cli.csproj'
 $Validations = @()
 
 function Get-ProjectVersion {
@@ -150,6 +151,62 @@ function Reset-PublishDir([string]$path) {
         Remove-Item -LiteralPath $full -Recurse -Force
     }
     Ensure-Dir $full
+}
+
+function Copy-DaemonOutputIntoAppOutput {
+    param(
+        [Parameter(Mandatory)][string]$SourceDir,
+        [Parameter(Mandatory)][string]$DestinationDir
+    )
+
+    $trimChars = @([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+    $sourceRoot = [System.IO.Path]::GetFullPath($SourceDir).TrimEnd($trimChars)
+    $copied = 0
+    $skipped = 0
+
+    foreach ($file in Get-ChildItem -LiteralPath $SourceDir -Recurse -File) {
+        $relative = $file.FullName.Substring($sourceRoot.Length).TrimStart($trimChars)
+        $destination = Join-Path $DestinationDir $relative
+        $destinationParent = Split-Path -Parent $destination
+        Ensure-Dir $destinationParent
+
+        $isDaemonFile = $file.Name.StartsWith('ecodex-daemon', [System.StringComparison]::OrdinalIgnoreCase)
+        $destinationExists = Test-Path -LiteralPath $destination -PathType Leaf
+        if ($destinationExists -and -not $isDaemonFile) {
+            $skipped += 1
+        } else {
+            Copy-Item -LiteralPath $file.FullName -Destination $destination -Force
+            $copied += 1
+        }
+    }
+
+    Write-Host ">> copied $copied daemon file(s), skipped $skipped existing app file(s)" -ForegroundColor DarkGray
+}
+
+function Publish-DaemonIntoAppOutput {
+    param(
+        [Parameter(Mandatory)][string]$OutputDir,
+        [Parameter(Mandatory)][string]$ArtifactsName,
+        [Parameter(Mandatory)][bool]$SelfContained,
+        [Parameter(Mandatory)][string]$FlavorName
+    )
+
+    $daemonOut = Join-Path $BuildRoot "$ArtifactsName-daemon-out"
+    $daemonArtifacts = Join-Path $BuildRoot "$ArtifactsName-daemon"
+    Reset-PublishDir $daemonOut
+
+    Invoke-DotnetPublish -Project $DaemonProj -ArtifactsPath $daemonArtifacts -Args @(
+        '-c', $Config,
+        '-r', $Rid,
+        '--self-contained', $SelfContained.ToString().ToLowerInvariant(),
+        '-o', $daemonOut
+    )
+
+    Write-Host ">> copying ecodex-daemon into $OutputDir" -ForegroundColor Cyan
+    Copy-DaemonOutputIntoAppOutput -SourceDir $daemonOut -DestinationDir $OutputDir
+
+    Add-PublishValidation -FlavorName "$FlavorName-Daemon" -ExePath (Join-Path $OutputDir 'ecodex-daemon.exe')
+    Add-FileValidation -FlavorName "$FlavorName-DaemonConfig" -FilePath (Join-Path $OutputDir 'ecodex-daemon.runtimeconfig.json')
 }
 
 function Add-PublishValidation {
@@ -392,9 +449,10 @@ if ($Flavor -in @('All', 'Framework')) {
         '--self-contained', 'false',
         '-o', $out
     )
+    Publish-DaemonIntoAppOutput -OutputDir $out -ArtifactsName 'framework' -SelfContained $false -FlavorName 'Framework'
     $exe = Join-Path $out 'ecodex-app.exe'
     Add-PublishValidation -FlavorName 'Framework' -ExePath $exe
-    $ran += "Framework      -> $exe"
+    $ran += "Framework      -> $exe (+ ecodex-daemon.exe)"
 }
 
 if ($Flavor -in @('All', 'SelfContained')) {
@@ -407,9 +465,10 @@ if ($Flavor -in @('All', 'SelfContained')) {
         '--self-contained', 'true',
         '-o', $out
     )
+    Publish-DaemonIntoAppOutput -OutputDir $out -ArtifactsName 'self-contained' -SelfContained $true -FlavorName 'SelfContained'
     $exe = Join-Path $out 'ecodex-app.exe'
     Add-PublishValidation -FlavorName 'SelfContained' -ExePath $exe
-    $ran += "SelfContained  -> $exe"
+    $ran += "SelfContained  -> $exe (+ ecodex-daemon.exe)"
     $selfContainedPublished = $true
 }
 
@@ -439,6 +498,7 @@ if ($Flavor -eq 'Velopack') {
             '--self-contained', 'true',
             '-o', $selfContainedOut
         )
+        Publish-DaemonIntoAppOutput -OutputDir $selfContainedOut -ArtifactsName 'velopack-self-contained' -SelfContained $true -FlavorName 'Velopack'
         $selfContainedPublished = $true
     }
 
@@ -457,6 +517,7 @@ if ($Flavor -eq 'MSIX') {
             '--self-contained', 'true',
             '-o', $selfContainedOut
         )
+        Publish-DaemonIntoAppOutput -OutputDir $selfContainedOut -ArtifactsName 'msix-app' -SelfContained $true -FlavorName 'MSIX-App'
         $selfContainedPublished = $true
     }
 

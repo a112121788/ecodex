@@ -834,6 +834,19 @@ public class ReleaseWorkflowTests
     }
 
     [Fact]
+    public void PublishScript_BundlesDaemonWithAppArtifacts()
+    {
+        var publishScript = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scripts", "publish.ps1"));
+
+        publishScript.Should().Contain("src/ECodex.Daemon/ECodex.Daemon.csproj");
+        publishScript.Should().Contain("function Publish-DaemonIntoAppOutput");
+        publishScript.Should().Contain("ecodex-daemon.exe");
+        publishScript.Should().Contain("Publish-DaemonIntoAppOutput -OutputDir $out -ArtifactsName 'self-contained'");
+        publishScript.Should().Contain("Publish-DaemonIntoAppOutput -OutputDir $selfContainedOut -ArtifactsName 'velopack-self-contained'");
+        publishScript.Should().Contain("Publish-DaemonIntoAppOutput -OutputDir $selfContainedOut -ArtifactsName 'msix-app'");
+    }
+
+    [Fact]
     public void ReleaseDrafter_UsesBacklogConfigNameAndCategorizedNotes()
     {
         var configPath = Path.Combine(AppContext.BaseDirectory, ".github", "release.yml");

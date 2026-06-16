@@ -80,16 +80,16 @@ dotnet run --project src/ECodex/ECodex.csproj -c Debug
 
 ```powershell
 # 依赖框架，体积最小，目标机器需要 .NET Runtime
-dotnet publish src/ECodex/ECodex.csproj -c Release -r win-x64 --self-contained false -o publish/ecodex-win-x64
+pwsh ./scripts/publish.ps1 -Flavor Framework
 
-# 自包含，目标机器不需要单独安装 .NET Runtime
-dotnet publish src/ECodex/ECodex.csproj -c Release -r win-x64 --self-contained true -o publish/ecodex-win-x64-sc
+# 自包含，目标机器不需要单独安装 .NET Runtime，包含 ecodex-daemon.exe
+pwsh ./scripts/publish.ps1 -Flavor SelfContained
 
-# 单文件自包含，适合便携分发
-dotnet publish src/ECodex/ECodex.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o publish/ecodex-win-x64-single
+# 一次生成 app + daemon + CLI
+pwsh ./scripts/publish.ps1
 
 # 命令行
-dotnet publish src/ECodex.Cli/ECodex.Cli.csproj -c Release -r win-x64 --self-contained true -o publish/ecodex-cli
+pwsh ./scripts/publish.ps1 -Flavor Cli
 ```
 
 > 浏览器 Surface 依赖 WebView2。部分 Windows 环境可能需要先安装 WebView2 Runtime。
