@@ -203,6 +203,8 @@ public class DaemonSessionInfo {
 
 `SESSION_CLOSE_ALL` 会终止 daemon 当前托管的全部终端会话，并返回已清理的会话数；主窗口右下角 daemon 状态入口提供同等操作，用于用户显式清理关闭窗口后继续保留的后台进程。
 
+主应用主动退出时，`DaemonClient.Dispose()` 只关闭客户端管道，不广播 `Disconnected`；因此 `SurfaceViewModel.OnDaemonDisconnected()` 的本地 ConPTY 回退仅用于运行中 daemon 意外断开，不用于正常关闭窗口。
+
 终端进程自然退出时，`DaemonSessionManager` 会从 active sessions 中移除对应 pane，再广播 `EXITED`；因此 daemon 空闲退出判断不会被已结束的终端进程阻塞。
 
 ---

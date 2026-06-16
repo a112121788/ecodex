@@ -56,6 +56,7 @@
     <None Include="..\..\package.json" Link="package.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\spec\06-roadmap.md" Link="spec\06-roadmap.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\spec\07-implementation-backlog.md" Link="spec\07-implementation-backlog.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\ECodex.Core\IPC\DaemonClient.cs" Link="src\ECodex.Core\IPC\DaemonClient.cs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\ECodex\Controls\TerminalControl.cs" Link="src\ECodex\Controls\TerminalControl.cs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\ECodex\Views\SettingsWindow.xaml" Link="src\ECodex\Views\SettingsWindow.xaml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\docs\.vitepress\config.mts" Link="docs\.vitepress\config.mts" CopyToOutputDirectory="PreserveNewest" />

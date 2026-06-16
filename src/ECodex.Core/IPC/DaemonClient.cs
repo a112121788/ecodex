@@ -299,7 +299,8 @@ public sealed class DaemonClient : IDisposable
         {
             _connected = false; // 阻止新请求进入 SendRequestAsync
             _pendingResponse?.TrySetResult(null);
-            Disconnected?.Invoke();
+            if (!_disposed)
+                Disconnected?.Invoke();
         }
     }
 

@@ -886,6 +886,7 @@ public class DocsSiteTests
         sessionRestore.Should().Contain("ecodex restore-session");
         sessionRestore.Should().Contain("Ctrl+Shift+O");
         sessionRestore.Should().Contain("ECODEX_WORKSPACE_ID");
+        sessionRestore.Should().Contain("主动关闭 ECodex 只断开主程序与 daemon 的客户端连接");
     }
 
     [Fact]
@@ -3073,6 +3074,21 @@ public class DaemonLogFormatTests
         line.Should().Contain("message=\"Sending daemon request\"");
         line.Should().Contain("requestType=SESSION_CREATE");
         line.Should().Contain("path=\"C:\\\\Users\\\\mac\\\\my repo\"");
+    }
+}
+
+/// <summary>
+/// Daemon 客户端生命周期测试 - 主动关闭应用时只断开客户端，不触发运行时断线回退。
+/// </summary>
+public class DaemonClientLifecycleSourceTests
+{
+    [Fact]
+    public void Dispose_DoesNotRaiseDisconnectedFallback()
+    {
+        var source = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex.Core", "IPC", "DaemonClient.cs"));
+        var normalized = source.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+        normalized.Should().Contain("if (!_disposed)\n                Disconnected?.Invoke();");
     }
 }
 
