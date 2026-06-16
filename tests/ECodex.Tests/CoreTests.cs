@@ -1087,7 +1087,7 @@ public class MsixManifestTests
 public class ReleaseVersionTests
 {
     [Fact]
-    public void ReleaseFiles_ArePinnedToVersionOne()
+    public void ReleaseFiles_ArePinnedToCurrentPatchVersion()
     {
         var props = new System.Xml.XmlDocument();
         props.Load(Path.Combine(AppContext.BaseDirectory, "Directory.Build.props"));
@@ -1098,16 +1098,16 @@ public class ReleaseVersionTests
         ns.AddNamespace("m", "http://schemas.microsoft.com/appx/manifest/foundation/windows10");
 
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "CHANGELOG.md"))
-            .Should().Contain("## [1.0.0] - 2026-06-15");
-        props.SelectSingleNode("/Project/PropertyGroup/Version")!.InnerText.Should().Be("1.0.0");
+            .Should().Contain("## [1.0.1] - 2026-06-16");
+        props.SelectSingleNode("/Project/PropertyGroup/Version")!.InnerText.Should().Be("1.0.1");
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "installer", "ecodex.iss"))
-            .Should().Contain("#define MyAppVersion \"1.0.0\"");
-        manifest.SelectSingleNode("/m:Package/m:Identity[@Version='1.0.0.0']", ns)
+            .Should().Contain("#define MyAppVersion \"1.0.1\"");
+        manifest.SelectSingleNode("/m:Package/m:Identity[@Version='1.0.1.0']", ns)
             .Should().NotBeNull();
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "Views", "SettingsWindow.xaml"))
-            .Should().Contain("Text=\"v1.0.0\"");
-        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "installation.md"))
-            .Should().Contain("ECodex-win-x64-1.0.0.0.msix");
+            .Should().Contain("Text=\"v1.0.1\"");
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "installation.md"))
+            .Should().Contain("ECodex-win-x64-1.0.1.0.msix");
     }
 }
 

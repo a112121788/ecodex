@@ -8,7 +8,7 @@
   <Identity
     Name="ECodex"
     Publisher="CN=ECodex"
-    Version="1.0.0.0"
+    Version="1.0.1.0"
     ProcessorArchitecture="x64" />
 
   <Properties>

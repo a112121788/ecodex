@@ -71,6 +71,7 @@
     <None Include="..\..\md\.vitepress\config.mts" Link="md\.vitepress\config.mts" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\md\index.md" Link="md\index.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\md\installation.md" Link="md\installation.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\installation.md" Link="docs\installation.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\md\getting-started.md" Link="md\getting-started.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\md\custom-commands.md" Link="md\custom-commands.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\md\session-restore.md" Link="md\session-restore.md" CopyToOutputDirectory="PreserveNewest" />
