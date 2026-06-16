@@ -106,7 +106,7 @@ pwsh ./scripts/ci.ps1                         # restore + build + unit tests + s
 pwsh ./scripts/ci.ps1 -Config Release         # Release 配置验证
 pwsh ./scripts/ci.ps1 -IncludeSmoke           # Windows 上额外运行 ConPTY smoke test
 pwsh ./scripts/ci.ps1 -IncludePublish -PublishFlavor Cli
-pwsh ./scripts/check-doc-links.ps1            # 仅检查 README/spec/docs Markdown 相对链接
+pwsh ./scripts/check-doc-links.ps1            # 仅检查 README/spec/md Markdown 相对链接
 ```
 
 默认不执行耗时或强 Windows 依赖的 smoke/publish 实际步骤，只验证脚本语法与门禁提示；发布前应在 Windows 上显式加入 `-IncludeSmoke` 和 `-IncludePublish`。

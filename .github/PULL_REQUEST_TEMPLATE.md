@@ -13,7 +13,7 @@
 - [ ] 缺陷修复（bugfix）
 - [ ] 重构（refactor，无行为变化）
 - [ ] 性能优化
-- [ ] 文档（spec / docs / README）
+- [ ] 文档（spec / md / README）
 - [ ] 测试
 - [ ] 发布 / CI / 脚本
 - [ ] 破坏性变更（breaking change）
@@ -28,7 +28,7 @@
 
 - [ ] `.\.dotnet\dotnet.exe build ECodex.sln -c Debug -p:NuGetAudit=false` 零警告。
 - [ ] `.\.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj -p:NuGetAudit=false` 全绿。
-- [ ] `npm run docs:build`（涉及 docs / README / spec 链接时）。
+- [ ] `npm run docs:build`（涉及 md / README / spec 链接时）。
 - [ ] 涉及 UI：附截图或短录屏。
 - [ ] 涉及 IPC / CLI / ecodex.json：附 contract 测试或手测脚本。
 - [ ] 涉及 ConPTY：附 `tests/ECodex.Smoke` 输出。

@@ -185,16 +185,16 @@ src/
 tests/
   ECodex.Tests/    单元测试
   ECodex.Smoke/    冒烟测试
-docs/             VitePress 用户文档
+md/             VitePress 用户文档
 spec/             架构、模块、协议和发布设计文档
 ```
 
 ## 开发者文档
 
-- 用户文档：`docs/`，在线站点 https://a112121788.github.io/ecodex/
+- 用户文档：`md/`，在线站点 https://a112121788.github.io/ecodex/
 - 设计文档：`spec/README.md`
-- 发布就绪清单：`docs/release-readiness.md`
+- 发布就绪清单：`md/release-readiness.md`
 - 本地文档预览：`npm run docs:dev`
 - 文档构建校验：`npm run docs:build`
 
-GitHub Pages 使用 `Deploy from a branch`，发布分支为 `docs`，目录为 `/ (root)`。`docs` 分支不手动维护；推送到 `main` 后，`.github/workflows/docs.yml` 会从 `docs/` 构建 VitePress，并把 `docs/.vitepress/dist` 的编译产物覆盖发布到 `docs` 分支。
+GitHub Pages 使用 `Deploy from a branch`，发布分支为 `docs`，目录为 `/ (root)`。`docs` 分支不手动维护；推送到 `main` 后，`.github/workflows/docs.yml` 会从 `md/` 构建 VitePress，并把 `md/.vitepress/dist` 的编译产物覆盖发布到 `docs` 分支。

@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vitepress build docs --outDir web",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "build": "vitepress build md --outDir web",
+    "docs:dev": "vitepress dev md",
+    "docs:build": "vitepress build md",
+    "docs:preview": "vitepress preview md"
   },
   "devDependencies": {
     "vitepress": "^1.6.3"

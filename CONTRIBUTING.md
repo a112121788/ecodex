@@ -8,7 +8,7 @@ ECodex is a Windows desktop terminal built with WPF, ConPTY, WebView2, named pip
 
 - `spec/06-roadmap.md` for product direction.
 - `spec/07-implementation-backlog.md` for implementation items and acceptance notes.
-- `docs/` for user-facing documentation.
+- `md/` for user-facing documentation.
 
 ## Prerequisites
 
@@ -98,11 +98,11 @@ If a Roslyn `VBCSCompiler` file lock appears during parallel build/test runs, re
 
 ## Documentation
 
-User docs live in `docs/` and are built with VitePress.
+User docs live in `md/` and are built with VitePress.
 
 When adding or changing docs:
 
-- Update the matching page under `docs/`.
+- Update the matching page under `md/`.
 - Add or adjust assertions in `tests/ECodex.Tests/CoreTests.cs` when the page is part of a backlog acceptance item.
 - Ensure the file is copied by `tests/ECodex.Tests/ECodex.Tests.csproj` if tests read it from the test output directory.
 - Run `npm run docs:build`.
@@ -125,7 +125,7 @@ For C#:
 
 For CLI/API changes:
 
-- Document new commands in `docs/cli.md`.
+- Document new commands in `md/cli.md`.
 - Update PowerShell completion when adding public CLI commands.
 - Add contract tests for new `ecodex.v2` methods.
 - Preserve v1 compatibility commands unless the roadmap explicitly removes them.

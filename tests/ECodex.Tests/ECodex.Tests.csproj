@@ -68,18 +68,18 @@
     <None Include="..\..\src\ECodex\ViewModels\WorkspaceViewModel.cs" Link="src\ECodex\ViewModels\WorkspaceViewModel.cs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\ECodex\Views\MainWindow.xaml.cs" Link="src\ECodex\Views\MainWindow.xaml.cs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\ECodex\Views\SettingsWindow.xaml" Link="src\ECodex\Views\SettingsWindow.xaml" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\.vitepress\config.mts" Link="docs\.vitepress\config.mts" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\index.md" Link="docs\index.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\installation.md" Link="docs\installation.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\getting-started.md" Link="docs\getting-started.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\custom-commands.md" Link="docs\custom-commands.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\session-restore.md" Link="docs\session-restore.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\cli.md" Link="docs\cli.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\browser-api.md" Link="docs\browser-api.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\troubleshooting.md" Link="docs\troubleshooting.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\release-readiness.md" Link="docs\release-readiness.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\roadmap.md" Link="docs\roadmap.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\docs\release-notes\1.0.0.md" Link="docs\release-notes\1.0.0.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\.vitepress\config.mts" Link="md\.vitepress\config.mts" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\index.md" Link="md\index.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\installation.md" Link="md\installation.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\getting-started.md" Link="md\getting-started.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\custom-commands.md" Link="md\custom-commands.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\session-restore.md" Link="md\session-restore.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\cli.md" Link="md\cli.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\browser-api.md" Link="md\browser-api.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\troubleshooting.md" Link="md\troubleshooting.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\release-readiness.md" Link="md\release-readiness.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\roadmap.md" Link="md\roadmap.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\md\release-notes\1.0.0.md" Link="md\release-notes\1.0.0.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

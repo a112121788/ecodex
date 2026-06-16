@@ -40,10 +40,10 @@ AI Agent 启动后按以下顺序选择任务：
 | `SES-01` | done | 用户关闭 ECodex 窗口后，在同一 Windows 登录会话内重新打开，原 Codex / PowerShell 等终端进程仍由 daemon 托管，终端自动 attach 到原会话并可继续输入输出 | 首个切片覆盖“正常关闭主窗口 -> daemon 继续托管终端 -> 重开自动 attach”；涉及 `src/ECodex` 关闭/启动流程、`src/ECodex.Core` daemon session mapping、`session.json` pane/session id 持久化、状态可见性；不覆盖 Windows 重启/关机后的进程存活，不做命令回放 | Windows 手测：在 pane 启动 `pwsh` / Codex，关闭 ECodex，确认后台会话未退出；重开 ECodex 后恢复 workspace/surface/pane 布局并 attach 到同一进程，`pane.write/read` 可继续交互；无重复 shell；daemon 不可达时展示过期/已断开并回退到快照，不静默执行命令 |
 | `SES-01A` | done | 正常关闭 ECodex 时只断开客户端，不把 daemon 托管会话误回退成本地 ConPTY | 区分 `DaemonClient.Dispose()` 主动关闭与 daemon 意外断线；主动关闭不广播 `Disconnected`，运行中意外断线仍保留本地 fallback；同步 session restore 与 IPC spec | `DaemonClientLifecycleSourceTests` 先失败后通过；`dotnet test --filter DaemonClientLifecycleSourceTests` 通过；关闭窗口默认由 `PreserveDaemonSessionsOnClose=true` 保留后台终端 |
 | `SES-02` | done | 主程序崩溃后重开时，已持久化 pane 能继续自动 attach daemon 中仍存活的终端 | 保守恢复：结构变化后实时写 `session.json` checkpoint，但不生成 `session-close` transcript；重开时仅挂载 checkpoint 中已有 paneId，不自动创建 daemon 孤儿 pane | `CrashRecoveryCheckpointSourceTests` 先失败后通过；新建/关闭 Surface、分屏/关闭 pane、移动/调整分屏触发 `SessionCheckpointRequested`；`SaveSession(..., captureTranscripts:false)` 只更新布局与 pane snapshot |
-| `SES-03` | done | 用户可持久化“关闭窗口时保留终端”设置，并通过内部 IPC 退出 ECodex 同时终止 daemon 终端 | 新增 `PreserveDaemonSessionsOnClose`（默认 true）与设置页开关；移除 daemon `SESSION_CLOSE_ALL` 和右键菜单清理入口；新增主应用 `ecodex.v2` 方法 `app.exit {"terminateTerminals":true}`，内部用 `SESSION_LIST` + 逐个 `SESSION_CLOSE` | `DaemonSessionTerminationPolicyTests`、`AppLifecycleApiServiceTests`、`DaemonMessageRoundTripTests` 先失败后通过；docs/spec 同步说明设置、内部 IPC 与移除旧协议 |
-| `WIN-02` | done | ECodex 只允许一个主窗口，避免多窗口重复挂载终端 | 取消 S3 多窗口接管方向；主进程用 `Global\ECodexMainApp` Mutex 单实例化；第二次启动只聚焦已有窗口，不转发参数；`window.create` 保留兼容但只聚焦现有窗口 | `WindowCreate_FocusesExistingWindowInsteadOfCreatingSecondWindow` 与 `AppSingleWindowSourceTests` 先失败后通过；CLI/docs/spec 说明 `window.create` 不再新建第二主窗口 |
+| `SES-03` | done | 用户可持久化“关闭窗口时保留终端”设置，并通过内部 IPC 退出 ECodex 同时终止 daemon 终端 | 新增 `PreserveDaemonSessionsOnClose`（默认 true）与设置页开关；移除 daemon `SESSION_CLOSE_ALL` 和右键菜单清理入口；新增主应用 `ecodex.v2` 方法 `app.exit {"terminateTerminals":true}`，内部用 `SESSION_LIST` + 逐个 `SESSION_CLOSE` | `DaemonSessionTerminationPolicyTests`、`AppLifecycleApiServiceTests`、`DaemonMessageRoundTripTests` 先失败后通过；md/spec 同步说明设置、内部 IPC 与移除旧协议 |
+| `WIN-02` | done | ECodex 只允许一个主窗口，避免多窗口重复挂载终端 | 取消 S3 多窗口接管方向；主进程用 `Global\ECodexMainApp` Mutex 单实例化；第二次启动只聚焦已有窗口，不转发参数；`window.create` 保留兼容但只聚焦现有窗口 | `WindowCreate_FocusesExistingWindowInsteadOfCreatingSecondWindow` 与 `AppSingleWindowSourceTests` 先失败后通过；CLI/md/spec 说明 `window.create` 不再新建第二主窗口 |
 | `AGL-01` | done | AI loop 修改文档后能快速发现坏链接或旧文件名，降低文档漂移 | 新增 `scripts/check-doc-links.ps1`；`scripts/ci.ps1` 调用独立脚本；同步 `spec/04-build-deploy.md`；顺手修复 `spec/README.md` 对缺失 `08-dotnet-csharp-handbook.md` 的坏链接引用 | `pwsh ./scripts/check-doc-links.ps1` 通过；临时坏链接用例返回失败；脚本语法检查通过 |
-| `NAM-01` | done | 用户、维护者和发布产物看到的品牌统一为 `ECodex`，代码项目 / namespace / XAML 类型命名也同步使用 `ECodex` | 已统一 README/docs/spec/历史文档、安装器显示名、solution/project/folder 名、C# namespace、XAML `x:Class`、资源 key 与测试命名；保留全小写 `ecodex` 命令、配置、管道、数据路径和产物名 | 旧 Pascal 品牌拼写搜索无命中；临时归档副本执行 `.\.dotnet\dotnet.exe build ECodex.sln -c Debug` 通过；`.\.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --no-restore` 通过 284/284；`.\.dotnet\dotnet.exe build tests\ECodex.Smoke\ECodex.Smoke.csproj -c Debug` 通过；`pwsh ./scripts/check-doc-links.ps1` 与 `git diff --cached --check` 通过 |
+| `NAM-01` | done | 用户、维护者和发布产物看到的品牌统一为 `ECodex`，代码项目 / namespace / XAML 类型命名也同步使用 `ECodex` | 已统一 README/md/spec/历史文档、安装器显示名、solution/project/folder 名、C# namespace、XAML `x:Class`、资源 key 与测试命名；保留全小写 `ecodex` 命令、配置、管道、数据路径和产物名 | 旧 Pascal 品牌拼写搜索无命中；临时归档副本执行 `.\.dotnet\dotnet.exe build ECodex.sln -c Debug` 通过；`.\.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --no-restore` 通过 284/284；`.\.dotnet\dotnet.exe build tests\ECodex.Smoke\ECodex.Smoke.csproj -c Debug` 通过；`pwsh ./scripts/check-doc-links.ps1` 与 `git diff --cached --check` 通过 |
 
 ### 1.1 上一冲刺归档：S0 - spec 敏捷化与 AI loop
 
@@ -67,8 +67,8 @@ AI Agent 启动后按以下顺序选择任务：
 | 状态 | ready |
 | 优先级 | P1 |
 | Outcome | 使用 Inno Setup 安装包的用户，在安装、升级覆盖、创建快捷方式、完成页、卸载确认与卸载进度等流程中看到一致的简体中文界面 |
-| Scope | 调整 `installer/ecodex.iss` 的语言配置、安装任务描述、运行后提示和必要的自定义消息；同步 `docs/installation.md` 的构建/验收说明；不改变安装目录、卸载数据保留策略、Velopack/MSIX 行为或发布产物命名 |
-| 关联 | `installer/ecodex.iss`、`docs/installation.md`、`04-build-deploy.md` §Installer / Update |
+| Scope | 调整 `installer/ecodex.iss` 的语言配置、安装任务描述、运行后提示和必要的自定义消息；同步 `md/installation.md` 的构建/验收说明；不改变安装目录、卸载数据保留策略、Velopack/MSIX 行为或发布产物命名 |
+| 关联 | `installer/ecodex.iss`、`md/installation.md`、`04-build-deploy.md` §Installer / Update |
 | 验收 | Windows 环境使用 Inno Setup Compiler 编译通过；安装向导、覆盖安装向导、卸载向导、开始菜单/桌面快捷方式任务与完成页用户可见文案均为简体中文；静默安装/卸载不受影响；卸载仍只清理 `{app}`，保留 `%USERPROFILE%\.ecodex` |
 | 风险 | 构建机缺少 `compiler:Languages\ChineseSimplified.isl` 导致编译失败；自定义英文文案遗漏；第三方系统按钮或 Windows 控件文案不能被 Inno 脚本完全覆盖 |
 | 回滚 | 移除新增自定义消息与强制语言配置，恢复 Inno 默认语言行为；保留现有 `ChineseSimplified.isl` 引用不影响安装功能 |
@@ -93,8 +93,8 @@ AI Agent 启动后按以下顺序选择任务：
 | 状态 | ready |
 | 优先级 | P2 |
 | Outcome | 维护者能用 ECodex 命令面板一键执行本仓常用 build/test/docs 命令 |
-| Scope | 新增示例 `.ecodex/ecodex.example.json` 或 `docs/configuration.md` 示例；不写入用户真实本地配置 |
-| 关联 | `05-cli-commands.md`、`docs/custom-commands.md` |
+| Scope | 新增示例 `.ecodex/ecodex.example.json` 或 `md/configuration.md` 示例；不写入用户真实本地配置 |
+| 关联 | `05-cli-commands.md`、`md/custom-commands.md` |
 | 验收 | 示例包含 build、unit test、docs build、status/health；所有高风险命令 `confirm:true` |
 | 风险 | 示例路径在 macOS / Windows 不一致 |
 | 回滚 | 删除示例文件，不影响源码 |
@@ -119,9 +119,9 @@ AI Agent 启动后按以下顺序选择任务：
 | 状态 | ready |
 | 优先级 | P2 |
 | Outcome | Release 前能快速汇总测试、docs、perf、doctor 的证据路径 |
-| Scope | `docs/release-readiness.md` 或脚本；不改变 release workflow |
-| 关联 | `04-build-deploy.md`、`docs/release-readiness.md` |
-| 验收 | 清单覆盖 build/test/docs/perf/release workflow；明确哪些是 Windows-only |
+| Scope | `md/release-readiness.md` 或脚本；不改变 release workflow |
+| 关联 | `04-build-deploy.md`、`md/release-readiness.md` |
+| 验收 | 清单覆盖 build/test/md/perf/release workflow；明确哪些是 Windows-only |
 | 风险 | 与现有 GitHub artifacts 命名漂移 |
 | 回滚 | 保留人工 release checklist |
 
@@ -153,17 +153,17 @@ AI Agent 启动后按以下顺序选择任务：
 
 ### 5.1 1.0 基线归档
 
-旧 M0-M7 backlog 已完成，详细用户可见变化见 `CHANGELOG.md` 的 `1.0.0` 节，公开路线见 `docs/roadmap.md`。后续不再在本文件维护历史 M0-M7 明细，避免当前队列被已完成任务淹没。
+旧 M0-M7 backlog 已完成，详细用户可见变化见 `CHANGELOG.md` 的 `1.0.0` 节，公开路线见 `md/roadmap.md`。后续不再在本文件维护历史 M0-M7 明细，避免当前队列被已完成任务淹没。
 
 | 范围 | 状态 | 归档位置 |
 |---|---|---|
-| M0 工程基线 | done | `CHANGELOG.md`、`docs/roadmap.md` |
-| M1 UI/UX 与 `ecodex.json` | done | `CHANGELOG.md`、`docs/roadmap.md` |
-| M2 会话恢复 | done | `CHANGELOG.md`、`docs/session-restore.md` |
-| M3 Browser Pane | done | `CHANGELOG.md`、`docs/getting-started.md` |
-| M4 Browser scripting | done | `CHANGELOG.md`、`docs/browser-api.md` |
-| M5 v2 协议 | done | `CHANGELOG.md`、`docs/cli.md` |
-| M6 安装更新 | done | `CHANGELOG.md`、`docs/installation.md` |
+| M0 工程基线 | done | `CHANGELOG.md`、`md/roadmap.md` |
+| M1 UI/UX 与 `ecodex.json` | done | `CHANGELOG.md`、`md/roadmap.md` |
+| M2 会话恢复 | done | `CHANGELOG.md`、`md/session-restore.md` |
+| M3 Browser Pane | done | `CHANGELOG.md`、`md/getting-started.md` |
+| M4 Browser scripting | done | `CHANGELOG.md`、`md/browser-api.md` |
+| M5 v2 协议 | done | `CHANGELOG.md`、`md/cli.md` |
+| M6 安装更新 | done | `CHANGELOG.md`、`md/installation.md` |
 | M7 文档与社区 | done | `CHANGELOG.md`、`CONTRIBUTING.md`、`SECURITY.md` |
 
 ### 5.2 1.0 发布前专项归档
@@ -202,12 +202,12 @@ AI Agent 启动后按以下顺序选择任务：
 
 - 目标：ECodex 重开后自动接回 daemon 托管的后台终端，并提供设置化保留策略与退出终止入口。
 - 已完成：启动 S1；将 `SES-01` 标记为 `doing`；完成首个子切片后经人工确认转为 `done`；修正 daemon 终端自然退出后 active sessions 不移除的问题；S4 新增 `PreserveDaemonSessionsOnClose` 持久化设置与 `app.exit {"terminateTerminals":true}` 内部 IPC；移除 daemon `SESSION_CLOSE_ALL` 协议与右键“终止全部保留会话”入口；同步公开路线图、session restore 文档与 daemon IPC spec。
-- 已改文件：`docs/roadmap.md`、`docs/session-restore.md`、`spec/03-data-and-ipc.md`、`spec/05-cli-commands.md`、`spec/07-implementation-backlog.md`、`src/ECodex.Core/IPC/DaemonMessages.cs`、`src/ECodex.Core/IPC/DaemonClient.cs`、`src/ECodex.Daemon/DaemonSessionManager.cs`、`src/ECodex.Daemon/DaemonPipeServer.cs`、`src/ECodex/Views/MainWindow.xaml`、`src/ECodex/Views/MainWindow.xaml.cs`、`tests/ECodex.Tests/CoreTests.cs`。
+- 已改文件：`md/roadmap.md`、`md/session-restore.md`、`spec/03-data-and-ipc.md`、`spec/05-cli-commands.md`、`spec/07-implementation-backlog.md`、`src/ECodex.Core/IPC/DaemonMessages.cs`、`src/ECodex.Core/IPC/DaemonClient.cs`、`src/ECodex.Daemon/DaemonSessionManager.cs`、`src/ECodex.Daemon/DaemonPipeServer.cs`、`src/ECodex/Views/MainWindow.xaml`、`src/ECodex/Views/MainWindow.xaml.cs`、`tests/ECodex.Tests/CoreTests.cs`。
 - 已验证：S1 阶段 `git diff --check`、daemon 消息测试、Debug build 与 live GUI attach 已通过；S4 阶段新增 focused tests 覆盖 `DaemonMessageRoundTripTests`、`DaemonSessionTerminationPolicyTests`、`AppLifecycleApiServiceTests`。
 - 未验证 / 原因：无；Windows GUI / ConPTY live attach 验收已由人工确认完成。
 - 当前阻塞：无。
 - 下一步建议：按 ready 队列继续推进下一项。
-- 根因审计：公开路线图当前重点停留在 M7 的内容来自 `0d7cdf64 docs: localize docs site to simplified chinese`，S0 spec 敏捷化后未同步 `docs/roadmap.md`；daemon 自然退出未移除 active session 的原始逻辑来自 `7e9dc296`（旧 `src/Cmux.Daemon/DaemonSessionManager.cs`）。
+- 根因审计：公开路线图当前重点停留在 M7 的内容来自 `0d7cdf64 docs: localize docs site to simplified chinese`，S0 spec 敏捷化后未同步 `md/roadmap.md`；daemon 自然退出未移除 active session 的原始逻辑来自 `7e9dc296`（旧 `src/Cmux.Daemon/DaemonSessionManager.cs`）。
 - 回滚点：恢复 daemon `SESSION_CLOSE_ALL` 协议与 UI 菜单；移除 `PreserveDaemonSessionsOnClose`、`DaemonSessionTerminator`、`app.exit` 终止逻辑；保留自然退出移除 active session 的修正可单独评估。
 
 每轮结束，如果任务没有完全 done，必须留下 handoff：

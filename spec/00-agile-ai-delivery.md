@@ -47,7 +47,7 @@ ECodex 的研发方式调整为 **敏捷交付 + AI 自动化开发**：
 - 产品方向、优先级、停线：以 `06-roadmap.md` 为准。
 - 当前下一步、任务状态、验收：以 `07-implementation-backlog.md` 为准。
 - 架构 / 协议 / CLI 事实：以 `01`-`05` 为准，源码优先于文档。
-- 用户可读发布状态：以 `CHANGELOG.md` 与 `docs/` 为准。
+- 用户可读发布状态：以 `CHANGELOG.md` 与 `md/` 为准。
 
 ---
 
@@ -68,7 +68,7 @@ Intake -> Slice -> Plan -> Implement -> Verify -> Document -> Review -> Decide
 | Plan | 列 2-5 步短计划；明确会读哪些文件、改哪些文件、跑哪些验证 | 执行计划 |
 | Implement | 小步修改；同一轮避免同时改无关模块 | 可回滚 diff |
 | Verify | 跑任务对应的最小验证；无法跑的命令要说明原因 | 命令结果 / 缺口 |
-| Document | 更新 `spec/`、`docs/`、`CHANGELOG.md` 中必要部分 | 文档 diff |
+| Document | 更新 `spec/`、`md/`、`CHANGELOG.md` 中必要部分 | 文档 diff |
 | Review | 自查风险、兼容、测试缺口、是否污染无关文件 | review note |
 | Decide | 更新 backlog 状态：done / blocked / split / next | 下一轮入口 |
 
@@ -118,7 +118,7 @@ AI Agent 可以自动进入下一轮，条件是：
 1. 代码或文档改动与任务 Scope 一致，没有顺手改无关内容。
 2. 必跑验证已执行；不能执行的验证已明确标注环境限制。
 3. 涉及协议 / CLI / 数据模型时，`03` / `05` 已同步。
-4. 涉及用户行为时，`docs/` 或 `README.md` 已同步；只改内部流程则可只改 `spec/`。
+4. 涉及用户行为时，`md/` 或 `README.md` 已同步；只改内部流程则可只改 `spec/`。
 5. 涉及发布用户可见行为时，`CHANGELOG.md` 已同步。
 6. `07-implementation-backlog.md` 状态已更新，留下下一步或阻塞原因。
 

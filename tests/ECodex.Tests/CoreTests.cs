@@ -781,14 +781,14 @@ public class DocsSiteTests
     public void VitePressDocs_DefinesBuildScriptAndCorePages()
     {
         var packageJsonPath = Path.Combine(AppContext.BaseDirectory, "package.json");
-        var configPath = Path.Combine(AppContext.BaseDirectory, "docs", ".vitepress", "config.mts");
-        var docsRoot = Path.Combine(AppContext.BaseDirectory, "docs");
+        var configPath = Path.Combine(AppContext.BaseDirectory, "md", ".vitepress", "config.mts");
+        var docsRoot = Path.Combine(AppContext.BaseDirectory, "md");
 
         using var packageJson = JsonDocument.Parse(File.ReadAllText(packageJsonPath));
         packageJson.RootElement.GetProperty("scripts").GetProperty("build").GetString()
-            .Should().Be("vitepress build docs --outDir web");
+            .Should().Be("vitepress build md --outDir web");
         packageJson.RootElement.GetProperty("scripts").GetProperty("docs:build").GetString()
-            .Should().Be("vitepress build docs");
+            .Should().Be("vitepress build md");
         packageJson.RootElement.GetProperty("devDependencies").TryGetProperty("vitepress", out _)
             .Should().BeTrue();
 
@@ -805,7 +805,7 @@ public class DocsSiteTests
     [Fact]
     public void InstallationDocs_CoverZipVelopackAndMsix()
     {
-        var installation = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "installation.md"));
+        var installation = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "installation.md"));
 
         installation.Should().Contain("zip / self-contained 目录");
         installation.Should().Contain("Velopack 安装器与 feed");
@@ -817,7 +817,7 @@ public class DocsSiteTests
     [Fact]
     public void GettingStartedDocs_AreSimplifiedChineseAndCoverFirstRunFlow()
     {
-        var gettingStarted = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "getting-started.md"));
+        var gettingStarted = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "getting-started.md"));
 
         gettingStarted.Should().Contain("# 快速上手");
         gettingStarted.Should().Contain("本页用 15 分钟带你完成 ECodex 的第一次使用");
@@ -833,7 +833,7 @@ public class DocsSiteTests
     [Fact]
     public void CustomCommandsDocs_CoverSchemaTargetsLayoutAndReload()
     {
-        var customCommands = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "custom-commands.md"));
+        var customCommands = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "custom-commands.md"));
 
         customCommands.Should().Contain("%USERPROFILE%\\.config\\ecodex\\ecodex.json");
         customCommands.Should().Contain("commands");
@@ -852,7 +852,7 @@ public class DocsSiteTests
     [Fact]
     public void BrowserApiDocs_CoverSurfaceRefsActionsContractsAndUnsupportedMatrix()
     {
-        var browserApi = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "browser-api.md"));
+        var browserApi = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "browser-api.md"));
 
         browserApi.Should().Contain("ecodex browser open");
         browserApi.Should().Contain("surfaceRef");
@@ -876,7 +876,7 @@ public class DocsSiteTests
     [Fact]
     public void SessionRestoreDocs_CoverRuntimeFilesSchemaTrustAndCli()
     {
-        var sessionRestore = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "session-restore.md"));
+        var sessionRestore = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "session-restore.md"));
 
         sessionRestore.Should().Contain("%USERPROFILE%\\.ecodex\\session.json");
         sessionRestore.Should().Contain("%USERPROFILE%\\.ecodex\\resume.json");
@@ -900,7 +900,7 @@ public class DocsSiteTests
     [Fact]
     public void CliDocs_CoverGlobalFlagsV1V2AndOperationalCommands()
     {
-        var cli = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "cli.md"));
+        var cli = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "cli.md"));
 
         cli.Should().Contain("--id-format");
         cli.Should().Contain("--json");
@@ -928,7 +928,7 @@ public class DocsSiteTests
     [Fact]
     public void TroubleshootingDocs_CoverDoctorDaemonLogsAndCommonFailures()
     {
-        var troubleshooting = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "troubleshooting.md"));
+        var troubleshooting = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "troubleshooting.md"));
 
         troubleshooting.Should().Contain("ecodex doctor");
         troubleshooting.Should().Contain("ecodex --json doctor");
@@ -948,8 +948,8 @@ public class DocsSiteTests
     [Fact]
     public void ReleaseReadinessDocs_CoverP0P1GateAndValidation()
     {
-        var config = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", ".vitepress", "config.mts"));
-        var readiness = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "release-readiness.md"));
+        var config = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", ".vitepress", "config.mts"));
+        var readiness = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "release-readiness.md"));
 
         config.Should().Contain("发布就绪");
         config.Should().Contain("link: '/release-readiness'");
@@ -967,8 +967,8 @@ public class DocsSiteTests
     [Fact]
     public void ReleaseNotesDocs_CoverInstallUpgradeHighlightsAndLimits()
     {
-        var config = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", ".vitepress", "config.mts"));
-        var notes = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "release-notes", "1.0.0.md"));
+        var config = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", ".vitepress", "config.mts"));
+        var notes = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "release-notes", "1.0.0.md"));
 
         config.Should().Contain("发布说明");
         config.Should().Contain("link: '/release-notes/1.0.0'");
@@ -989,9 +989,9 @@ public class DocsSiteTests
     [Fact]
     public void RoadmapDocs_CoverPublicVersionLineMilestonesAndReleaseGate()
     {
-        var config = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", ".vitepress", "config.mts"));
-        var index = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "index.md"));
-        var roadmap = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "roadmap.md"));
+        var config = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", ".vitepress", "config.mts"));
+        var index = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "index.md"));
+        var roadmap = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "roadmap.md"));
 
         config.Should().Contain("link: '/roadmap'");
         index.Should().Contain("发布就绪");
@@ -1106,7 +1106,7 @@ public class ReleaseVersionTests
             .Should().NotBeNull();
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "Views", "SettingsWindow.xaml"))
             .Should().Contain("Text=\"v1.0.0\"");
-        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "installation.md"))
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "md", "installation.md"))
             .Should().Contain("ECodex-win-x64-1.0.0.0.msix");
     }
 }
