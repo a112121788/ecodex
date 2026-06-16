@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vitepress build md --outDir web",
+    "build": "vitepress build md --outDir docs",
     "docs:dev": "vitepress dev md",
     "docs:build": "vitepress build md",
     "docs:preview": "vitepress preview md"
