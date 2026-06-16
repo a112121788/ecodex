@@ -11,6 +11,8 @@ ECodex 的用户可读变更记录。维护规则参见 `spec/06-roadmap.md` §3
 ### Added
 
 - 终端输入新增全局 `Ctrl+Enter` 换行，适合 Codex CLI 等多行输入场景；普通 `Enter` 仍提交命令。
+- App 启动时新增默认 skills 种子安装：从安装目录 `default-skills` 复制到 `%USERPROFILE%\.agents\skills`，同名 skill 跳过且不覆盖。
+- 新增系统托盘常驻入口：关闭按钮或最小化会隐藏 ECodex 到托盘，双击托盘图标或菜单“打开 ECodex”可恢复窗口，托盘菜单也提供“退出并保留终端”和“退出并终止终端”。
 
 ### Changed
 

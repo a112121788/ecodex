@@ -537,6 +537,169 @@ public class ShellSetupTests
     }
 }
 
+public class PowerShellHookSetupServiceTests
+{
+    [Fact]
+    public void CreateInstallPlan_AddsLifecycleHookAndIsIdempotent()
+    {
+        var before = "Write-Host 'hello'";
+        var plan = PowerShellHookSetupService.CreateInstallPlan(before, @"C:\Tools\ECodex");
+        var installedAgain = PowerShellHookSetupService.CreateInstallPlan(plan.ProfileText, @"C:\Tools\ECodex");
+
+        plan.Status.Should().Be(PowerShellHookSetupStatus.Missing);
+        plan.Changed.Should().BeTrue();
+        plan.ProfileText.Should().Contain(PowerShellHookSetupService.BeginMarker);
+        plan.ProfileText.Should().Contain("ecodex.exe");
+        plan.ProfileText.Should().Contain("hook event");
+        plan.ProfileText.Should().Contain("--phase start");
+        plan.ProfileText.Should().Contain("--phase end");
+        plan.ProfileText.Should().Contain("--exit-code");
+        installedAgain.Changed.Should().BeFalse();
+        CountOccurrences(installedAgain.ProfileText, PowerShellHookSetupService.BeginMarker).Should().Be(1);
+    }
+
+    [Fact]
+    public void CreateInstallPlan_SkipsIncompleteMarkerConflict()
+    {
+        var profile = "Write-Host 'hello'\n" + PowerShellHookSetupService.BeginMarker + "\npartial";
+        var plan = PowerShellHookSetupService.CreateInstallPlan(profile, @"C:\Tools\ECodex");
+
+        plan.Status.Should().Be(PowerShellHookSetupStatus.Conflict);
+        plan.Changed.Should().BeFalse();
+        plan.ProfileText.Should().Be(profile);
+    }
+
+    [Fact]
+    public void Install_WritesBackupBeforeUpdatingProfile()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ecodex-hook-setup-tests", Guid.NewGuid().ToString("N"));
+        var profilePath = Path.Combine(root, "profile.ps1");
+        var backupDirectory = Path.Combine(root, "backups");
+        try
+        {
+            Directory.CreateDirectory(root);
+            File.WriteAllText(profilePath, "Write-Host 'before'");
+
+            var service = new PowerShellHookSetupService(() => new DateTimeOffset(2026, 6, 16, 1, 2, 3, TimeSpan.Zero));
+            var result = service.Install(new PowerShellHookInstallOptions(profilePath, backupDirectory, @"C:\Tools\ECodex"));
+
+            result.Changed.Should().BeTrue();
+            result.BackupPath.Should().NotBeNull();
+            File.Exists(result.BackupPath).Should().BeTrue();
+            File.ReadAllText(result.BackupPath!).Should().Be("Write-Host 'before'");
+            File.ReadAllText(profilePath).Should().Contain(PowerShellHookSetupService.BeginMarker);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void App_InstallsDefaultPowerShellHookOnStartup()
+    {
+        var appSource = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "App.xaml.cs")));
+        var cliSource = Normalize(File.ReadAllText(FindRepoFile("src", "ECodex.Cli", "Program.cs")));
+
+        appSource.Should().Contain("InstallDefaultPowerShellHook();");
+        appSource.Should().Contain("PowerShellHookSetupService.GetDefaultPowerShellProfilePath()");
+        appSource.Should().Contain("PowerShellHookSetupService.GetDefaultBackupDirectory()");
+        cliSource.Should().Contain("\"hook\" => await HandleHook(args[1..])");
+        cliSource.Should().Contain("PowerShell hook:");
+        cliSource.Should().Contain("PowerShellHookSetupService.CreateUninstallPlan");
+    }
+
+    private static string FindRepoFile(params string[] relativeParts)
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current != null)
+        {
+            var candidate = Path.Combine(new[] { current.FullName }.Concat(relativeParts).ToArray());
+            if (File.Exists(candidate))
+                return candidate;
+
+            current = current.Parent;
+        }
+
+        throw new FileNotFoundException($"Could not find repository file: {Path.Combine(relativeParts)}");
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
+    }
+
+    private static string Normalize(string value) => value.Replace("\r\n", "\n", StringComparison.Ordinal);
+}
+
+public class DefaultSkillSeedServiceTests
+{
+    [Fact]
+    public void Seed_CopiesFirstLevelSkillDirectoriesAndSkipsExistingNames()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ecodex-skill-seed-tests", Guid.NewGuid().ToString("N"));
+        var source = Path.Combine(root, "default-skills");
+        var target = Path.Combine(root, "user-skills");
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(source, "alpha"));
+            Directory.CreateDirectory(Path.Combine(source, "beta", "references"));
+            Directory.CreateDirectory(Path.Combine(target, "alpha"));
+            File.WriteAllText(Path.Combine(source, "alpha", "SKILL.md"), "template alpha");
+            File.WriteAllText(Path.Combine(source, "beta", "SKILL.md"), "template beta");
+            File.WriteAllText(Path.Combine(source, "beta", "references", "guide.md"), "nested");
+            File.WriteAllText(Path.Combine(source, "root-file.txt"), "ignored");
+            File.WriteAllText(Path.Combine(target, "alpha", "SKILL.md"), "user alpha");
+
+            var result = new DefaultSkillSeedService().Seed(source, target);
+
+            result.CopiedSkills.Should().Equal("beta");
+            result.SkippedSkills.Should().Equal("alpha");
+            result.Errors.Should().BeEmpty();
+            File.ReadAllText(Path.Combine(target, "alpha", "SKILL.md")).Should().Be("user alpha");
+            File.ReadAllText(Path.Combine(target, "beta", "SKILL.md")).Should().Be("template beta");
+            File.ReadAllText(Path.Combine(target, "beta", "references", "guide.md")).Should().Be("nested");
+            File.Exists(Path.Combine(target, "root-file.txt")).Should().BeFalse();
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Seed_MissingSourceIsNoOp()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ecodex-skill-seed-tests", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var result = new DefaultSkillSeedService().Seed(
+                Path.Combine(root, "missing"),
+                Path.Combine(root, "user-skills"));
+
+            result.CopiedSkills.Should().BeEmpty();
+            result.SkippedSkills.Should().BeEmpty();
+            result.Errors.Should().BeEmpty();
+            Directory.Exists(Path.Combine(root, "user-skills")).Should().BeFalse();
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+}
+
 public class PowerShellCompletionScriptTests
 {
     [Fact]
@@ -594,6 +757,44 @@ public class InnoSetupScriptTests
         script.Should().NotContain("Create a &desktop shortcut");
         script.Should().NotContain("Additional icons:");
         script.Should().NotContain("Launch ECodex");
+    }
+}
+
+public class DefaultSkillsPackagingTests
+{
+    [Fact]
+    public void ECodexProject_PublishesBundledDefaultSkillsDirectory()
+    {
+        var project = File.ReadAllText(FindRepoFile("src", "ECodex", "ECodex.csproj"));
+
+        project.Should().Contain("assets\\default-skills\\**\\*");
+        project.Should().Contain("default-skills\\%(RecursiveDir)%(Filename)%(Extension)");
+        project.Should().Contain("<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>");
+    }
+
+    [Fact]
+    public void AppStartup_SeedsBundledDefaultSkills()
+    {
+        var source = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "App.xaml.cs"));
+
+        source.Should().Contain("SeedDefaultSkills();");
+        source.Should().Contain("DefaultSkillSeedService.BundledSkillsDirectoryName");
+        source.Should().Contain("DefaultSkillSeedService.GetDefaultTargetDirectory()");
+    }
+
+    private static string FindRepoFile(params string[] relativeParts)
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current != null)
+        {
+            var candidate = Path.Combine(new[] { current.FullName }.Concat(relativeParts).ToArray());
+            if (File.Exists(candidate))
+                return candidate;
+
+            current = current.Parent;
+        }
+
+        throw new FileNotFoundException($"Could not find repository file: {Path.Combine(relativeParts)}");
     }
 }
 
@@ -903,7 +1104,8 @@ public class DocsSiteTests
         sessionRestore.Should().Contain("ecodex restore-session");
         sessionRestore.Should().Contain("Ctrl+Shift+O");
         sessionRestore.Should().Contain("ECODEX_WORKSPACE_ID");
-        sessionRestore.Should().Contain("主动关闭 ECodex 只断开主程序与 daemon 的客户端连接");
+        sessionRestore.Should().Contain("关闭按钮和最小化默认只把 ECodex 隐藏到系统托盘");
+        sessionRestore.Should().Contain("显式退出 ECodex 时，只断开主程序与 daemon 的客户端连接");
         sessionRestore.Should().Contain("重开时仅自动挂载 `session.json` 中已有 paneId 对应的 daemon 会话");
     }
 
@@ -2164,6 +2366,81 @@ public class AppSingleWindowSourceTests
         source.Should().Contain("NamedPipeClient.SendV2Request");
         source.Should().Contain(@"""window.focus""");
         source.Should().Contain(@"""target"", ""current""");
+    }
+
+    private static string Normalize(string value) => value.Replace("\r\n", "\n", StringComparison.Ordinal);
+}
+
+public class TrayResidencySourceTests
+{
+    [Fact]
+    public void MainWindow_CloseAndMinimizeHideToTrayInsteadOfExiting()
+    {
+        var source = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "Views", "MainWindow.xaml.cs")));
+
+        source.Should().Contain("if (!App.IsExplicitShutdownRequested)");
+        source.Should().Contain("e.Cancel = true;");
+        source.Should().Contain("HideToTray();");
+        source.Should().Contain("if (WindowState == WindowState.Minimized && !App.IsExplicitShutdownRequested)");
+        source.Should().Contain("ShowInTaskbar = false;");
+        source.Should().Contain("public void RestoreFromTray()");
+        source.Should().Contain("ShowInTaskbar = true;");
+    }
+
+    [Fact]
+    public void App_InitializesTrayIconAndAllowsExplicitShutdown()
+    {
+        var appSource = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "App.xaml.cs")));
+        var vmSource = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "ViewModels", "MainViewModel.cs")));
+        var project = File.ReadAllText(FindRepoFile("src", "ECodex", "ECodex.csproj"));
+
+        appSource.Should().Contain("private static TrayIconService? TrayIcon;");
+        appSource.Should().Contain("TrayIcon = new TrayIconService(RestoreMainWindowFromTray);");
+        appSource.Should().Contain("public static bool IsExplicitShutdownRequested");
+        appSource.Should().Contain("public static void RequestShutdown(int exitCode = 0)");
+        appSource.Should().Contain("TrayIcon?.Dispose();");
+        vmSource.Should().Contain("App.RequestShutdown(0)");
+        project.Should().Contain("<UseWindowsForms>true</UseWindowsForms>");
+    }
+
+    [Fact]
+    public void TrayIcon_MenuProvidesExplicitPreserveAndTerminateExitPaths()
+    {
+        var traySource = Normalize(File.ReadAllText(FindRepoFile("src", "ECodex", "Services", "TrayIconService.cs")));
+        var appSource = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "App.xaml.cs")));
+        var mainWindowSource = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "Views", "MainWindow.xaml.cs")));
+        var sessionRestore = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "session-restore.md")));
+        var troubleshooting = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "docs", "troubleshooting.md")));
+
+        traySource.Should().Contain("退出并保留终端");
+        traySource.Should().Contain("退出并终止终端");
+        traySource.Should().Contain("ExitAndPreserve");
+        traySource.Should().Contain("ExitAndTerminate");
+        appSource.Should().Contain("public static bool PreserveDaemonSessionsOnExplicitShutdown");
+        appSource.Should().Contain("public static void RequestShutdownPreservingDaemonSessions(int exitCode = 0)");
+        appSource.Should().Contain("public static async Task RequestShutdownAfterTerminatingDaemonSessionsAsync(int exitCode = 0)");
+        appSource.Should().Contain("DaemonSessionTerminator.TerminateAllAsync(DaemonClient)");
+        appSource.Should().Contain("RequestShutdownPreservingDaemonSessions(exitCode)");
+        mainWindowSource.Should().Contain("if (App.PreserveDaemonSessionsOnExplicitShutdown)");
+        sessionRestore.Should().Contain("退出并保留终端");
+        sessionRestore.Should().Contain("退出并终止终端");
+        troubleshooting.Should().Contain("托盘退出没有按预期处理终端");
+        troubleshooting.Should().Contain("[Tray] Exit and terminate");
+    }
+
+    private static string FindRepoFile(params string[] relativeParts)
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        while (current != null)
+        {
+            var candidate = Path.Combine(new[] { current.FullName }.Concat(relativeParts).ToArray());
+            if (File.Exists(candidate))
+                return candidate;
+
+            current = current.Parent;
+        }
+
+        throw new FileNotFoundException($"Could not find repository file: {Path.Combine(relativeParts)}");
     }
 
     private static string Normalize(string value) => value.Replace("\r\n", "\n", StringComparison.Ordinal);

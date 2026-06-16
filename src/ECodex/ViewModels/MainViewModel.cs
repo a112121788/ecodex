@@ -648,6 +648,7 @@ public partial class MainViewModel : ObservableObject
             return command switch
             {
                 "NOTIFY" => HandleNotifyCommand(args),
+                "HOOK.COMMAND" => HandleHookCommand(args),
                 "WORKSPACE.LIST" => HandleWorkspaceList(),
                 "WORKSPACE.CREATE" => HandleWorkspaceCreate(args),
                 "WORKSPACE.SELECT" => HandleWorkspaceSelect(args),
@@ -713,7 +714,7 @@ public partial class MainViewModel : ObservableObject
         _ = Task.Run(async () =>
         {
             await Task.Delay(150).ConfigureAwait(false);
-            await app.Dispatcher.InvokeAsync(() => app.Shutdown(0));
+            await app.Dispatcher.InvokeAsync(() => App.RequestShutdown(0));
         });
     }
 
@@ -980,6 +981,18 @@ public partial class MainViewModel : ObservableObject
             workspaceId, surfaceId, null,
             title, subtitle, body,
             NotificationSource.Cli);
+
+        return JsonSerializer.Serialize(new { ok = true });
+    }
+
+    private string HandleHookCommand(Dictionary<string, string> args)
+    {
+        var phase = args.GetValueOrDefault("phase", "");
+        var command = args.GetValueOrDefault("command", "");
+        var exitCode = args.GetValueOrDefault("exitCode", "");
+        var cwd = args.GetValueOrDefault("cwd", "");
+        var sanitized = App.CommandLogService.SanitizeCommandForStorage(command) ?? "[redacted]";
+        App.DaemonLog($"[Hook] phase={phase} exitCode={exitCode} cwd={cwd} command={sanitized}");
 
         return JsonSerializer.Serialize(new { ok = true });
     }

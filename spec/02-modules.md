@@ -95,8 +95,9 @@
 
 | 文件 | 类型 | 说明 |
 |---|---|---|
-| `src/ECodex/App.xaml.cs` | `App : Application` | 单例服务：`NotificationService / PipeServer / SnippetService / CommandLogService / DaemonClient / WindowApi / DaemonConnectTask`；`OnStartup` 先用 `Global\ECodexMainApp` 保证主应用单实例，第二实例只通过 pipe 聚焦已有窗口后退出；随后启管道 + 异步连守护进程；注册全局异常；非焦点时弹 Toast |
+| `src/ECodex/App.xaml.cs` | `App : Application` | 单例服务：`NotificationService / PipeServer / SnippetService / CommandLogService / DaemonClient / WindowApi / DaemonConnectTask`；`OnStartup` 先用 `Global\ECodexMainApp` 保证主应用单实例，第二实例只通过 pipe 聚焦 / 恢复已有窗口后退出；初始化托盘图标、启管道 + 异步连守护进程；注册全局异常；非焦点时弹 Toast |
 | `src/ECodex/Services/ToastNotificationHelper.cs` | `ToastNotificationHelper` | 通过 `Microsoft.Toolkit.Uwp.Notifications` 显示 Windows Toast |
+| `src/ECodex/Services/TrayIconService.cs` | `TrayIconService` | WinForms `NotifyIcon` 适配层；提供系统托盘图标、双击恢复和菜单“打开 ECodex / 退出并保留终端 / 退出并终止终端”；释放时隐藏并 Dispose 托盘资源 |
 | `src/ECodex/Services/AppLifecycleApiService.cs` | `AppLifecycleApiService` | 主应用 `ecodex.v2` 生命周期入口；`app.exit {"terminateTerminals":true}` 先终止 daemon 会话再请求应用退出 |
 | `src/ECodex/Services/AgentRuntimeService.cs` | `AgentRuntimeService` | 内置 Agent 运行时（OpenAI 兼容 / Anthropic），流式响应、工具调用（Bash / WebSearch / 自定义 / MCP）、上下文压缩、会话持久化（AgentConversationStoreService）、`TryHandlePaneCommand` 拦截 `/agent` 命令等 |
 | `src/ECodex/Converters/*` | (略) | XAML 值转换器 |
@@ -129,7 +130,7 @@
 
 | 文件 | 类型 | 说明 |
 |---|---|---|
-| `src/ECodex/Views/MainWindow.xaml(.cs)` | `MainWindow : Window` | 主窗口：侧边栏 + 主区；`OnLoaded` 恢复窗口几何；`OnClosing` 调 `ViewModel.SaveSession`，并按 `PreserveDaemonSessionsOnClose` 决定是否逐个终止 daemon 会话；`OnSettingsChanged` 广播主题 / 字号到所有终端；`UpdateDaemonStatus` 用绿/灰点指示；大量 `OnKeyDown` 绑定应用级快捷键；命令面板打开时读取 `ecodex.json` 并执行项目命令；`Ctrl+Shift+,` / CLI 可热重载配置 |
+| `src/ECodex/Views/MainWindow.xaml(.cs)` | `MainWindow : Window` | 主窗口：侧边栏 + 主区；`OnLoaded` 恢复窗口几何；关闭按钮和最小化默认 `HideToTray`，不释放终端；显式退出时 `OnClosing` 调 `ViewModel.SaveSession`，并按 `PreserveDaemonSessionsOnClose` 决定是否逐个终止 daemon 会话；`RestoreFromTray` 恢复窗口和焦点；`OnSettingsChanged` 广播主题 / 字号到所有终端；`UpdateDaemonStatus` 用绿/灰点指示；大量 `OnKeyDown` 绑定应用级快捷键；命令面板打开时读取 `ecodex.json` 并执行项目命令；`Ctrl+Shift+,` / CLI 可热重载配置 |
 | `src/ECodex/Views/SettingsWindow.xaml(.cs)` | `SettingsWindow` | 设置（外观 / 终端 / 行为 / 键盘 / 高级），行为页持久化 `PreserveDaemonSessionsOnClose` |
 | `src/ECodex/Views/SessionVaultWindow.xaml(.cs)` | `SessionVaultWindow` | 脚本回放浏览器（依赖 WebView2） |
 | `src/ECodex/Views/LogsWindow.xaml(.cs)` | `LogsWindow` | 命令日志查看（按日期 / 搜索） |

@@ -14,6 +14,7 @@ namespace ECodex;
 public partial class App : Application
 {
     private const string MainInstanceMutexName = @"Global\ECodexMainApp";
+    private static TrayIconService? TrayIcon;
     private Mutex? _mainInstanceMutex;
     private NamedPipeServer? _pipeServer;
 
@@ -27,15 +28,51 @@ public partial class App : Application
     public static WindowApiService<MainWindow> WindowApi { get; } = new(
         WindowManager,
         title => string.IsNullOrWhiteSpace(title) ? new MainWindow() : new MainWindow { Title = title.Trim() },
-        window =>
-        {
-            if (!window.IsVisible)
-                window.Show();
-            window.Activate();
-        },
-        window => window.Activate(),
+        window => window.RestoreFromTray(),
+        window => window.RestoreFromTray(),
         window => window.Close());
     public static Task<bool> DaemonConnectTask { get; private set; } = Task.FromResult(false);
+    public static bool IsExplicitShutdownRequested { get; private set; }
+    public static bool PreserveDaemonSessionsOnExplicitShutdown { get; private set; }
+
+    public static void RequestShutdown(int exitCode = 0)
+    {
+        IsExplicitShutdownRequested = true;
+        var app = Current;
+        if (app?.Dispatcher == null)
+            return;
+
+        if (app.Dispatcher.CheckAccess())
+        {
+            app.Shutdown(exitCode);
+            return;
+        }
+
+        app.Dispatcher.BeginInvoke((Action)(() => app.Shutdown(exitCode)));
+    }
+
+    public static void RequestShutdownPreservingDaemonSessions(int exitCode = 0)
+    {
+        PreserveDaemonSessionsOnExplicitShutdown = true;
+        RequestShutdown(exitCode);
+    }
+
+    public static async Task RequestShutdownAfterTerminatingDaemonSessionsAsync(int exitCode = 0)
+    {
+        try
+        {
+            var result = await DaemonSessionTerminator.TerminateAllAsync(DaemonClient).ConfigureAwait(false);
+            DaemonLog($"[Tray] Exit and terminate requested; terminated {result.Terminated}/{result.Requested} daemon sessions");
+            if (result.Terminated < result.Requested)
+                DaemonLog($"[Tray] Exit and terminate incomplete; {result.Requested - result.Terminated} daemon sessions were not terminated");
+        }
+        catch (Exception ex)
+        {
+            DaemonLog($"[Tray] Exit and terminate failed: {ex.Message}");
+        }
+
+        RequestShutdownPreservingDaemonSessions(exitCode);
+    }
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -65,6 +102,10 @@ public partial class App : Application
             System.Diagnostics.Debug.WriteLine($"[CRASH] UnhandledException: {ex}");
             System.Windows.MessageBox.Show($"严重错误：{ex?.Message}\n\n{ex?.StackTrace}", "严重错误", MessageBoxButton.OK, MessageBoxImage.Error);
         };
+
+        InitializeTrayIcon();
+        SeedDefaultSkills();
+        InstallDefaultPowerShellHook();
 
         // 启动用于 CLI 通信的命名管道服务器
         _pipeServer = new NamedPipeServer();
@@ -109,6 +150,88 @@ public partial class App : Application
         };
     }
 
+    private static void SeedDefaultSkills()
+    {
+        try
+        {
+            var sourceDirectory = Path.Combine(AppContext.BaseDirectory, DefaultSkillSeedService.BundledSkillsDirectoryName);
+            var targetDirectory = DefaultSkillSeedService.GetDefaultTargetDirectory();
+            var result = new DefaultSkillSeedService().Seed(sourceDirectory, targetDirectory);
+            if (result.CopiedSkills.Count > 0 || result.SkippedSkills.Count > 0 || result.Errors.Count > 0)
+            {
+                DaemonLog($"[Skills] seed default skills copied={result.CopiedSkills.Count} skipped={result.SkippedSkills.Count} errors={result.Errors.Count}");
+            }
+        }
+        catch (Exception ex)
+        {
+            DaemonLog($"[Skills] seed default skills failed: {ex.Message}");
+        }
+    }
+
+    private static void InitializeTrayIcon()
+    {
+        try
+        {
+            TrayIcon = new TrayIconService(RestoreMainWindowFromTray);
+        }
+        catch (Exception ex)
+        {
+            DaemonLog($"[Tray] initialize failed: {ex.Message}");
+        }
+    }
+
+    private static void InstallDefaultPowerShellHook()
+    {
+        try
+        {
+            var result = new PowerShellHookSetupService().Install(new PowerShellHookInstallOptions(
+                PowerShellHookSetupService.GetDefaultPowerShellProfilePath(),
+                PowerShellHookSetupService.GetDefaultBackupDirectory(),
+                AppContext.BaseDirectory));
+            if (result.Changed || result.Status == PowerShellHookSetupStatus.Conflict)
+            {
+                DaemonLog($"[Hook] PowerShell setup status={result.Status} changed={result.Changed} backup={result.BackupPath ?? "none"}");
+            }
+        }
+        catch (Exception ex)
+        {
+            DaemonLog($"[Hook] PowerShell setup failed: {ex.Message}");
+        }
+    }
+
+    private static void RestoreMainWindowFromTray()
+    {
+        var dispatcher = Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.HasShutdownStarted)
+            return;
+
+        if (dispatcher.CheckAccess())
+        {
+            RestoreMainWindowFromTrayCore();
+            return;
+        }
+
+        dispatcher.BeginInvoke(RestoreMainWindowFromTrayCore);
+    }
+
+    private static void RestoreMainWindowFromTrayCore()
+    {
+        if (Current.MainWindow is MainWindow mainWindow)
+        {
+            mainWindow.RestoreFromTray();
+            return;
+        }
+
+        if (Current.MainWindow is { } window)
+        {
+            window.ShowInTaskbar = true;
+            window.Show();
+            if (window.WindowState == WindowState.Minimized)
+                window.WindowState = WindowState.Normal;
+            window.Activate();
+        }
+    }
+
     private static void StartUpdateCheck()
     {
         var feedUrl = Environment.GetEnvironmentVariable("ECODEX_UPDATE_FEED_URL");
@@ -133,6 +256,8 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        TrayIcon?.Dispose();
+        TrayIcon = null;
         _pipeServer?.Dispose();
         DaemonClient.Dispose();
         try

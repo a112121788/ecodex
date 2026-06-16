@@ -62,6 +62,7 @@ public static class Program
             {
                 "notify" => await HandleNotify(args[1..]),
                 "notification" or "notifications" => await HandleNotification(args[1..]),
+                "hook" => await HandleHook(args[1..]),
                 "window" => await HandleWindow(args[1..]),
                 "workspace" => await HandleWorkspace(args[1..]),
                 "surface" => await HandleSurface(args[1..]),
@@ -139,6 +140,37 @@ public static class Program
         return string.IsNullOrEmpty(method)
             ? Error($"Unknown notification command: {subcommand}")
             : await SendV2AndPrint(method, parsed);
+    }
+
+    private static async Task<int> HandleHook(string[] args)
+    {
+        if (args.Length == 0 || !string.Equals(args[0], "event", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.Error.WriteLine("Usage: ecodex hook event --phase <start|end> --command <text> [--exit-code <code>] [--cwd <path>]");
+            return 1;
+        }
+
+        var parsed = ParseArgs(args[1..]);
+        var phase = GetFirstOption(parsed, "phase") ?? "";
+        if (phase is not ("start" or "end"))
+            return Error("hook event requires --phase start|end.");
+
+        var command = GetFirstOption(parsed, "command") ?? "";
+        var exitCode = GetFirstOption(parsed, "exit-code", "exitCode") ?? "";
+        var cwd = GetFirstOption(parsed, "cwd", "workingDirectory") ?? "";
+        var eventArgs = new Dictionary<string, string>
+        {
+            ["phase"] = phase,
+            ["command"] = command,
+        };
+        if (!string.IsNullOrWhiteSpace(exitCode)) eventArgs["exitCode"] = exitCode;
+        if (!string.IsNullOrWhiteSpace(cwd)) eventArgs["cwd"] = cwd;
+
+        var response = await NamedPipeClient.SendCommand("HOOK.COMMAND", eventArgs);
+        if (_globalOptions.Json)
+            Console.WriteLine(response);
+
+        return 0;
     }
 
     private static async Task<int> HandleWindow(string[] args)
@@ -465,8 +497,8 @@ public static class Program
         return subcommand switch
         {
             "status" => PrintSetupStatus(current, installDirectory, profilePath),
-            "install" => HandleSetupPlan("install", current, ShellSetup.CreateInstallPlan(current, installDirectory), profilePath, parsed),
-            "uninstall" => HandleSetupPlan("uninstall", current, ShellSetup.CreateUninstallPlan(current, installDirectory), profilePath, parsed),
+            "install" => HandleSetupPlan("install", current, CreateSetupInstallPlan(current, installDirectory), profilePath, parsed),
+            "uninstall" => HandleSetupPlan("uninstall", current, CreateSetupUninstallPlan(current, installDirectory), profilePath, parsed),
             _ => Error($"Unknown setup command: {subcommand}"),
         };
     }
@@ -589,13 +621,31 @@ public static class Program
             Console.WriteLine($"Error: {result.Error}");
     }
 
+    private static ShellSetupState CreateSetupInstallPlan(ShellSetupState current, string installDirectory)
+    {
+        var setupPlan = ShellSetup.CreateInstallPlan(current, installDirectory);
+        var hookPlan = PowerShellHookSetupService.CreateInstallPlan(setupPlan.PowerShellProfile, installDirectory);
+        return setupPlan with { PowerShellProfile = hookPlan.ProfileText };
+    }
+
+    private static ShellSetupState CreateSetupUninstallPlan(ShellSetupState current, string installDirectory)
+    {
+        var setupPlan = ShellSetup.CreateUninstallPlan(current, installDirectory);
+        var hookPlan = PowerShellHookSetupService.CreateUninstallPlan(setupPlan.PowerShellProfile);
+        return setupPlan with { PowerShellProfile = hookPlan.ProfileText };
+    }
+
     private static int PrintSetupStatus(ShellSetupState current, string installDirectory, string profilePath)
     {
+        var hookPlan = PowerShellHookSetupService.CreateInstallPlan(current.PowerShellProfile, installDirectory);
+        var installPlan = CreateSetupInstallPlan(current, installDirectory);
+        var installed = !ShellSetup.CreateDiff(current, installPlan).AnyChanged;
         Console.WriteLine("ECodex setup status");
         Console.WriteLine($"Install directory: {installDirectory}");
         Console.WriteLine($"PowerShell profile: {profilePath}");
-        Console.WriteLine($"Status: {(ShellSetup.IsInstalled(current, installDirectory) ? "installed" : "missing or drifted")}");
-        Console.WriteLine(ShellSetup.FormatDiff(current, ShellSetup.CreateInstallPlan(current, installDirectory)));
+        Console.WriteLine($"Status: {(installed ? "installed" : "missing or drifted")}");
+        Console.WriteLine($"PowerShell hook: {hookPlan.Status.ToString().ToLowerInvariant()}");
+        Console.WriteLine(ShellSetup.FormatDiff(current, installPlan));
         return 0;
     }
 
@@ -924,6 +974,10 @@ public static class Program
     {
         Environment.SetEnvironmentVariable("Path", state.UserPath, EnvironmentVariableTarget.User);
 
+        PowerShellHookSetupService.BackupFileIfExists(
+            profilePath,
+            PowerShellHookSetupService.GetDefaultBackupDirectory());
+
         var profileDirectory = Path.GetDirectoryName(profilePath);
         if (!string.IsNullOrWhiteSpace(profileDirectory))
             Directory.CreateDirectory(profileDirectory);
@@ -992,6 +1046,12 @@ public static class Program
                 unread <id>         Mark a notification as unread
                 jump-latest         Jump to latest unread notification
                 clear               Clear all notifications
+
+              hook                  Internal shell integration event bridge
+                event               Send command lifecycle event from shell hook
+                  --phase <value>   start | end
+                  --command <text>  Command text
+                  --exit-code <n>   Exit code for end events
 
               window                Manage app windows through ecodex.v2
                 list                List all open windows

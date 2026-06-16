@@ -61,6 +61,17 @@ Get-Content "$env:USERPROFILE\.ecodex\daemon-debug.log" -Tail 120
 3. 查看 `daemon-debug.log` 是否有 pipe 错误。
 4. 如果只需要本地命令，可使用 `ecodex setup status`、`ecodex doctor`、`ecodex completion powershell`、`ecodex version`。
 
+## 托盘退出没有按预期处理终端
+
+症状：点击托盘菜单“退出并保留终端”或“退出并终止终端”后，后台 shell / Codex 进程状态与预期不一致。
+
+处理：
+
+1. 查看 `%USERPROFILE%\.ecodex\daemon-debug.log`，搜索 `[Tray] Exit and terminate`。
+2. 若选择“退出并终止终端”但日志显示 terminated 小于 requested，说明 daemon 会话逐个关闭时有失败项。
+3. 需要保留当前终端时，优先用“退出并保留终端”；关闭按钮和最小化只隐藏到托盘，不会触发终端终止。
+4. 重开 ECodex 后，使用 `ecodex status` 或 `ecodex pane list` 确认可见窗口与 pane 状态。
+
 ## WebView2 不可用
 
 症状：集成浏览器显示 Runtime 缺失。
@@ -91,6 +102,8 @@ ecodex setup install --write true
 ```powershell
 ecodex setup uninstall --write true
 ```
+
+如果 `setup status` 显示 `PowerShell hook: conflict`，说明 profile 中只有一半 ECodex shell integration 标记，或存在多个同名标记块。ECodex 会跳过默认写入，避免覆盖用户内容；请先手动备份 `$PROFILE`，保留一个完整的 `# >>> ecodex shell integration >>>` / `# <<< ecodex shell integration <<<` 区块后再重试。
 
 ## `ecodex.json` 不生效
 

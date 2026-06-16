@@ -209,7 +209,7 @@ public class DaemonSessionInfo {
 
 daemon 不再暴露 `SESSION_CLOSE_ALL` 这类独立全量清理请求。需要“退出 ECodex 并终止终端”时，主应用 `app.exit {"terminateTerminals":true}` 会先 `SESSION_LIST`，再对每个 paneId 发送 `SESSION_CLOSE`，最后请求应用退出。
 
-主应用主动退出时，`DaemonClient.Dispose()` 只关闭客户端管道，不广播 `Disconnected`；因此 `SurfaceViewModel.OnDaemonDisconnected()` 的本地 ConPTY 回退仅用于运行中 daemon 意外断开，不用于正常关闭窗口。`ECodexSettings.PreserveDaemonSessionsOnClose` 默认 `true`；设为 `false` 时主窗口关闭前会逐个关闭 daemon 托管会话。
+关闭按钮和最小化只隐藏主窗口到系统托盘，主进程、daemon 连接、后台终端和通知继续运行。托盘菜单“退出并保留终端”会强制保留 daemon 会话；“退出并终止终端”会先逐个关闭 daemon 会话再退出主 UI。主应用显式退出时，`DaemonClient.Dispose()` 只关闭客户端管道，不广播 `Disconnected`；因此 `SurfaceViewModel.OnDaemonDisconnected()` 的本地 ConPTY 回退仅用于运行中 daemon 意外断开，不用于正常退出。`ECodexSettings.PreserveDaemonSessionsOnClose` 默认 `true`；设为 `false` 时显式退出前会逐个关闭 daemon 托管会话。
 
 终端进程自然退出时，`DaemonSessionManager` 会从 active sessions 中移除对应 pane，再广播 `EXITED`；因此 daemon 空闲退出判断不会被已结束的终端进程阻塞。
 
@@ -365,7 +365,7 @@ Shell 写入 `\e]133;A` / `\e]133;B;<command>` / `\e]133;C` / `\e]133;D;<exitcod
 | `ECodexSettings.TranscriptRetentionDays` | 脚本日志按文件 `LastWriteTime` 清理（默认 90，`0` = 永久保留） |
 | `ECodexSettings.CaptureTranscriptsOnClose` | Surface/Pane 关闭 / 清理时是否落盘脚本 |
 | `ECodexSettings.CaptureTranscriptsOnClear` | 清屏时是否落盘脚本 |
-| `ECodexSettings.PreserveDaemonSessionsOnClose` | 关闭主窗口时是否保留 daemon 托管终端（默认 `true`） |
+| `ECodexSettings.PreserveDaemonSessionsOnClose` | 显式退出主应用时是否保留 daemon 托管终端（默认 `true`）；关闭按钮 / 最小化只隐藏到托盘 |
 
 应用启动 + `SettingsChanged` 时调用 `ApplyRetentionPolicy / ApplyTranscriptRetentionPolicy / ScrubSensitiveData…`。
 

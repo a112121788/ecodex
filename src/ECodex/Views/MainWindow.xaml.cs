@@ -164,7 +164,7 @@ public partial class MainWindow : Window
         UpdateDaemonStatus();
         UpdateWindowChrome();
         SizeChanged += (_, _) => UpdateWindowClip();
-        StateChanged += (_, _) => UpdateWindowChrome();
+        StateChanged += OnWindowStateChanged;
         UpdateWindowClip();
         ViewModel.EnsureInitialWorkspace();
         QueueFocusTerminal();
@@ -209,8 +209,16 @@ public partial class MainWindow : Window
 
     private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
     {
+        if (!App.IsExplicitShutdownRequested)
+        {
+            e.Cancel = true;
+            HideToTray();
+            return;
+        }
+
         _uiRefreshTimer.Stop();
         _terminalFocusTimer.Stop();
+        StateChanged -= OnWindowStateChanged;
         ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
         ViewModel.SessionCheckpointRequested -= CheckpointCurrentSession;
         ViewModel.ConfigReloadRequested -= ReloadECodexJsonConfigForIpc;
@@ -219,8 +227,36 @@ public partial class MainWindow : Window
         TerminateDaemonSessionsOnCloseIfConfigured();
     }
 
+    private void OnWindowStateChanged(object? sender, EventArgs e)
+    {
+        UpdateWindowChrome();
+
+        if (WindowState == WindowState.Minimized && !App.IsExplicitShutdownRequested)
+            HideToTray();
+    }
+
+    private void HideToTray()
+    {
+        PersistCurrentSession(captureTranscripts: false);
+        ShowInTaskbar = false;
+        Hide();
+    }
+
+    public void RestoreFromTray()
+    {
+        ShowInTaskbar = true;
+        Show();
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
+        Activate();
+        QueueFocusTerminal();
+    }
+
     private static void TerminateDaemonSessionsOnCloseIfConfigured()
     {
+        if (App.PreserveDaemonSessionsOnExplicitShutdown)
+            return;
+
         if (ECodex.Core.Config.SettingsService.Current.PreserveDaemonSessionsOnClose)
             return;
 
