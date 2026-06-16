@@ -785,6 +785,8 @@ public class DocsSiteTests
         var docsRoot = Path.Combine(AppContext.BaseDirectory, "docs");
 
         using var packageJson = JsonDocument.Parse(File.ReadAllText(packageJsonPath));
+        packageJson.RootElement.GetProperty("scripts").GetProperty("build").GetString()
+            .Should().Be("vitepress build docs --outDir web");
         packageJson.RootElement.GetProperty("scripts").GetProperty("docs:build").GetString()
             .Should().Be("vitepress build docs");
         packageJson.RootElement.GetProperty("devDependencies").TryGetProperty("vitepress", out _)
