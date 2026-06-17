@@ -453,7 +453,7 @@ Codex 等待用户输入、权限确认或关键错误决策时，需要在 ECod
 
 ## 8. Agent 会话（Core 存储：显式 agent 根目录）
 
-当前源码包含纯 Core 的 `AgentConversationStoreService`、`AgentConversationThread` 与 `AgentConversationMessage`。该存储只读写调用方显式传入的 agent 根目录；`AgentRuntimeService`、真实 `%USERPROFILE%/.ecodex/agent/` 接线、Session Vault UI 传入 Agent message provider 仍未落地。
+当前源码包含纯 Core 的 `AgentConversationStoreService`、`AgentConversationThread` 与 `AgentConversationMessage`。该存储只读写调用方显式传入的 agent 根目录；Session Vault 已通过 App 层 provider 读取 app-owned agent root，`AgentRuntimeService` 与真实 Agent 消息写入仍未落地。
 
 ```
 agent/
@@ -471,7 +471,7 @@ agent/
 
 ### 8.1 OBS-01 失败 loop 证据包契约
 
-`OBS-01` 的第一阶段只定义可装配、可脱敏、可测试的证据包，不直接做 UI。当前 Core 已有 AgentConversation 存储事实源和可选 `IFailureLoopAgentMessageProvider`；没有调用方显式传入 provider 时，`FailureLoopEvidencePackage.AgentMessages` 仍保持空集合。Session Vault UI 目前仍未传入 Agent message provider。
+`OBS-01` 的第一阶段只定义可装配、可脱敏、可测试的证据包，不直接做 Agent runtime。当前 Core 已有 AgentConversation 存储事实源和可选 `IFailureLoopAgentMessageProvider`；没有调用方显式传入 provider 时，`FailureLoopEvidencePackage.AgentMessages` 仍保持空集合。Session Vault 通过 App 层传入 `IFailureLoopAgentMessageProvider`，但 runtime 尚未写入真实 Agent messages。
 
 ```csharp
 public sealed record FailureLoopEvidencePackage(
@@ -502,14 +502,14 @@ public sealed record FailureLoopEvidencePackage(
 | `AgentConversationFailureLoopEvidenceProvider` | 从调用方注入的 `AgentConversationStoreService` 读取同 scope / time window 的消息，映射为 `FailureLoopAgentMessageInput` | 只使用 store 的显式 agent 根目录，不默认读取 `%USERPROFILE%` |
 | `FailureLoopDaemonLogProvider` | 解析 daemon key=value 行，读取调用方显式提供文件路径的有限 tail，并输出 `FailureLoopDaemonLogInput` | 与 `DaemonClient.FormatDaemonLogLine(...)` 转义规则对齐；不默认定位或读取 `%USERPROFILE%` 下真实日志 |
 | `FailureLoopEvidencePreviewFormatter` | 将 evidence package 渲染成可复制的文本预览 | 不重新扫描日志；复用 package 内已截断 / 已脱敏内容，UI 后续只消费格式化结果 |
-| `SessionVaultWindow` 预览入口 | 从当前选中 `TerminalTranscriptEntry` 构造 `FailureLoopEvidenceRequest`，通过 Core collector / formatter 生成只读预览 | UI 不直接读取 daemon log/profile；无匹配证据时显示 `No failure loop evidence available.` |
+| `SessionVaultWindow` 预览入口 | 从当前选中 `TerminalTranscriptEntry` 构造 `FailureLoopEvidenceRequest`，通过 Core collector / formatter 生成只读预览，并传入 App 层 `IFailureLoopAgentMessageProvider` | UI 不直接读取 daemon log/profile，不自行 new `AgentConversationStoreService`；无匹配证据时显示 `No failure loop evidence available.` |
 
 | 来源 | 当前数据入口 | 证据用途 | 约束 |
 |---|---|---|---|
 | 命令日志 | `CommandLogService.GetForDate(...)` / `CommandLogEntry` | 找到失败命令、退出码、cwd、workspace / surface / pane、时间窗口 | 只使用已脱敏命令；不补采 shell 历史 |
 | Terminal transcript | `TerminalTranscriptEntry` + `CommandLogService.LoadTerminalTranscriptContent(...)` | 提取失败前后可读输出、关闭 / 清屏原因、pane 上下文 | 只通过 `LoadTerminalTranscriptContent` 读取，保留脱敏结果；首版截断摘要，不整段塞进通知 |
 | daemon 诊断 | `%USERPROFILE%\.ecodex\daemon-debug.log` | 串联 attach / fallback / pipe / session 生命周期异常 | 只按时间窗和 paneId 读取有限 tail；不得读取 `secrets.json`、`.env*` 或 credentials |
-| Agent 会话 | `AgentConversationStoreService` + `AgentConversationFailureLoopEvidenceProvider` | 串联 Agent 消息、压缩与 token 统计摘要 | Core provider 已落地，但 Session Vault UI 未接入；只能使用调用方显式传入的 agent 根目录，不默认读取真实 profile |
+| Agent 会话 | `AgentConversationStoreService` + `AgentConversationFailureLoopEvidenceProvider` + App 层 provider | 串联 Agent 消息、压缩与 token 统计摘要 | Session Vault provider 接线已落地，但 runtime 写入未落地；只能使用 app-owned / 调用方显式传入的 agent 根目录，不扫描其他 profile |
 
 | 规则 | 契约 |
 |---|---|
@@ -522,9 +522,9 @@ public sealed record FailureLoopEvidencePackage(
 ### 8.2 Session Vault AgentMessages root 语义
 
 - Session Vault 不自行 new `AgentConversationStoreService`，也不从 UI 层推断或扫描 agent 根目录。
-- 后续 UI 接线只能由 App 层显式传入 `IFailureLoopAgentMessageProvider`；测试可继续使用临时 agent 根目录。
+- Session Vault 只能由 App 层显式传入 `IFailureLoopAgentMessageProvider`；测试可继续使用临时 agent 根目录。
 - 默认产品根目录若启用，必须是 `CompatibilityOptions.GetAppDataDir()` 下的 `agent` 子目录，并且只能读取 `AgentConversationStoreService` 维护的 `threads.json` 与 `messages/*.jsonl`。
-- 当 agent root 不存在、runtime 尚未写入或 provider 未接入时，Session Vault 显示空 AgentMessages / 未接入来源，不把当前预览当作 AgentConversation live 证据。
+- 当 agent root 不存在或 runtime 尚未写入时，Session Vault 显示空 AgentMessages / 无匹配消息，不把当前预览当作 AgentConversation live 证据。
 - AgentMessages provider 不得读取 `secrets.json`、`.env*`、`config/credentials*`、`secrets/**`，也不得直接打开 daemon 原始日志。
 
 ---

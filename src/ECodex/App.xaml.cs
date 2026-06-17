@@ -1,6 +1,7 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using System.Windows;
+using ECodex.Core.Config;
 using ECodex.Core.IPC;
 using ECodex.Core.IPC.V2;
 using ECodex.Core.Services;
@@ -18,6 +19,10 @@ public partial class App : Application
     private Mutex? _mainInstanceMutex;
     private NamedPipeServer? _pipeServer;
     private Services.ToastActivationService? _toastActivationService;
+    private static readonly Lazy<AgentConversationStoreService> AgentConversationStoreLazy = new(() =>
+        new AgentConversationStoreService(Path.Combine(CompatibilityOptions.GetAppDataDir(), "agent")));
+    private static readonly Lazy<IFailureLoopAgentMessageProvider> FailureLoopAgentMessageProviderLazy = new(() =>
+        new AgentConversationFailureLoopEvidenceProvider(AgentConversationStoreLazy.Value));
 
     public static NotificationService NotificationService { get; } = new();
     public static CommandLifecycleNotificationService CommandLifecycleNotifications { get; } = new(NotificationService);
@@ -25,6 +30,7 @@ public partial class App : Application
     public static NamedPipeServer? PipeServer { get; private set; }
     public static SnippetService SnippetService { get; } = new();
     public static CommandLogService CommandLogService { get; } = new();
+    public static IFailureLoopAgentMessageProvider FailureLoopAgentMessageProvider => FailureLoopAgentMessageProviderLazy.Value;
     public static DaemonClient DaemonClient { get; } = new();
     public static WindowManagerService<MainWindow> WindowManager { get; } = new();
     public static Task<UpdateCheckResult?> UpdateCheckTask { get; private set; } = Task.FromResult<UpdateCheckResult?>(null);

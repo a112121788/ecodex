@@ -16,12 +16,14 @@ public partial class SessionVaultWindow : Window
     private readonly FailureLoopEvidenceCollector _failureLoopEvidenceCollector;
     private readonly FailureLoopEvidencePreviewFormatter _failureLoopEvidencePreviewFormatter;
     private readonly IFailureLoopEvidenceSourceProvider _failureLoopEvidenceSourceProvider;
+    private readonly IFailureLoopAgentMessageProvider _failureLoopAgentMessageProvider;
 
     public SessionVaultWindow()
     {
         _failureLoopEvidenceCollector = new FailureLoopEvidenceCollector();
         _failureLoopEvidencePreviewFormatter = new FailureLoopEvidencePreviewFormatter();
         _failureLoopEvidenceSourceProvider = new CommandLogFailureLoopEvidenceSourceProvider(App.CommandLogService);
+        _failureLoopAgentMessageProvider = App.FailureLoopAgentMessageProvider;
 
         InitializeComponent();
         WindowAppearance.Apply(this);
@@ -224,7 +226,8 @@ public partial class SessionVaultWindow : Window
                         WindowAfter = TimeSpan.FromMinutes(10),
                     },
                     DateOnly.FromDateTime(entry.CapturedAt.ToLocalTime())),
-                _failureLoopEvidenceSourceProvider);
+                _failureLoopEvidenceSourceProvider,
+                _failureLoopAgentMessageProvider);
 
             var hasEvidence =
                 package.Commands.Count > 0 ||

@@ -1737,7 +1737,7 @@ public class NotificationBacklogRefinementTests
         backlog.Should().Contain("### `NOT-02D-2` - 等待输入信号接入低噪声通知");
         backlog.Should().Contain("### `NOT-02D-3` - Codex 等待输入 live smoke 与文档");
         backlog.Should().Contain("| `NOT-02D` | done |");
-        backlog.Should().Contain("`OBS-01-11` Session Vault AgentMessages provider UI 接线");
+        backlog.Should().Contain("`OBS-01-12` AgentConversation runtime 写入契约 refinement");
     }
 }
 
@@ -1760,6 +1760,7 @@ public class Obs01RefinementTests
         contract.Should().Contain("## 8. Agent 会话（Core 存储：显式 agent 根目录）");
         contract.Should().Contain("### 8.2 Session Vault AgentMessages root 语义");
         contract.Should().Contain("Session Vault 不自行 new `AgentConversationStoreService`");
+        contract.Should().Contain("Session Vault 通过 App 层传入 `IFailureLoopAgentMessageProvider`");
         contract.Should().Contain("`CompatibilityOptions.GetAppDataDir()` 下的 `agent` 子目录");
         contract.Should().Contain("不得读取 `secrets.json`");
         backlog.Should().Contain("### `OBS-01-R` - 拆分失败 loop 证据包契约");
@@ -1774,20 +1775,28 @@ public class Obs01RefinementTests
         backlog.Should().Contain("### `OBS-01-9` - 失败 loop AgentMessages provider 接入");
         backlog.Should().Contain("### `OBS-01-10` - Session Vault AgentMessages root 语义 refinement");
         backlog.Should().Contain("### `OBS-01-11` - Session Vault AgentMessages provider UI 接线");
+        backlog.Should().Contain("### `OBS-01-12` - AgentConversation runtime 写入契约 refinement");
         backlog.Should().Contain("FailureLoopEvidencePackage");
-        backlog.Should().Contain("`OBS-01-10` 已完成 Session Vault AgentMessages root 语义 refinement");
+        backlog.Should().Contain("`OBS-01-11` 已完成 Session Vault AgentMessages provider UI 接线");
     }
 
     [Fact]
     public void Obs01Refinement_GroundsSessionVaultInCurrentTranscriptImplementation()
     {
         var sessionVault = File.ReadAllText(FindRepoFile("src", "ECodex", "Views", "SessionVaultWindow.xaml.cs"));
+        var app = File.ReadAllText(FindRepoFile("src", "ECodex", "App.xaml.cs"));
         var agentStore = File.ReadAllText(FindRepoFile("src", "ECodex.Core", "Services", "AgentConversationStoreService.cs"));
         var agentModels = File.ReadAllText(FindRepoFile("src", "ECodex.Core", "Models", "AgentConversation.cs"));
 
         sessionVault.Should().Contain("App.CommandLogService.GetTerminalTranscripts()");
         sessionVault.Should().Contain("App.CommandLogService.LoadTerminalTranscriptContent(e.FilePath)");
-        sessionVault.Should().NotContain("AgentConversationStoreService");
+        sessionVault.Should().Contain("App.FailureLoopAgentMessageProvider");
+        sessionVault.Should().Contain("_failureLoopAgentMessageProvider");
+        sessionVault.Should().NotContain("new AgentConversationStoreService");
+        app.Should().Contain("FailureLoopAgentMessageProvider");
+        app.Should().Contain("AgentConversationFailureLoopEvidenceProvider");
+        app.Should().Contain("CompatibilityOptions.GetAppDataDir()");
+        app.Should().Contain("\"agent\"");
         agentStore.Should().Contain("public sealed class AgentConversationStoreService");
         agentModels.Should().Contain("public sealed record AgentConversationThread");
     }

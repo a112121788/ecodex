@@ -75,7 +75,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 ## 2. Ready 队列（Now）
 
-下个可领切片优先进入 `OBS-01-11` Session Vault AgentMessages provider UI 接线；`OBS-01-10` 已完成 Session Vault AgentMessages root 语义 refinement。
+下个可领切片优先进入 `OBS-01-12` AgentConversation runtime 写入契约 refinement；`OBS-01-11` 已完成 Session Vault AgentMessages provider UI 接线。
 
 ### `NOT-02B-R` - 拆分命令生命周期通知契约
 
@@ -380,7 +380,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | 字段 | 内容 |
 |---|---|
-| 状态 | ready |
+| 状态 | done |
 | 优先级 | P1 |
 | Outcome | Session Vault 生成失败 loop 预览时，能通过 App 层显式 provider 读取 app-owned agent root 中的 AgentMessages；无 root / 无消息时仍显示空来源，不扫描其他 profile |
 | Scope | 在 App 层创建或注入 `AgentConversationStoreService` / `AgentConversationFailureLoopEvidenceProvider`，Session Vault 只消费 provider；可读取 `CompatibilityOptions.GetAppDataDir()` 下的 `agent` 子目录；不接 Agent runtime 写入、不读取 secrets、不直接从 UI 扫目录 |
@@ -388,6 +388,19 @@ AI Agent 启动后按以下顺序选择任务：
 | 验收 | source/unit tests 覆盖 App 层显式 provider、Session Vault 调用 collector 时传入 provider、无 provider / 无 root 时 empty-state 不报错、UI 不直接 new store；focused tests、`pwsh ./scripts/check-doc-links.ps1`、`git diff --check` 与 Debug build 通过 |
 | 风险 | 真实 app-owned agent root 可能包含用户对话内容；只读取约定目录和 store 文件，不读取 secrets / daemon 原始日志，runtime 写入另拆后续切片 |
 | 回滚 | Session Vault 不传入 AgentMessages provider，Core provider 能力保留但预览恢复空 AgentMessages |
+
+### `OBS-01-12` - AgentConversation runtime 写入契约 refinement
+
+| 字段 | 内容 |
+|---|---|
+| 状态 | ready |
+| 优先级 | P1 |
+| Outcome | 在实现 Agent runtime 写入前，维护者明确线程创建、消息角色、工具调用、压缩、token 统计、脱敏和失败 loop 证据读取之间的契约 |
+| Scope | 只做 spec/backlog/source tests refinement；阅读 `AgentConversationStoreService`、`FailureLoopEvidence*`、现有 AgentAttention / command log 边界；不实现 LLM runtime、不读取真实 agent root、不读取 secrets |
+| 关联 | `spec/03-data-and-ipc.md` §8、`AgentConversationStoreService`、`FailureLoopEvidencePackage.AgentMessages`、`docs/session-restore.md` |
+| 验收 | 文档明确 runtime 写入何时 create thread / append message、role 允许值、token 字段来源、compaction 记录、脱敏边界、empty/failure fallback；focused docs/source tests、`pwsh ./scripts/check-doc-links.ps1` 与 `git diff --check` 通过 |
+| 风险 | 直接实现 runtime 会牵涉 LLM provider、secrets 和用户内容；必须先固定写入契约与安全边界 |
+| 回滚 | 回退 refinement 文档，不影响现有 Core store / Session Vault provider 接线 |
 
 ### `PKG-02` - Inno 安装与卸载向导中文化
 
@@ -462,7 +475,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | ID | 状态 | Outcome | 缺口 | 下一步 |
 |---|---|---|---|---|
-| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器、`OBS-01-2` provider seam、`OBS-01-3` daemon log parser、`OBS-01-4` preview formatter、`OBS-01-5` Session Vault 入口、`OBS-01-6` GUI smoke checklist、`OBS-01-7` planned 边界复核、`OBS-01-8` AgentConversation Core store、`OBS-01-9` AgentMessages provider 与 `OBS-01-10` root 语义 refinement；Session Vault UI 仍未传入 provider | 先完成 `OBS-01-11` Session Vault provider 接线，再评估 Agent runtime 写入 |
+| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器、`OBS-01-2` provider seam、`OBS-01-3` daemon log parser、`OBS-01-4` preview formatter、`OBS-01-5` Session Vault 入口、`OBS-01-6` GUI smoke checklist、`OBS-01-7` planned 边界复核、`OBS-01-8` AgentConversation Core store、`OBS-01-9` AgentMessages provider、`OBS-01-10` root 语义 refinement 与 `OBS-01-11` Session Vault provider 接线；Agent runtime 仍未写入真实消息 | 先完成 `OBS-01-12` runtime 写入契约 refinement，再评估 Agent runtime 最小写入 |
 | `BRS-01` | draft | Browser scripting API 增加更多真实页面回归样例 | 需要本地测试页和 WebView2 环境策略 | 先列 P0 API 现有覆盖矩阵 |
 | `PKG-01` | draft | 安装 / 更新 / 卸载 rollback 证据更清晰 | 需要 Windows 测试环境和 artifact 命名 | 先整理 release workflow 产物清单 |
 | `DX-01` | draft | 新贡献者按 `spec/` 能 30 分钟跑通第一个小 PR | 需要观测真实 onboarding 缺口 | 先用一次 fresh clone 记录摩擦点 |
