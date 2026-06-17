@@ -75,7 +75,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 ## 2. Ready 队列（Now）
 
-下个可领切片优先进入 `OBS-01-3` daemon log 行解析与有限 tail provider；`OBS-01-2` 已完成可替换 provider seam。
+下个可领切片优先进入 `OBS-01-4` 失败 loop 证据包预览格式化器；`OBS-01-3` 已完成 daemon log 行解析与有限 tail provider。
 
 ### `NOT-02B-R` - 拆分命令生命周期通知契约
 
@@ -276,7 +276,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | 字段 | 内容 |
 |---|---|
-| 状态 | ready |
+| 状态 | done |
 | 优先级 | P1 |
 | Outcome | Core 层能把 `DaemonClient.FormatDaemonLogLine(...)` 兼容的 daemon-debug 行解析为 `FailureLoopDaemonLogInput`，并从调用方显式提供的日志路径读取有限 tail，供 `OBS-01-2` provider seam 使用 |
 | Scope | 新增纯 Core daemon log parser / bounded tail helper；测试使用 fixture 文本或临时文件；不默认读取 `%USERPROFILE%\.ecodex\daemon-debug.log`、不接 UI、不读取 secrets、不做真实日志扫描 |
@@ -284,6 +284,19 @@ AI Agent 启动后按以下顺序选择任务：
 | 验收 | 单测覆盖安全 key=value、带引号 / 转义 message、paneId 提取、时间窗过滤、malformed line 跳过、最大 tail 行数限制；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~FailureLoopEvidence" --no-restore` 与 `git diff --check` 通过 |
 | 风险 | daemon log 格式若漂移会导致证据缺失；解析器必须和 `FormatDaemonLogLine` 的转义规则保持一致，且不能因为 malformed 行抛异常中断证据包 |
 | 回滚 | 删除 daemon log parser / tail helper 与测试；保留 provider seam |
+
+### `OBS-01-4` - 失败 loop 证据包预览格式化器
+
+| 字段 | 内容 |
+|---|---|
+| 状态 | ready |
+| 优先级 | P1 |
+| Outcome | Core 层能把 `FailureLoopEvidencePackage` 格式化成紧凑、可复制的复盘预览文本，后续 Session Vault UI 只负责展示和复制，不重新拼接证据 |
+| Scope | 新增纯 Core formatter；覆盖命令、transcript 摘要、daemon log、空 AgentMessages 的提示和 package 元数据；不接 WPF UI、不读写磁盘、不新增导出文件 |
+| 关联 | `FailureLoopEvidencePackage`、`FailureLoopEvidenceCollector`、`03-data-and-ipc.md` §8.1 |
+| 验收 | 单测覆盖失败命令区块、transcript 摘要截断标记、daemon log 区块、Agent 会话 planned/empty 提示、无证据包时 no-op 文案；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~FailureLoopEvidence" --no-restore` 与 `git diff --check` 通过 |
+| 风险 | 预览文本如果过长会把 UI/通知撑爆；formatter 必须保守限制每类条目数量或复用已截断摘要，真实导出留到后续切片 |
+| 回滚 | 删除 formatter 与测试；保留 evidence package / provider seam |
 
 ### `PKG-02` - Inno 安装与卸载向导中文化
 
@@ -358,7 +371,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | ID | 状态 | Outcome | 缺口 | 下一步 |
 |---|---|---|---|---|
-| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器和 `OBS-01-2` provider seam；AgentConversation 相关源码当前未落地 | 先完成 `OBS-01-3` daemon log parser，再决定是否接 Session Vault UI |
+| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器、`OBS-01-2` provider seam 与 `OBS-01-3` daemon log parser；AgentConversation 相关源码当前未落地 | 先完成 `OBS-01-4` preview formatter，再决定是否接 Session Vault UI |
 | `BRS-01` | draft | Browser scripting API 增加更多真实页面回归样例 | 需要本地测试页和 WebView2 环境策略 | 先列 P0 API 现有覆盖矩阵 |
 | `PKG-01` | draft | 安装 / 更新 / 卸载 rollback 证据更清晰 | 需要 Windows 测试环境和 artifact 命名 | 先整理 release workflow 产物清单 |
 | `DX-01` | draft | 新贡献者按 `spec/` 能 30 分钟跑通第一个小 PR | 需要观测真实 onboarding 缺口 | 先用一次 fresh clone 记录摩擦点 |

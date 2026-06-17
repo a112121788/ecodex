@@ -1737,7 +1737,7 @@ public class NotificationBacklogRefinementTests
         backlog.Should().Contain("### `NOT-02D-2` - 等待输入信号接入低噪声通知");
         backlog.Should().Contain("### `NOT-02D-3` - Codex 等待输入 live smoke 与文档");
         backlog.Should().Contain("| `NOT-02D` | done |");
-        backlog.Should().Contain("`OBS-01-3` daemon log 行解析与有限 tail provider");
+        backlog.Should().Contain("`OBS-01-4` 失败 loop 证据包预览格式化器");
     }
 }
 
@@ -1762,8 +1762,9 @@ public class Obs01RefinementTests
         backlog.Should().Contain("### `OBS-01-1` - 失败 loop 证据包 Core DTO 与装配器");
         backlog.Should().Contain("### `OBS-01-2` - 失败 loop 证据源加载适配器");
         backlog.Should().Contain("### `OBS-01-3` - daemon log 行解析与有限 tail provider");
+        backlog.Should().Contain("### `OBS-01-4` - 失败 loop 证据包预览格式化器");
         backlog.Should().Contain("FailureLoopEvidencePackage");
-        backlog.Should().Contain("`OBS-01-2` 已完成可替换 provider seam");
+        backlog.Should().Contain("`OBS-01-3` 已完成 daemon log 行解析与有限 tail provider");
     }
 
     [Fact]
@@ -2075,6 +2076,82 @@ public class FailureLoopEvidenceTests
         source.Should().NotContain("new CommandLogService(");
     }
 
+    [Fact]
+    public void DaemonLogProvider_ParsesFormattedLinesWithQuotedFields()
+    {
+        var timestamp = new DateTimeOffset(2026, 6, 17, 11, 0, 0, TimeSpan.Zero);
+        var line = "ts=2026-06-17T11:00:00.0000000+00:00 component=ecodex-daemon event=session.error message=\"pipe failed for \\\"pane\\\"\" paneId=pane-a";
+        var provider = new FailureLoopDaemonLogProvider();
+
+        var parsed = provider.ParseLine(line);
+
+        parsed.Should().NotBeNull();
+        parsed!.TimestampUtc.Should().Be(timestamp);
+        parsed.PaneId.Should().Be("pane-a");
+        parsed.Line.Should().Be(line);
+    }
+
+    [Fact]
+    public void DaemonLogProvider_ReadTailUsesExplicitPathMaxLinesAndFilters()
+    {
+        var tmpDir = FindRepoDirectory("tmp");
+        var filePath = Path.Combine(tmpDir, "failure-loop-daemon-tail.log");
+        var provider = new FailureLoopDaemonLogProvider();
+        var oldLine = DaemonClient.FormatDaemonLogLine(
+            new DateTimeOffset(2026, 6, 17, 11, 0, 0, TimeSpan.Zero),
+            "ecodex-daemon",
+            "old",
+            "pane-a",
+            "old line");
+        var insideLine = DaemonClient.FormatDaemonLogLine(
+            new DateTimeOffset(2026, 6, 17, 11, 1, 0, TimeSpan.Zero),
+            "ecodex-daemon",
+            "session.error",
+            "pane-a",
+            "inside line");
+        var otherPaneLine = DaemonClient.FormatDaemonLogLine(
+            new DateTimeOffset(2026, 6, 17, 11, 1, 30, TimeSpan.Zero),
+            "ecodex-daemon",
+            "session.error",
+            "pane-b",
+            "other pane");
+        var latestLine = DaemonClient.FormatDaemonLogLine(
+            new DateTimeOffset(2026, 6, 17, 11, 2, 0, TimeSpan.Zero),
+            "ecodex-daemon",
+            "session.error",
+            "pane-a",
+            "latest line");
+
+        try
+        {
+            File.WriteAllLines(filePath, ["malformed", oldLine, insideLine, otherPaneLine, latestLine]);
+
+            var logs = provider.ReadTail(
+                filePath,
+                maxLines: 2,
+                fromUtc: new DateTimeOffset(2026, 6, 17, 11, 0, 30, TimeSpan.Zero),
+                toUtc: new DateTimeOffset(2026, 6, 17, 11, 3, 0, TimeSpan.Zero),
+                paneId: "pane-a");
+
+            logs.Should().ContainSingle()
+                .Which.Line.Should().Be(latestLine);
+        }
+        finally
+        {
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+        }
+    }
+
+    [Fact]
+    public void DaemonLogProvider_DoesNotDefaultToUserProfileLogPath()
+    {
+        var source = File.ReadAllText(FindRepoFile("src", "ECodex.Core", "Services", "FailureLoopDaemonLogProvider.cs"));
+
+        source.Should().NotContain("CompatibilityOptions.GetAppDataDir");
+        source.Should().NotContain("daemon-debug.log");
+    }
+
     private sealed class RecordingFailureLoopEvidenceProvider : IFailureLoopEvidenceSourceProvider
     {
         public IReadOnlyList<CommandLogEntry> Commands { get; init; } = [];
@@ -2128,6 +2205,21 @@ public class FailureLoopEvidenceTests
         }
 
         throw new FileNotFoundException($"Could not find repo file: {Path.Combine(relativeParts)}");
+    }
+
+    private static string FindRepoDirectory(params string[] relativeParts)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            var candidate = Path.Combine(new[] { directory.FullName }.Concat(relativeParts).ToArray());
+            if (Directory.Exists(candidate))
+                return candidate;
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException($"Could not find repo directory: {Path.Combine(relativeParts)}");
     }
 }
 
