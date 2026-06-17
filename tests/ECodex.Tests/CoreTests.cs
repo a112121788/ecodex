@@ -1737,7 +1737,7 @@ public class NotificationBacklogRefinementTests
         backlog.Should().Contain("### `NOT-02D-2` - 等待输入信号接入低噪声通知");
         backlog.Should().Contain("### `NOT-02D-3` - Codex 等待输入 live smoke 与文档");
         backlog.Should().Contain("| `NOT-02D` | done |");
-        backlog.Should().Contain("`OBS-01-6` Session Vault 失败 loop GUI smoke checklist");
+        backlog.Should().Contain("`OBS-01-7` AgentConversation planned 存储接入前 refinement");
     }
 }
 
@@ -1765,8 +1765,9 @@ public class Obs01RefinementTests
         backlog.Should().Contain("### `OBS-01-4` - 失败 loop 证据包预览格式化器");
         backlog.Should().Contain("### `OBS-01-5` - Session Vault 失败 loop 预览入口");
         backlog.Should().Contain("### `OBS-01-6` - Session Vault 失败 loop GUI smoke checklist");
+        backlog.Should().Contain("### `OBS-01-7` - AgentConversation planned 存储接入前 refinement");
         backlog.Should().Contain("FailureLoopEvidencePackage");
-        backlog.Should().Contain("`OBS-01-5` 已完成 source-level 预览入口接线");
+        backlog.Should().Contain("`OBS-01-6` 已完成 GUI smoke checklist 文档");
     }
 
     [Fact]
@@ -2571,6 +2572,11 @@ public class DocsSiteTests
         sessionRestore.Should().Contain("生成失败 loop 预览");
         sessionRestore.Should().Contain("FailureLoopEvidenceCollector");
         sessionRestore.Should().Contain("No failure loop evidence available.");
+        sessionRestore.Should().Contain("手动 smoke checklist");
+        sessionRestore.Should().Contain("准备失败命令");
+        sessionRestore.Should().Contain("捕获 transcript");
+        sessionRestore.Should().Contain("无证据负控");
+        sessionRestore.Should().Contain("AgentConversation live 证据");
     }
 
     [Fact]

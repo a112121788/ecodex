@@ -140,3 +140,16 @@ ecodex restore-session
 该入口复用 Core 层 `FailureLoopEvidenceCollector` 和 `FailureLoopEvidencePreviewFormatter`，UI 层只展示结果，不重新拼接证据，也不直接扫描 `%USERPROFILE%` 下的 `daemon-debug.log`。如果没有找到匹配的失败命令或证据，会显示 `No failure loop evidence available.`。
 
 首版 Agent 会话来源仍是 planned/empty；`AgentConversationStoreService` 落地前，预览不会读取或假设 Agent 消息存储。
+
+### 手动 smoke checklist
+
+在 Windows GUI 环境验证 Session Vault 失败 loop 预览时，按以下步骤记录证据：
+
+1. 准备失败命令：在 ECodex terminal pane 中运行一个确定会失败的命令，例如 `dotnet test --filter NoSuchTest`，确认退出码非 0。
+2. 捕获 transcript：关闭对应 pane、清屏或触发现有会话存档捕获路径，确保 Session Vault 中出现同一 Workspace / Surface / Pane 的 terminal transcript。
+3. 打开 Session Vault：按 `Ctrl+Shift+V`，选中刚捕获的 transcript，点击“生成失败 loop 预览”。
+4. 生成预览：确认只读文本区出现 `Failure Loop Evidence`、失败命令、`Transcripts` 区块；点击“全部复制”后粘贴到临时文本编辑器核对内容可复制。
+5. 无证据负控：选择一个没有附近失败命令的 transcript，点击“生成失败 loop 预览”，应显示 `No failure loop evidence available.`。
+6. 边界记录：首版结果不能作为 AgentConversation live 证据；`AgentConversationStoreService` 未落地前，Agent 消息区只能视为 planned/empty。
+
+检查过程中不要手动打开或复制 `%USERPROFILE%\.ecodex\secrets.json`、`.env*`、`config/credentials*` 或 `secrets/**`；如果需要 daemon 诊断证据，只记录按钮生成的预览文本和手测截图，不直接粘贴完整真实日志。

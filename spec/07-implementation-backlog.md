@@ -75,7 +75,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 ## 2. Ready 队列（Now）
 
-下个可领切片优先进入 `OBS-01-6` Session Vault 失败 loop GUI smoke checklist；`OBS-01-5` 已完成 source-level 预览入口接线。
+下个可领切片优先进入 `OBS-01-7` AgentConversation planned 存储接入前 refinement；`OBS-01-6` 已完成 GUI smoke checklist 文档。
 
 ### `NOT-02B-R` - 拆分命令生命周期通知契约
 
@@ -315,7 +315,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | 字段 | 内容 |
 |---|---|
-| 状态 | ready |
+| 状态 | done |
 | 优先级 | P1 |
 | Outcome | 维护者能用明确 checklist 在 Windows GUI 中验证 Session Vault “生成失败 loop 预览”按钮、复制行为、无证据 no-op 和不扫描真实 daemon log 的边界 |
 | Scope | 新增/扩展手动 smoke checklist 或 docs；可用 source test 覆盖 checklist 文案；不做自动点击 WPF、不读取真实用户日志、不新增安装/发布步骤 |
@@ -323,6 +323,19 @@ AI Agent 启动后按以下顺序选择任务：
 | 验收 | 文档/checklist 包含准备失败命令、捕获 transcript、打开 Session Vault、生成预览、复制结果、无证据负控、不能作为 AgentConversation live 证据的限制；focused docs/source tests、`pwsh ./scripts/check-doc-links.ps1` 与 `git diff --check` 通过 |
 | 风险 | 自动化 WPF 点击成本高且易受环境影响；首版只交付可执行手测 checklist，真实截图证据由 Windows GUI 手测补充 |
 | 回滚 | 删除新增 checklist，不影响 Session Vault 预览入口 |
+
+### `OBS-01-7` - AgentConversation planned 存储接入前 refinement
+
+| 字段 | 内容 |
+|---|---|
+| 状态 | ready |
+| 优先级 | P1 |
+| Outcome | 在接入 Agent 会话证据前，维护者明确当前源码仍没有 `AgentConversationStoreService` / `AgentConversationThread`，并拆出不破坏现有 Session Vault 的最小存储契约或继续保持 planned |
+| Scope | 只做 spec/backlog refinement 与 source tests；复核 `src/ECodex.Core/Models`、`src/ECodex.Core/Services`、`src/ECodex/Services` 是否出现 AgentConversation 相关类型；不实现 Agent runtime、不写真实 agent 日志、不读取 secrets |
+| 关联 | `spec/02-modules.md` planned AgentConversation 行、`spec/03-data-and-ipc.md` §8.1、`OBS-01` draft 行 |
+| 验收 | 测试覆盖 AgentConversation 类型仍为 planned / absent，新增下一可执行子切片 ready 字段，明确 Session Vault preview 继续以空 AgentMessages 运行；focused tests、`pwsh ./scripts/check-doc-links.ps1` 与 `git diff --check` 通过 |
+| 风险 | 直接实现 Agent 存储会扩大到 runtime / LLM 工具调用 / token 统计；本切片只做边界收敛，避免把 planned 类型当现有依赖 |
+| 回滚 | 回退 refinement 文档，不影响已完成 failure-loop Core 和 Session Vault 预览 |
 
 ### `PKG-02` - Inno 安装与卸载向导中文化
 
@@ -397,7 +410,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | ID | 状态 | Outcome | 缺口 | 下一步 |
 |---|---|---|---|---|
-| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器、`OBS-01-2` provider seam、`OBS-01-3` daemon log parser、`OBS-01-4` preview formatter 与 `OBS-01-5` Session Vault 入口；AgentConversation 相关源码当前未落地 | 先完成 `OBS-01-6` GUI smoke checklist，再评估是否接 AgentConversation planned 存储 |
+| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器、`OBS-01-2` provider seam、`OBS-01-3` daemon log parser、`OBS-01-4` preview formatter、`OBS-01-5` Session Vault 入口与 `OBS-01-6` GUI smoke checklist；AgentConversation 相关源码当前未落地 | 先完成 `OBS-01-7` AgentConversation planned 存储接入前 refinement |
 | `BRS-01` | draft | Browser scripting API 增加更多真实页面回归样例 | 需要本地测试页和 WebView2 环境策略 | 先列 P0 API 现有覆盖矩阵 |
 | `PKG-01` | draft | 安装 / 更新 / 卸载 rollback 证据更清晰 | 需要 Windows 测试环境和 artifact 命名 | 先整理 release workflow 产物清单 |
 | `DX-01` | draft | 新贡献者按 `spec/` 能 30 分钟跑通第一个小 PR | 需要观测真实 onboarding 缺口 | 先用一次 fresh clone 记录摩擦点 |
