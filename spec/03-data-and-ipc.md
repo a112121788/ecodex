@@ -451,7 +451,9 @@ Codex 等待用户输入、权限确认或关键错误决策时，需要在 ECod
 
 ---
 
-## 8. Agent 会话（`%USERPROFILE%/.ecodex/agent/`）
+## 8. Agent 会话（planned：`%USERPROFILE%/.ecodex/agent/`）
+
+当前源码未包含 `AgentConversationStoreService`、`AgentConversationThread`、`AgentConversationMessage` 或 `AgentRuntimeService`。本节只描述 OBS-01 后续可实现的存储契约，不代表当前运行时代码已经会写入或读取这些文件；Session Vault 失败 loop 预览在这些类型落地前必须保持 `AgentMessages` 空集合。
 
 ```
 agent/
@@ -460,12 +462,12 @@ agent/
     └── <threadId>.jsonl                      // 追加写
 ```
 
-- `AgentConversationStoreService`：
+- planned `AgentConversationStoreService`：
   - `CreateThread / GetThread / GetThreads / SearchThreads` — 受 lock 保护，clone 返回
   - `AppendMessage` 追加消息（角色归一化小写，ID/时间缺失时填默认值）
   - `PersistThreadsIndex` 整体重写索引（按 `UpdatedAtUtc` 倒序）
   - `ReadMessagesFromFile` 兼容 BOM + 多值 JSON + 退化的单行 JSONL
-- 线程聚合统计：`MessageCount / TotalInputTokens / TotalOutputTokens / TotalTokens / CompactionCount / LastMessagePreview`（前 160 字符，多行折叠成空格）
+- planned 线程聚合统计：`MessageCount / TotalInputTokens / TotalOutputTokens / TotalTokens / CompactionCount / LastMessagePreview`（前 160 字符，多行折叠成空格）
 
 ### 8.1 OBS-01 失败 loop 证据包契约
 

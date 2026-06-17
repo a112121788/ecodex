@@ -75,7 +75,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 ## 2. Ready 队列（Now）
 
-下个可领切片优先进入 `OBS-01-7` AgentConversation planned 存储接入前 refinement；`OBS-01-6` 已完成 GUI smoke checklist 文档。
+下个可领切片优先进入 `OBS-01-8` AgentConversation Core DTO 与存储契约；`OBS-01-7` 已完成 AgentConversation planned 边界复核。
 
 ### `NOT-02B-R` - 拆分命令生命周期通知契约
 
@@ -328,7 +328,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | 字段 | 内容 |
 |---|---|
-| 状态 | ready |
+| 状态 | done |
 | 优先级 | P1 |
 | Outcome | 在接入 Agent 会话证据前，维护者明确当前源码仍没有 `AgentConversationStoreService` / `AgentConversationThread`，并拆出不破坏现有 Session Vault 的最小存储契约或继续保持 planned |
 | Scope | 只做 spec/backlog refinement 与 source tests；复核 `src/ECodex.Core/Models`、`src/ECodex.Core/Services`、`src/ECodex/Services` 是否出现 AgentConversation 相关类型；不实现 Agent runtime、不写真实 agent 日志、不读取 secrets |
@@ -336,6 +336,19 @@ AI Agent 启动后按以下顺序选择任务：
 | 验收 | 测试覆盖 AgentConversation 类型仍为 planned / absent，新增下一可执行子切片 ready 字段，明确 Session Vault preview 继续以空 AgentMessages 运行；focused tests、`pwsh ./scripts/check-doc-links.ps1` 与 `git diff --check` 通过 |
 | 风险 | 直接实现 Agent 存储会扩大到 runtime / LLM 工具调用 / token 统计；本切片只做边界收敛，避免把 planned 类型当现有依赖 |
 | 回滚 | 回退 refinement 文档，不影响已完成 failure-loop Core 和 Session Vault 预览 |
+
+### `OBS-01-8` - AgentConversation Core DTO 与存储契约
+
+| 字段 | 内容 |
+|---|---|
+| 状态 | ready |
+| 优先级 | P1 |
+| Outcome | Core 层拥有可单测的 AgentConversation DTO 与存储服务最小契约，为后续 failure-loop 证据包接入 AgentMessages 提供真实事实源 |
+| Scope | 新增 `AgentConversationThread` / `AgentConversationMessage` DTO 和纯 Core `AgentConversationStoreService`；只读写调用方传入的测试目录或明确配置根目录；不接 Agent runtime、不调用 LLM、不接 Session Vault UI、不读取 secrets |
+| 关联 | `spec/03-data-and-ipc.md` §8 planned 契约、`FailureLoopEvidencePackage.AgentMessages`、`OBS-01-7` refinement |
+| 验收 | 单测覆盖 create/search/thread index、append message、token 聚合、last preview、多值 JSON/BOM/JSONL 兼容读取、测试目录隔离；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~AgentConversation" --no-restore` 与 `git diff --check` 通过 |
+| 风险 | 存储实现可能误读真实 `%USERPROFILE%` agent 数据或扩大到 runtime；首版必须依赖显式根目录，真实 profile 接线留到后续切片 |
+| 回滚 | 删除 AgentConversation DTO / store 和测试；failure-loop evidence 继续保持空 AgentMessages |
 
 ### `PKG-02` - Inno 安装与卸载向导中文化
 
@@ -410,7 +423,7 @@ AI Agent 启动后按以下顺序选择任务：
 
 | ID | 状态 | Outcome | 缺口 | 下一步 |
 |---|---|---|---|---|
-| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器、`OBS-01-2` provider seam、`OBS-01-3` daemon log parser、`OBS-01-4` preview formatter、`OBS-01-5` Session Vault 入口与 `OBS-01-6` GUI smoke checklist；AgentConversation 相关源码当前未落地 | 先完成 `OBS-01-7` AgentConversation planned 存储接入前 refinement |
+| `OBS-01` | draft | Agent 会话、命令日志、terminal transcript 可串成一次失败 loop 的复盘视图 | 已完成 `OBS-01-1` Core DTO / 装配器、`OBS-01-2` provider seam、`OBS-01-3` daemon log parser、`OBS-01-4` preview formatter、`OBS-01-5` Session Vault 入口、`OBS-01-6` GUI smoke checklist 与 `OBS-01-7` planned 边界复核；AgentConversation 相关源码当前未落地 | 先完成 `OBS-01-8` AgentConversation Core DTO / store，再接入 failure-loop AgentMessages |
 | `BRS-01` | draft | Browser scripting API 增加更多真实页面回归样例 | 需要本地测试页和 WebView2 环境策略 | 先列 P0 API 现有覆盖矩阵 |
 | `PKG-01` | draft | 安装 / 更新 / 卸载 rollback 证据更清晰 | 需要 Windows 测试环境和 artifact 命名 | 先整理 release workflow 产物清单 |
 | `DX-01` | draft | 新贡献者按 `spec/` 能 30 分钟跑通第一个小 PR | 需要观测真实 onboarding 缺口 | 先用一次 fresh clone 记录摩擦点 |

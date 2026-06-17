@@ -1737,7 +1737,7 @@ public class NotificationBacklogRefinementTests
         backlog.Should().Contain("### `NOT-02D-2` - 等待输入信号接入低噪声通知");
         backlog.Should().Contain("### `NOT-02D-3` - Codex 等待输入 live smoke 与文档");
         backlog.Should().Contain("| `NOT-02D` | done |");
-        backlog.Should().Contain("`OBS-01-7` AgentConversation planned 存储接入前 refinement");
+        backlog.Should().Contain("`OBS-01-8` AgentConversation Core DTO 与存储契约");
     }
 }
 
@@ -1757,6 +1757,7 @@ public class Obs01RefinementTests
         contract.Should().Contain("TerminalTranscriptEntry");
         contract.Should().Contain("daemon-debug.log");
         contract.Should().Contain("当前源码未包含 `AgentConversationStoreService`");
+        contract.Should().Contain("## 8. Agent 会话（planned：`%USERPROFILE%/.ecodex/agent/`）");
         contract.Should().Contain("不得读取 `secrets.json`");
         backlog.Should().Contain("### `OBS-01-R` - 拆分失败 loop 证据包契约");
         backlog.Should().Contain("### `OBS-01-1` - 失败 loop 证据包 Core DTO 与装配器");
@@ -1766,8 +1767,9 @@ public class Obs01RefinementTests
         backlog.Should().Contain("### `OBS-01-5` - Session Vault 失败 loop 预览入口");
         backlog.Should().Contain("### `OBS-01-6` - Session Vault 失败 loop GUI smoke checklist");
         backlog.Should().Contain("### `OBS-01-7` - AgentConversation planned 存储接入前 refinement");
+        backlog.Should().Contain("### `OBS-01-8` - AgentConversation Core DTO 与存储契约");
         backlog.Should().Contain("FailureLoopEvidencePackage");
-        backlog.Should().Contain("`OBS-01-6` 已完成 GUI smoke checklist 文档");
+        backlog.Should().Contain("`OBS-01-7` 已完成 AgentConversation planned 边界复核");
     }
 
     [Fact]
