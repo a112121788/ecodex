@@ -930,7 +930,7 @@
                             <StackPanel>
                                 <TextBlock Text="ECodex" FontSize="20" FontWeight="Bold"
                                            Foreground="{StaticResource ForegroundBrush}" Margin="0,0,0,4" />
-                                <TextBlock Text="v1.0.2" FontSize="13"
+                                <TextBlock Text="v1.0.3" FontSize="13"
                                            Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12" />
                                 <TextBlock Text="现代化终端复用器，支持分屏、项目、命令面板和智能终端管理。"
                                            Foreground="{StaticResource ForegroundDimBrush}" FontSize="13"

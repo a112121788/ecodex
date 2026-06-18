@@ -52,7 +52,7 @@ export default defineConfig({
         items: [
           { text: '故障排查', link: '/troubleshooting' },
           { text: '发布就绪', link: '/release-readiness' },
-          { text: '发布说明', link: '/release-notes/1.0.2' },
+          { text: '发布说明', link: '/release-notes/1.0.3' },
           { text: '架构概览', link: '/architecture' },
           { text: '路线图', link: '/roadmap' }
         ]

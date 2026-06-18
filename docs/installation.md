@@ -87,7 +87,7 @@ MSIX 清单文件位于 `installer/AppXManifest.xml`。构建示例：
 
 ```powershell
 pwsh ./scripts/publish.ps1 -Config Release -Rid win-x64 -Flavor MSIX -MakeAppxCommand makeappx.exe
-Add-AppxPackage .\publish\msix\ECodex-win-x64-1.0.2.0.msix
+Add-AppxPackage .\publish\msix\ECodex-win-x64-1.0.3.0.msix
 ```
 
 MSIX 适合企业环境；普通用户优先选择 self-contained 或 Velopack。

@@ -5,7 +5,7 @@
 #define MyAppUserModelID "ECodex.App"
 #define MyAppVersion GetEnv("ECODEX_VERSION")
 #if MyAppVersion == ""
-#define MyAppVersion "1.0.2"
+#define MyAppVersion "1.0.3"
 #endif
 
 [Setup]

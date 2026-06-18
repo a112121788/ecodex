@@ -98,7 +98,7 @@
 
 #### `version` / `--version` / `-v`
 
-打印 `ecodex 1.0.2 (Windows)`。
+打印 `ecodex 1.0.3 (Windows)`。
 
 ### 1.3 退出码
 
@@ -143,7 +143,7 @@ COMMAND [k=v [k=v ...]]
 | `PANE.FOCUS` | 项目 + Surface + `paneId/Name/Index` | 当前聚焦 | 切换面板焦点 |
 | `PANE.WRITE` | 项目 + Surface + `paneId/Name/Index` + `text` + `submit` + `submitKey` | 当前聚焦 | 写入文本；`submit=true` 自动追加 submit 序列；`submitKey ∈ {auto,enter,linefeed,crlf,none}` |
 | `PANE.READ` | 项目 + Surface + `paneId/Name/Index` + `lines` (1..5000) + `maxChars` (512..200000) | 当前聚焦 / 80 行 / 20000 字符 | 返回 `{ok, ..., lines, maxChars, text}` |
-| `STATUS` | — | — | `{version, workspaces, selectedWorkspace, unreadNotifications}`（`version` 当前为 `1.0.2` 程序集版本） |
+| `STATUS` | — | — | `{version, workspaces, selectedWorkspace, unreadNotifications}`（`version` 当前为 `1.0.3` 程序集版本） |
 
 #### 项目 / Surface / 面板定位约定
 
