@@ -2,6 +2,7 @@
 #define MyAppPublisher "ECodex"
 #define MyAppExeName "ecodex-app.exe"
 #define MyCliExeName "ecodex.exe"
+#define MyAppUserModelID "ECodex.App"
 #define MyAppVersion GetEnv("ECODEX_VERSION")
 #if MyAppVersion == ""
 #define MyAppVersion "1.0.2"
@@ -50,9 +51,9 @@ Source: "..\publish\ecodex-win-x64-sc\*"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\publish\ecodex-cli\*"; DestDir: "{app}\cli"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\ECodex"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{group}\ECodex"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; AppUserModelID: "{#MyAppUserModelID}"
 Name: "{group}\ECodex CLI"; Filename: "{app}\cli\{#MyCliExeName}"; WorkingDir: "{app}\cli"
-Name: "{autodesktop}\ECodex"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\ECodex"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; AppUserModelID: "{#MyAppUserModelID}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchECodex}"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent

@@ -16,6 +16,7 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $TmpRoot = Join-Path $RepoRoot "tmp"
+$ExpectedAppUserModelId = "ECodex.App"
 if ([string]::IsNullOrWhiteSpace($WorkspaceRoot)) {
     $WorkspaceRoot = Join-Path $TmpRoot $WorkspaceName
 }
@@ -312,10 +313,12 @@ function Test-InstallerShortcutContract {
     $data = [ordered]@{
         startMenuShortcut = $installer.Contains('Name: "{group}\ECodex"', [System.StringComparison]::Ordinal)
         desktopShortcut = $installer.Contains('Name: "{autodesktop}\ECodex"', [System.StringComparison]::Ordinal)
-        mentionsAppUserModelId = ($installer -match "AppUserModelID|AppUserModel\.ID|AUMID")
+        expectedAppUserModelId = $ExpectedAppUserModelId
+        definesExpectedAppUserModelId = $installer.Contains("#define MyAppUserModelID `"$ExpectedAppUserModelId`"", [System.StringComparison]::Ordinal)
+        assignsShortcutAppUserModelId = $installer.Contains('AppUserModelID: "{#MyAppUserModelID}"', [System.StringComparison]::Ordinal)
     }
 
-    $status = if ($data.startMenuShortcut -and $data.desktopShortcut) { "ok" } else { "warn" }
+    $status = if ($data.startMenuShortcut -and $data.desktopShortcut -and $data.definesExpectedAppUserModelId -and $data.assignsShortcutAppUserModelId) { "ok" } else { "warn" }
     Add-SmokeCheck "installer-shortcuts" $status "Inno installer shortcut entries checked; AppUserModelID remains a live-smoke prerequisite for unpackaged WPF activation." $data
 }
 
@@ -427,9 +430,9 @@ if ($shortcutInfos.Count -eq 0) {
     Add-SmokeCheck "installed-shortcut" "warn" "No ECodex Start Menu or Desktop shortcut was found. Install with Inno/Velopack or create a shortcut before signing off Toast click activation."
 }
 else {
-    $shortcutWithAumid = $shortcutInfos | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_["appUserModelId"]) } | Select-Object -First 1
+    $shortcutWithAumid = $shortcutInfos | Where-Object { [string]$_["appUserModelId"] -eq $ExpectedAppUserModelId } | Select-Object -First 1
     $shortcutStatus = if ($null -ne $shortcutWithAumid) { "ok" } else { "warn" }
-    Add-SmokeCheck "installed-shortcut" $shortcutStatus "Installed ECodex shortcut(s) inspected; unpackaged WPF Toast activation should use a stable AppUserModelID." @{ shortcuts = $shortcutInfos }
+    Add-SmokeCheck "installed-shortcut" $shortcutStatus "Installed ECodex shortcut(s) inspected; unpackaged WPF Toast/taskbar activation should use the expected AppUserModelID." @{ expectedAppUserModelId = $ExpectedAppUserModelId; shortcuts = $shortcutInfos }
 }
 
 if (-not $toastPermissionOk) {
@@ -438,7 +441,7 @@ if (-not $toastPermissionOk) {
 }
 
 if ($RequireActivationPrerequisites -and ($shortcutInfos.Count -eq 0 -or $null -eq $shortcutWithAumid)) {
-    Write-SmokeSummary "failed" "Toast activation prerequisites are incomplete: Start Menu/Desktop shortcut with AppUserModelID was not confirmed."
+    Write-SmokeSummary "failed" "Toast activation prerequisites are incomplete: Start Menu/Desktop shortcut with AppUserModelID '$ExpectedAppUserModelId' was not confirmed."
 }
 
 $script:ResolvedCli = Resolve-ECodexCli

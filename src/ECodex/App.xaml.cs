@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using ECodex.Core.Config;
@@ -14,6 +15,7 @@ namespace ECodex;
 /// <summary>应用程序入口，初始化全局服务、守护进程连接和命名管道</summary>
 public partial class App : Application
 {
+    public const string AppUserModelId = "ECodex.App";
     private const string MainInstanceMutexName = @"Global\ECodexMainApp";
     private static TrayIconService? TrayIcon;
     private Mutex? _mainInstanceMutex;
@@ -95,6 +97,7 @@ public partial class App : Application
             return;
         }
 
+        ConfigureAppUserModelId();
         base.OnStartup(e);
 
         // 添加全局异常处理器以便诊断崩溃问题
@@ -325,6 +328,23 @@ public partial class App : Application
             // 如果既有实例还未完成 pipe 初始化，第二实例仍保持只退出不新开窗口。
         }
     }
+
+    private static void ConfigureAppUserModelId()
+    {
+        try
+        {
+            var hr = SetCurrentProcessExplicitAppUserModelID(AppUserModelId);
+            if (hr != 0)
+                System.Diagnostics.Debug.WriteLine($"[AUMID] SetCurrentProcessExplicitAppUserModelID failed: 0x{hr:X8}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AUMID] SetCurrentProcessExplicitAppUserModelID failed: {ex.Message}");
+        }
+    }
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern int SetCurrentProcessExplicitAppUserModelID(string appID);
 
     internal static void DaemonLog(string message) => DaemonClient.LogDaemon(message);
 }

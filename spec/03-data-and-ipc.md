@@ -17,7 +17,7 @@
 
 ## 2. 主应用 ↔ CLI 协议（`\\.\pipe\ecodex`）
 
-ECodex 主程序通过 `Global\ECodexMainApp` Mutex 保证单实例。第二个 `ecodex-app.exe` 启动时只尝试通过主应用 pipe 发送 `window.focus {"target":"current"}` 激活已有窗口，然后退出；当前不转发启动参数。
+ECodex 主程序设置 AppUserModelID `ECodex.App`，安装器开始菜单 / 桌面快捷方式也写入同一 AUMID；在受支持的任务栏按钮或固定图标路径下，Windows shell 应直接激活已有窗口而不是启动第二个 `ecodex-app.exe`。主程序同时通过 `Global\ECodexMainApp` Mutex 兜底保证单实例：若用户从未绑定 AUMID 的裸 exe 路径重复启动，第二个启动进程只尝试通过主应用 pipe 发送 `window.focus {"target":"current"}` 激活已有窗口，然后退出；当前不转发启动参数。
 
 `ecodex.v2` 生命周期方法：
 
@@ -211,7 +211,7 @@ public class DaemonSessionInfo {
 
 daemon 不再暴露 `SESSION_CLOSE_ALL` 这类独立全量清理请求。需要“退出 ECodex 并终止终端”时，主应用 `app.exit {"terminateTerminals":true}` 会先 `SESSION_LIST`，再对每个 paneId 发送 `SESSION_CLOSE`，最后请求应用退出。
 
-关闭按钮和最小化只隐藏主窗口到系统托盘，主进程、daemon 连接、后台终端和通知继续运行。托盘菜单“退出并保留终端”会强制保留 daemon 会话；“退出并终止终端”会先逐个关闭 daemon 会话再退出主 UI。主应用显式退出时，`DaemonClient.Dispose()` 只关闭客户端管道，不广播 `Disconnected`；因此 `SurfaceViewModel.OnDaemonDisconnected()` 的本地 ConPTY 回退仅用于运行中 daemon 意外断开，不用于正常退出。`ECodexSettings.PreserveDaemonSessionsOnClose` 默认 `true`；设为 `false` 时显式退出前会逐个关闭 daemon 托管会话。
+关闭按钮会保存会话并退出 `ecodex-app` 主进程；最小化只隐藏主窗口到系统托盘，主进程、daemon 连接、后台终端和通知继续运行。托盘菜单“退出并保留终端”会强制保留 daemon 会话；“退出并终止终端”会先逐个关闭 daemon 会话再退出主 UI。主应用退出时，`DaemonClient.Dispose()` 只关闭客户端管道，不广播 `Disconnected`；因此 `SurfaceViewModel.OnDaemonDisconnected()` 的本地 ConPTY 回退仅用于运行中 daemon 意外断开，不用于正常退出。`ECodexSettings.PreserveDaemonSessionsOnClose` 默认 `true`；设为 `false` 时关闭按钮、托盘退出或 `app.exit` 退出前会逐个关闭 daemon 托管会话。
 
 终端进程自然退出时，`DaemonSessionManager` 会从 active sessions 中移除对应 pane，再广播 `EXITED`；因此 daemon 空闲退出判断不会被已结束的终端进程阻塞。
 
@@ -381,7 +381,7 @@ Shell 写入 `\e]133;A` / `\e]133;B;<command>` / `\e]133;C` / `\e]133;D;<exitcod
 | `ECodexSettings.TranscriptRetentionDays` | 脚本日志按文件 `LastWriteTime` 清理（默认 90，`0` = 永久保留） |
 | `ECodexSettings.CaptureTranscriptsOnClose` | Surface/Pane 关闭 / 清理时是否落盘脚本 |
 | `ECodexSettings.CaptureTranscriptsOnClear` | 清屏时是否落盘脚本 |
-| `ECodexSettings.PreserveDaemonSessionsOnClose` | 显式退出主应用时是否保留 daemon 托管终端（默认 `true`）；关闭按钮 / 最小化只隐藏到托盘 |
+| `ECodexSettings.PreserveDaemonSessionsOnClose` | 关闭按钮、托盘退出或 `app.exit` 退出主应用时是否保留 daemon 托管终端（默认 `true`）；最小化只隐藏到托盘 |
 
 应用启动 + `SettingsChanged` 时调用 `ApplyRetentionPolicy / ApplyTranscriptRetentionPolicy / ScrubSensitiveData…`。
 

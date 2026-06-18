@@ -1412,9 +1412,11 @@ public class InnoSetupScriptTests
         var script = File.ReadAllText(path);
 
         script.Should().Contain("AppId={{5F31F460-32C4-4B16-BB0A-3B74E5D7E0A1}");
+        script.Should().Contain("#define MyAppUserModelID \"ECodex.App\"");
         script.Should().Contain("Source: \"..\\publish\\ecodex-win-x64-sc\\*\"");
         script.Should().Contain("Source: \"..\\publish\\ecodex-cli\\*\"");
         script.Should().Contain("Name: \"{group}\\ECodex\"");
+        script.Should().Contain("AppUserModelID: \"{#MyAppUserModelID}\"");
         script.Should().Contain("Type: filesandordirs; Name: \"{app}\"");
         script.Should().NotContain("%USERPROFILE%\\.ecodex");
         script.Should().NotContain("{userappdata}\\.ecodex");
@@ -1619,6 +1621,8 @@ public class SmokeWorkflowTests
         script.Should().Contain("PushNotifications");
         script.Should().Contain("Focus assist");
         script.Should().Contain("System.AppUserModel.ID");
+        script.Should().Contain("$ExpectedAppUserModelId = \"ECodex.App\"");
+        script.Should().Contain("expectedAppUserModelId");
         script.Should().Contain("installer\\ecodex.iss");
         script.Should().Contain("'hook', 'event'");
         script.Should().Contain("'notification', 'list'");
@@ -3033,7 +3037,8 @@ public class DocsSiteTests
         sessionRestore.Should().Contain("ECODEX_WORKSPACE_ID");
         sessionRestore.Should().Contain("ECODEX_SURFACE_ID");
         sessionRestore.Should().Contain("ECODEX_PANE_ID");
-        sessionRestore.Should().Contain("关闭按钮和最小化默认只把 ECodex 隐藏到系统托盘");
+        sessionRestore.Should().Contain("关闭按钮会退出 `ecodex-app` 主进程");
+        sessionRestore.Should().Contain("最小化仍只把 ECodex 隐藏到系统托盘");
         sessionRestore.Should().Contain("显式退出 ECodex 时，只断开主程序与 daemon 的客户端连接");
         sessionRestore.Should().Contain("重开时仅自动挂载 `session.json` 中已有 paneId 对应的 daemon 会话");
         sessionRestore.Should().Contain("生成失败 loop 预览");
@@ -4301,11 +4306,13 @@ public class AppSingleWindowSourceTests
     {
         var source = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "App.xaml.cs")));
 
+        source.Should().Contain(@"public const string AppUserModelId = ""ECodex.App"";");
         source.Should().Contain(@"private const string MainInstanceMutexName = @""Global\ECodexMainApp"";");
         source.Should().Contain("new Mutex(true, MainInstanceMutexName, out var createdNew)");
         source.Should().Contain("if (!createdNew)");
         source.Should().Contain("TryActivateExistingInstance()");
         source.Should().Contain("Shutdown(0);");
+        source.Should().Contain("SetCurrentProcessExplicitAppUserModelID(AppUserModelId)");
         source.Should().Contain("NamedPipeClient.SendV2Request");
         source.Should().Contain(@"""window.focus""");
         source.Should().Contain(@"""target"", ""current""");
@@ -4317,14 +4324,14 @@ public class AppSingleWindowSourceTests
 public class TrayResidencySourceTests
 {
     [Fact]
-    public void MainWindow_CloseAndMinimizeHideToTrayInsteadOfExiting()
+    public void MainWindow_CloseExitsAndMinimizeStillHidesToTray()
     {
         var source = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "Views", "MainWindow.xaml.cs")));
 
-        source.Should().Contain("if (!App.IsExplicitShutdownRequested)");
-        source.Should().Contain("e.Cancel = true;");
-        source.Should().Contain("HideToTray();");
+        source.Should().NotContain("e.Cancel = true;\n            HideToTray();");
+        source.Should().Contain("PersistCurrentSession();\n        TerminateDaemonSessionsOnCloseIfConfigured();");
         source.Should().Contain("if (WindowState == WindowState.Minimized && !App.IsExplicitShutdownRequested)");
+        source.Should().Contain("HideToTray();");
         source.Should().Contain("ShowInTaskbar = false;");
         source.Should().Contain("public void RestoreFromTray()");
         source.Should().Contain("ShowInTaskbar = true;");

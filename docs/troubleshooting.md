@@ -69,8 +69,19 @@ Get-Content "$env:USERPROFILE\.ecodex\daemon-debug.log" -Tail 120
 
 1. 查看 `%USERPROFILE%\.ecodex\daemon-debug.log`，搜索 `[Tray] Exit and terminate`。
 2. 若选择“退出并终止终端”但日志显示 terminated 小于 requested，说明 daemon 会话逐个关闭时有失败项。
-3. 需要保留当前终端时，优先用“退出并保留终端”；关闭按钮和最小化只隐藏到托盘，不会触发终端终止。
+3. 需要保留当前终端时，优先用“退出并保留终端”，或保持默认 `PreserveDaemonSessionsOnClose=true` 后直接点击右上角 X；最小化只隐藏到托盘，不会触发终端终止。
 4. 重开 ECodex 后，使用 `ecodex status` 或 `ecodex pane list` 确认可见窗口与 pane 状态。
+
+## 任务栏图标没有激活已有窗口
+
+症状：ECodex 已经运行时，点击任务栏按钮或固定任务栏图标没有恢复窗口，或出现第二个 `ecodex-app.exe` 短暂启动后退出。
+
+处理：
+
+1. 优先通过安装器创建的开始菜单 / 桌面快捷方式启动 ECodex；这些快捷方式应写入 AppUserModelID `ECodex.App`。
+2. 如果是手工固定的旧快捷方式，取消固定后从开始菜单的 ECodex 快捷方式重新固定到任务栏。
+3. 运行 `pwsh ./scripts/smoke-toast-activation.ps1 -RequireActivationPrerequisites`，确认 `installed-shortcut` 检查包含 `expectedAppUserModelId=ECodex.App`。
+4. 直接双击裸 `ecodex-app.exe` 不属于任务栏激活路径；若已有实例存在，启动进程会由 `Global\ECodexMainApp` 互斥体立即退出并尝试 `window.focus` 激活已有窗口。
 
 ## WebView2 不可用
 

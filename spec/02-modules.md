@@ -106,7 +106,7 @@
 
 | 文件 | 类型 | 说明 |
 |---|---|---|
-| `src/ECodex/App.xaml.cs` | `App : Application` | 单例服务：`NotificationService / CommandLifecycleNotificationService / AgentAttentionNotificationService / PipeServer / SnippetService / CommandLogService / DaemonClient / WindowApi / DaemonConnectTask`；`OnStartup` 先用 `Global\ECodexMainApp` 保证主应用单实例，第二实例只通过 pipe 聚焦 / 恢复已有窗口后退出；初始化托盘图标、默认 skills、PowerShell hook；启管道 + 异步连守护进程；注册全局异常；非焦点时弹 Toast |
+| `src/ECodex/App.xaml.cs` | `App : Application` | 单例服务：`NotificationService / CommandLifecycleNotificationService / AgentAttentionNotificationService / PipeServer / SnippetService / CommandLogService / DaemonClient / WindowApi / DaemonConnectTask`；`OnStartup` 设置 AppUserModelID `ECodex.App`，再用 `Global\ECodexMainApp` 兜底保证主应用单实例，重复裸 exe 启动只通过 pipe 聚焦 / 恢复已有窗口后退出；初始化托盘图标、默认 skills、PowerShell hook；启管道 + 异步连守护进程；注册全局异常；非焦点时弹 Toast |
 | `src/ECodex/Services/ToastNotificationHelper.cs` | `ToastNotificationHelper` | 通过 `Microsoft.Toolkit.Uwp.Notifications` 显示 Windows Toast，并注册 `OnActivated` 回调把 activation arguments 转交应用层 |
 | `src/ECodex/Services/ToastActivationService.cs` | `ToastActivationService` | 处理 Toast activation：解析参数后派发到 UI 线程，恢复窗口，按 `notificationId` 跳转通知；跳转失败时打开通知面板 fallback |
 | `src/ECodex/Services/TrayIconService.cs` | `TrayIconService` | WinForms `NotifyIcon` 适配层；提供系统托盘图标、双击恢复和菜单“打开 ECodex / 退出并保留终端 / 退出并终止终端”；释放时隐藏并 Dispose 托盘资源 |
@@ -142,7 +142,7 @@
 
 | 文件 | 类型 | 说明 |
 |---|---|---|
-| `src/ECodex/Views/MainWindow.xaml(.cs)` | `MainWindow : Window` | 主窗口：侧边栏 + 主区；`OnLoaded` 恢复窗口几何；关闭按钮和最小化默认 `HideToTray`，不释放终端；显式退出时 `OnClosing` 调 `ViewModel.SaveSession`，并按 `PreserveDaemonSessionsOnClose` 决定是否逐个终止 daemon 会话；`RestoreFromTray` 恢复窗口和焦点；`OnSettingsChanged` 广播主题 / 字号到所有终端；`UpdateDaemonStatus` 用绿/灰点指示；大量 `OnKeyDown` 绑定应用级快捷键；命令面板打开时读取 `ecodex.json` 并执行项目命令；`Ctrl+Shift+,` / CLI 可热重载配置 |
+| `src/ECodex/Views/MainWindow.xaml(.cs)` | `MainWindow : Window` | 主窗口：侧边栏 + 主区；`OnLoaded` 恢复窗口几何；关闭按钮保存会话并退出 `ecodex-app` 主进程，最小化默认 `HideToTray` 且不释放终端；`OnClosing` 调 `ViewModel.SaveSession`，并按 `PreserveDaemonSessionsOnClose` 决定是否逐个终止 daemon 会话；`RestoreFromTray` 恢复窗口和焦点；`OnSettingsChanged` 广播主题 / 字号到所有终端；`UpdateDaemonStatus` 用绿/灰点指示；大量 `OnKeyDown` 绑定应用级快捷键；命令面板打开时读取 `ecodex.json` 并执行项目命令；`Ctrl+Shift+,` / CLI 可热重载配置 |
 | `src/ECodex/Views/SettingsWindow.xaml(.cs)` | `SettingsWindow` | 设置（外观 / 终端 / 行为 / 键盘 / 高级），行为页持久化 `PreserveDaemonSessionsOnClose` |
 | `src/ECodex/Views/SessionVaultWindow.xaml(.cs)` | `SessionVaultWindow` | 脚本回放浏览器；可从选中 transcript 生成失败 loop 预览，复用 Core evidence collector / formatter，不在 UI 层重新拼接证据 |
 | `src/ECodex/Views/LogsWindow.xaml(.cs)` | `LogsWindow` | 命令日志查看（按日期 / 搜索） |

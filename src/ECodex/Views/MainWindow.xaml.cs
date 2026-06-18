@@ -209,13 +209,6 @@ public partial class MainWindow : Window
 
     private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-        if (!App.IsExplicitShutdownRequested)
-        {
-            e.Cancel = true;
-            HideToTray();
-            return;
-        }
-
         _uiRefreshTimer.Stop();
         _terminalFocusTimer.Stop();
         StateChanged -= OnWindowStateChanged;

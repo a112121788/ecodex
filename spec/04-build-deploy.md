@@ -197,7 +197,7 @@ publish/
 | 进程 | 单实例保护 | 备注 |
 |---|---|---|
 | `ecodex-daemon.exe` | `Global\ECodexDaemon` 命名互斥体 | 二次启动立即退出 |
-| `ecodex-app.exe` | 无 | 用户重复启动会启动多个 WPF 进程（每个绑定自己的 `\\.\pipe\ecodex` 失败 → 提示） |
+| `ecodex-app.exe` | AppUserModelID `ECodex.App` + `Global\ECodexMainApp` 命名互斥体 | 安装器快捷方式 / 任务栏固定图标应激活已有窗口；裸 exe 重复启动由 mutex 兜底发送 `window.focus` 后退出 |
 | `ecodex.exe` (CLI) | 无 | 一次性进程 |
 
 权限要求：

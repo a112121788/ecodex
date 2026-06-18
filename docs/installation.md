@@ -69,7 +69,7 @@ pwsh ./scripts/publish.ps1 -Config Release -Rid win-x64 -Flavor Cli
 
 ## Windows Toast 点击激活验收
 
-Windows Toast 点击链路依赖系统通知权限、未开启专注助手 / 请勿打扰、稳定的开始菜单快捷方式，以及非打包 WPF 可识别的 AppUserModelID（AUMID）。Inno Setup 备用安装器会创建开始菜单快捷方式，并可选创建桌面快捷方式；发布签收时必须确认这些快捷方式指向同一安装目录下的 `ecodex-app.exe`，且 Toast 点击不会被系统策略拦截。
+Windows Toast 点击和任务栏固定图标激活链路依赖系统通知权限、未开启专注助手 / 请勿打扰、稳定的开始菜单快捷方式，以及非打包 WPF 可识别的 AppUserModelID（AUMID）。Inno Setup 备用安装器会创建开始菜单快捷方式，并可选创建桌面快捷方式；这些快捷方式必须写入 `ECodex.App`，并指向同一安装目录下的 `ecodex-app.exe`。发布签收时必须确认 Toast 点击不会被系统策略拦截，且运行中点击固定任务栏图标会激活已有窗口而不是启动第二个长期存活的 `ecodex-app`。
 
 维护者在已启动 ECodex 主应用后运行 Windows-only live smoke：
 
