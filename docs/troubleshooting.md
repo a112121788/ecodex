@@ -138,10 +138,10 @@ ecodex config reload
 
 检查：
 
-- 路径是否为 `.ecodex/ecodex.json` 或 `%USERPROFILE%\.config\ecodex\ecodex.json`。
-- JSON 是否有尾逗号或注释。
+- 路径是否为 `%USERPROFILE%\.config\ecodex\ecodex.json`、项目 `.ecodex/ecodex.json` 或项目根 `ecodex.json`。
+- 如果 diagnostics 报 JSON / schema 错误，检查括号、引号、字段名和字段类型；注释和尾逗号本身允许。
 - `commands` / `actions` 字段是否符合 [自定义命令](./custom-commands.md)。
-- 旧 `.cmux/cmux.json` 是否依赖兼容开关。
+- 旧 `.cmux/cmux.json` 是否尚未迁移到 `.ecodex/ecodex.json`。
 
 ## 会话恢复异常
 
@@ -187,11 +187,11 @@ ecodex update install --feed <feed-url>
 
 ```powershell
 npm run docs:build
-.\.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj -p:NuGetAudit=false
-.\.dotnet\dotnet.exe build ECodex.sln -c Debug -p:NuGetAudit=false
+dotnet test tests\ECodex.Tests\ECodex.Tests.csproj -p:NuGetAudit=false
+dotnet build ECodex.sln -c Debug -p:NuGetAudit=false
 ```
 
-如果 NuGet audit 因证书或网络失败，本地验证可临时加 `NuGetAudit=false`。CI / release 环境应保持网络与证书链正常。
+如果 PATH 上的 `dotnet` 找不到 `global.json` 固定的 SDK，可改用仓库或用户本地 `.dotnet\dotnet.exe`。如果 NuGet audit 因证书或网络失败，本地验证可临时加 `NuGetAudit=false`；CI / release 环境应保持网络与证书链正常。
 
 ## 提交 issue 前
 

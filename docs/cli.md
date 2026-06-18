@@ -168,19 +168,22 @@ ecodex health
 
 ```powershell
 # 打开或创建集成浏览器
-ecodex browser open https://example.com
+$open = ecodex --json browser open https://example.com | ConvertFrom-Json
+$surfaceRef = $open.surfaceRef
 ecodex browser new https://example.com
 ecodex browser open-split https://example.com --direction right
 
-# 先拿到 surfaceRef，再执行页面动作
-ecodex browser snapshot --surfaceRef surface:1
-ecodex browser click --role button --name Submit --surfaceRef surface:1
-ecodex browser fill --testid email --value user@example.com --surfaceRef surface:1
-ecodex browser hover --text Help --surfaceRef surface:1
-ecodex browser press --testid search --key Enter --surfaceRef surface:1
-ecodex browser eval "document.title" --surfaceRef surface:1
-ecodex browser screenshot --surfaceRef surface:1
+# 使用 open/new 返回的 surfaceRef 执行页面动作
+ecodex browser snapshot --surfaceRef $surfaceRef
+ecodex browser click --role button --name Submit --surfaceRef $surfaceRef
+ecodex browser fill --testid email --value user@example.com --surfaceRef $surfaceRef
+ecodex browser hover --text Help --surfaceRef $surfaceRef
+ecodex browser press --testid search --key Enter --surfaceRef $surfaceRef
+ecodex browser eval "document.title" --surfaceRef $surfaceRef
+ecodex browser screenshot --surfaceRef $surfaceRef
 ```
+
+`browser` 命令里的 `surfaceRef` 是 `browser open/new` 返回的 `surface:<surfaceId>`，不是 human 输出中的短引用 `surface:1`。
 
 ## Setup 命令
 

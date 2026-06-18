@@ -29,7 +29,7 @@ ecodex workspace list
 ```powershell
 ecodex workspace select workspace:1
 ecodex workspace rename workspace:1 demo-app
-ecodex workspace reorder workspace:2 0
+ecodex workspace reorder "workspace:2,workspace:1"
 ```
 
 ## 3. 使用 Surface 与 Pane
@@ -56,15 +56,16 @@ Pane 支持短引用，例如 `pane:1`、`surface:2`。human 输出默认展示�
 集成浏览器使用 WebView2，可与终端并排：
 
 ```powershell
-ecodex browser new https://example.com
+$open = ecodex --json browser new https://example.com | ConvertFrom-Json
+$surfaceRef = $open.surfaceRef
 ecodex browser open-split https://example.com --direction right
 ```
 
-检查 浏览器 API：
+检查浏览器 API：
 
 ```powershell
-ecodex browser snapshot
-ecodex browser eval "document.title"
+ecodex browser snapshot --surfaceRef $surfaceRef
+ecodex browser eval "document.title" --surfaceRef $surfaceRef
 ```
 
 更多命令见 [浏览器 API](./browser-api.md)。

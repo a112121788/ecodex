@@ -33,9 +33,11 @@
 
 ```powershell
 npm run docs:build
-.\.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj -p:NuGetAudit=false
-.\.dotnet\dotnet.exe build ECodex.sln -c Debug -p:NuGetAudit=false
+dotnet test tests\ECodex.Tests\ECodex.Tests.csproj -p:NuGetAudit=false
+dotnet build ECodex.sln -c Debug -p:NuGetAudit=false
 ```
+
+如果 PATH 上的 `dotnet` 找不到 `global.json` 固定的 SDK，可改用仓库或用户本地 `.dotnet\dotnet.exe`。
 
 发布产物 workflow 还会上传 `ecodex-perf-report`，本地可运行：
 

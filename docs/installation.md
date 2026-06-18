@@ -105,7 +105,7 @@ ecodex completion powershell
 
 ## 默认 PowerShell shell integration
 
-ECodex App 首次启动会默认尝试安装 PowerShell shell integration 到当前用户 profile，标记块为 `# >>> ecodex shell integration >>>` / `# <<< ecodex shell integration <<<`。该 hook 回传命令开始、结束、退出码和 ECodex workspace / surface / pane 上下文；当窗口隐藏到托盘或处于非激活状态时，命令结束会按退出码进入未读中心：`0` 生成完成通知，非 `0` 生成失败通知。同 pane、同命令、同退出码的重复事件会做 30 秒冷却；Codex pane 出现等待输入 / 确认 / 错误决策信号时，也会按 pane 生成低噪声未读通知。
+ECodex App 首次启动会默认尝试安装 PowerShell shell integration 到当前用户 profile，标记块为 `# >>> ecodex shell integration >>>` / `# <<< ecodex shell integration <<<`。该 hook 回传命令开始、结束、退出码和 ECodex workspace / surface / pane 上下文；当窗口最小化、后台运行或处于非激活状态时，命令结束会按退出码进入未读中心：`0` 生成完成通知，非 `0` 生成失败通知。同 pane、同命令、同退出码的重复事件会做 30 秒冷却；Codex pane 出现等待输入 / 确认 / 错误决策信号时，也会按 pane 生成低噪声未读通知。
 
 - 写入前会备份原 profile 到 `%USERPROFILE%\.ecodex\backups\`。
 - 已安装时幂等跳过；内容漂移时只替换 ECodex 标记块。
