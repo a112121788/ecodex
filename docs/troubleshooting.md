@@ -69,7 +69,7 @@ Get-Content "$env:USERPROFILE\.ecodex\daemon-debug.log" -Tail 120
 
 1. 查看 `%USERPROFILE%\.ecodex\daemon-debug.log`，搜索 `[Tray] Exit and terminate`。
 2. 若选择“退出并终止终端”但日志显示 terminated 小于 requested，说明 daemon 会话逐个关闭时有失败项。
-3. 需要保留当前终端时，优先用“退出并保留终端”，或保持默认 `PreserveDaemonSessionsOnClose=true` 后直接点击右上角 X；最小化只隐藏到托盘，不会触发终端终止。
+3. 需要保留当前终端时，优先用“退出并保留终端”，或保持默认 `PreserveDaemonSessionsOnClose=true` 后直接点击右上角 X；最小化保留任务栏按钮并后台运行，不会触发终端终止。
 4. 重开 ECodex 后，使用 `ecodex status` 或 `ecodex pane list` 确认可见窗口与 pane 状态。
 
 ## 任务栏图标没有激活已有窗口
@@ -102,7 +102,7 @@ Get-Content "$env:USERPROFILE\.ecodex\daemon-debug.log" -Tail 120
 1. 先运行 `pwsh ./scripts/smoke-toast-activation.ps1`，查看 JSON 中的 `windows-toast-permission`、`focus-assist`、`installed-shortcut`、`app-status` 和 `toastPayload`。
 2. 在 Windows 设置中确认 ECodex 的通知权限已开启，并临时关闭专注助手 / 请勿打扰；专注助手开启时 Toast 可能只进入通知中心，不弹横幅。
 3. 确认通过安装器或固定目录快捷方式启动 `ecodex-app.exe`，开始菜单 / 桌面快捷方式应指向当前安装目录；缺快捷方式或 AppUserModelID（AUMID）异常时，非打包 WPF 的 Toast activation 可能无法回到应用。
-4. 确认 ECodex 主窗口在触发通知时处于隐藏到托盘或非激活状态；前台活跃时命令生命周期和 Codex 等待输入信号都不会刷未读通知或 Toast。
+4. 确认 ECodex 主窗口在触发通知时处于最小化或非激活状态；前台活跃时命令生命周期和 Codex 等待输入信号都不会刷未读通知或 Toast。
 5. Codex 等待输入提醒异常时，运行 `pwsh ./scripts/smoke-toast-activation.ps1 -Scenario CodexAttention`，确认 JSON 中有 `codex-attention-notification-created`、`agentAttentionPayload.source=AgentAttention` 和 `codex-attention-negative-control`；若只有命令完成通知而没有 AgentAttention，附 `simulatedTriggerText` 和日志提交 issue。
 6. 点击 Toast 后如果目标 workspace / surface / pane 已关闭，预期行为是恢复窗口并打开通知面板 fallback，而不是跳到其他 pane；若没有 fallback，请附 `toastPayload` 和 `%USERPROFILE%\.ecodex\daemon-debug.log` 提交 issue。
 

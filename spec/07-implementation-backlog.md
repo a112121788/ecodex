@@ -33,25 +33,25 @@ AI Agent 启动后按以下顺序选择任务：
 
 ## 1. 当前冲刺：S3 - 窗口关闭与单实例激活
 
-目标：让 ECodex 的窗口生命周期更符合 Windows 用户预期：右上角 X 直接退出 `ecodex-app` 主进程，最小化仍进入托盘；运行中点击任务栏按钮或固定任务栏图标时，只激活已有窗口，不产生第二个长期存活的 `ecodex-app` 实例。
+目标：让 ECodex 的窗口生命周期更符合 Windows 用户预期：右上角 X 直接退出 `ecodex-app` 主进程，最小化保留任务栏按钮并后台运行；运行中点击任务栏按钮或固定任务栏图标时，只激活已有窗口，不产生第二个长期存活的 `ecodex-app` 实例。
 
 | ID | 状态 | Outcome | Scope | Acceptance |
 |---|---|---|---|---|
-| `WIN-03` | done | 右上角 X 关闭 `ecodex-app` 主进程；最小化仍隐藏到系统托盘；任务栏按钮 / 固定任务栏图标与托盘“打开 ECodex”一样激活已有窗口 | 调整 WPF `OnClosing` 不再把 X 改写为 `HideToTray`；保留最小化隐藏与托盘菜单；主应用设置稳定 AppUserModelID `ECodex.App`，Inno 开始菜单 / 桌面快捷方式写入相同 AUMID；继续用 `Global\ECodexMainApp` mutex 和 `window.focus` 兜底；不改 daemon 单实例、不改安装目录、不扩大到普通直接双击 exe 的零进程创建保证 | `TrayResidencySourceTests` 覆盖 X 退出、最小化隐藏、托盘恢复；`AppSingleWindowSourceTests` 覆盖 mutex + AUMID + 既有窗口激活；`InnoSetupScriptTests` 覆盖快捷方式 AUMID；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~TrayResidencySourceTests|FullyQualifiedName~AppSingleWindowSourceTests|FullyQualifiedName~InnoSetupScriptTests" --no-restore` 通过；Debug build 与 `git diff --check` 通过；Windows GUI 手测待人工确认 |
+| `WIN-03` | done | 右上角 X 关闭 `ecodex-app` 主进程；最小化保留任务栏按钮并后台运行；任务栏按钮 / 固定任务栏图标与托盘“打开 ECodex”一样激活已有窗口 | 调整 WPF `OnClosing` 不再把 X 改写为 `HideToTray`；保留最小化任务栏行为与托盘菜单；主应用设置稳定 AppUserModelID `ECodex.App`，Inno 开始菜单 / 桌面快捷方式写入相同 AUMID；继续用 `Global\ECodexMainApp` mutex 和 `window.focus` 兜底；不改 daemon 单实例、不改安装目录、不扩大到普通直接双击 exe 的零进程创建保证 | `TrayResidencySourceTests` 覆盖 X 退出、最小化保留任务栏、托盘恢复；`AppSingleWindowSourceTests` 覆盖 mutex + AUMID + 既有窗口激活；`InnoSetupScriptTests` 覆盖快捷方式 AUMID；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~TrayResidencySourceTests|FullyQualifiedName~AppSingleWindowSourceTests|FullyQualifiedName~InnoSetupScriptTests" --no-restore` 通过；Debug build 与 `git diff --check` 通过；Windows GUI 手测待人工确认 |
 
 ### 1.1 上一冲刺归档：S2 - 常驻通知与开箱体验
 
-目标：让下一版本的 ECodex 默认成为常驻后台工作台：最小化后进入系统托盘，通知能基于命令生命周期提醒用户，预制 skills 可安全种子安装，并让 `Ctrl+Enter` 在终端里稳定输入换行。
+历史目标曾要求 ECodex 成为常驻后台工作台；其中关闭 / 最小化到托盘语义已被 S3 的“X 退出、最小化保留任务栏”替换，通知、默认 skills 和 `Ctrl+Enter` 多行输入继续保留。
 
 | ID | 状态 | Outcome | Scope | Acceptance |
 |---|---|---|---|---|
 | `TTY-01` | done | 所有 ECodex Terminal 中 `Ctrl+Enter` 默认输入换行，不立即执行；普通 `Enter` 仍提交 | 调整 `src/ECodex/Controls/TerminalControl.cs` 的按键映射与 IME 代理转发；同步 `docs/keyboard-shortcuts.md` 与 `CHANGELOG.md`；不新增设置项，不做 Codex 进程专属判断 | Source test 覆盖 `Ctrl+Enter -> LF`、`Enter -> CR` 且不触发 `SubmitBufferedCommand`；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~TerminalControlSourceTests" --no-restore` 通过；Windows PowerShell / cmd / Codex CLI 手测待人工确认；`git diff --check` 通过 |
 | `SKL-01` | done | App 首次启动时把仓库预制 skills 安全复制到 `%USERPROFILE%\.agents\skills`，用户已有同名 skill 不被覆盖 | 约定模板源目录 `assets/default-skills/`，发布包内目录 `default-skills`；新增启动时种子安装服务，按第一层目录复制到用户目录；同名目录跳过，不合并、不删除；安装器只负责带上模板目录，不绑定具体 skill 清单 | `DefaultSkillSeedServiceTests` 覆盖复制第一层目录、递归复制子文件、跳过同名目录、忽略根文件和缺源 no-op；`DefaultSkillsPackagingTests` 覆盖 App 启动调用与 publish 内容声明；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~DefaultSkillSeedServiceTests|FullyQualifiedName~DefaultSkillsPackagingTests" --no-restore` 通过；docs 说明目录约定与不覆盖策略 |
-| `TRAY-01A` | done | 历史切片：关闭按钮与最小化都隐藏到系统托盘，后台终端和通知继续运行；关闭按钮语义已被 S3 的 `WIN-03` 替换 | WPF 主窗口生命周期、系统托盘图标、双击/菜单“打开 ECodex”；保持单实例策略，第二次启动仍聚焦/恢复已有窗口；不改变 daemon 终端保留设置语义 | 旧关闭按钮语义已被 S3 的 `WIN-03` 替换；最小化隐藏、托盘恢复和单实例激活继续保留 |
+| `TRAY-01A` | done | 历史切片：关闭按钮与最小化都隐藏到系统托盘，后台终端和通知继续运行；该行为已被 S3 的 `WIN-03` 替换 | WPF 主窗口生命周期、系统托盘图标、双击/菜单“打开 ECodex”；保持单实例策略，第二次启动仍聚焦/恢复已有窗口；不改变 daemon 终端保留设置语义 | 旧关闭 / 最小化到托盘语义已被 S3 的 `WIN-03` 替换；最小化任务栏保留、托盘恢复和单实例激活继续保留 |
 | `TRAY-01B` | done | 托盘菜单提供“退出并保留终端”和“退出并终止终端”，退出语义与现有设置一致 | 复用现有 daemon session termination；菜单包含打开、退出并保留终端、退出并终止终端；同步 session restore / troubleshooting 文档 | `TrayResidencySourceTests` 覆盖托盘菜单文案、保留退出、终止退出、失败日志与文档；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~TrayResidencySourceTests" --no-restore` 通过；Windows GUI 手测待人工确认 |
 | `NOT-02A` | done | PowerShell shell integration hook 默认随 App 首次启动安装，可回传命令开始、结束和退出码 | 扩展现有 setup/profile 机制：ECodex 专属标记块、写入前备份到 `%USERPROFILE%\.ecodex\backups\`、`setup status` 可检查、`setup uninstall --write true` 可移除；默认仅 PowerShell，cmd/Git Bash 后续再做；冲突时跳过并提示，不静默覆盖 | `PowerShellHookSetupServiceTests` 覆盖缺失安装、幂等、冲突跳过、写前备份与 App/CLI 接入；`.dotnet\dotnet.exe test tests\ECodex.Tests\ECodex.Tests.csproj --filter "FullyQualifiedName~PowerShellHookSetupServiceTests" --no-restore` 通过；真实 profile 写入手测待人工确认 |
 | `NOT-02B` | draft | 后台/非激活时，基于命令生命周期发送完成、失败、等待输入通知，并进入未读中心 | 依赖 `NOT-02A` 的 hook 事件；定义 pane/session/command id 数据流、退出码映射、通知去重与节流；没有 hook 时降级到 OSC / `ecodex notify` / 关键输出规则 | 后台执行命令成功结束只产生完成通知；非 0 退出码产生失败通知；前台活跃时不刷 Toast；通知能定位 workspace/surface/pane；普通流式输出不逐条通知 |
-| `NOT-02C` | done | 点击 Windows Toast 精准打开 ECodex 并跳转到对应 workspace / surface / pane | 明确 Toast activation/AppUserModelID/非打包应用策略；复用通知 ID、workspaceId、surfaceId、paneId；窗口隐藏到托盘时也能恢复并跳转 | Toast 点击后窗口显示并聚焦对应 pane；通知标记为已读；目标 pane 不存在时给出可见 fallback；Windows Toast 不可用时不影响应用主流程；Windows-only live smoke/checklist 已覆盖诊断与人工证据 |
+| `NOT-02C` | done | 点击 Windows Toast 精准打开 ECodex 并跳转到对应 workspace / surface / pane | 明确 Toast activation/AppUserModelID/非打包应用策略；复用通知 ID、workspaceId、surfaceId、paneId；窗口最小化或非激活时也能恢复并跳转 | Toast 点击后窗口显示并聚焦对应 pane；通知标记为已读；目标 pane 不存在时给出可见 fallback；Windows Toast 不可用时不影响应用主流程；Windows-only live smoke/checklist 已覆盖诊断与人工证据 |
 | `NOT-02D` | done | Codex 等待输入、关键确认、错误决策等交互状态能触发低噪声提醒 | 在生命周期通知之外补充状态识别；优先识别 Codex 常见等待输入/确认语义，再扩展可配置规则；仅窗口隐藏/非激活且匹配关键状态时提醒 | Codex 等待用户输入时后台收到 `AgentAttention` 通知；普通输出负控不通知；同一状态有去重/冷却；Windows-only smoke/checklist 已覆盖证据模板 |
 
 ### 1.2 上一冲刺归档：S1 - 会话恢复与 AI loop 稳定化

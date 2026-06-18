@@ -142,7 +142,7 @@
 
 | 文件 | 类型 | 说明 |
 |---|---|---|
-| `src/ECodex/Views/MainWindow.xaml(.cs)` | `MainWindow : Window` | 主窗口：侧边栏 + 主区；`OnLoaded` 恢复窗口几何；关闭按钮保存会话并退出 `ecodex-app` 主进程，最小化默认 `HideToTray` 且不释放终端；`OnClosing` 调 `ViewModel.SaveSession`，并按 `PreserveDaemonSessionsOnClose` 决定是否逐个终止 daemon 会话；`RestoreFromTray` 恢复窗口和焦点；`OnSettingsChanged` 广播主题 / 字号到所有终端；`UpdateDaemonStatus` 用绿/灰点指示；大量 `OnKeyDown` 绑定应用级快捷键；命令面板打开时读取 `ecodex.json` 并执行项目命令；`Ctrl+Shift+,` / CLI 可热重载配置 |
+| `src/ECodex/Views/MainWindow.xaml(.cs)` | `MainWindow : Window` | 主窗口：侧边栏 + 主区；`OnLoaded` 恢复窗口几何；关闭按钮保存会话并退出 `ecodex-app` 主进程，最小化保留任务栏按钮并后台运行，不释放终端；`OnClosing` 调 `ViewModel.SaveSession`，并按 `PreserveDaemonSessionsOnClose` 决定是否逐个终止 daemon 会话；`RestoreFromTray` 恢复窗口和焦点；`OnSettingsChanged` 广播主题 / 字号到所有终端；`UpdateDaemonStatus` 用绿/灰点指示；大量 `OnKeyDown` 绑定应用级快捷键；命令面板打开时读取 `ecodex.json` 并执行项目命令；`Ctrl+Shift+,` / CLI 可热重载配置 |
 | `src/ECodex/Views/SettingsWindow.xaml(.cs)` | `SettingsWindow` | 设置（外观 / 终端 / 行为 / 键盘 / 高级），行为页持久化 `PreserveDaemonSessionsOnClose` |
 | `src/ECodex/Views/SessionVaultWindow.xaml(.cs)` | `SessionVaultWindow` | 脚本回放浏览器；可从选中 transcript 生成失败 loop 预览，复用 Core evidence collector / formatter，不在 UI 层重新拼接证据 |
 | `src/ECodex/Views/LogsWindow.xaml(.cs)` | `LogsWindow` | 命令日志查看（按日期 / 搜索） |

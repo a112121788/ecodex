@@ -3038,7 +3038,7 @@ public class DocsSiteTests
         sessionRestore.Should().Contain("ECODEX_SURFACE_ID");
         sessionRestore.Should().Contain("ECODEX_PANE_ID");
         sessionRestore.Should().Contain("关闭按钮会退出 `ecodex-app` 主进程");
-        sessionRestore.Should().Contain("最小化仍只把 ECodex 隐藏到系统托盘");
+        sessionRestore.Should().Contain("最小化会保持任务栏按钮并让 ECodex 在后台运行");
         sessionRestore.Should().Contain("显式退出 ECodex 时，只断开主程序与 daemon 的客户端连接");
         sessionRestore.Should().Contain("重开时仅自动挂载 `session.json` 中已有 paneId 对应的 daemon 会话");
         sessionRestore.Should().Contain("生成失败 loop 预览");
@@ -4324,15 +4324,15 @@ public class AppSingleWindowSourceTests
 public class TrayResidencySourceTests
 {
     [Fact]
-    public void MainWindow_CloseExitsAndMinimizeStillHidesToTray()
+    public void MainWindow_CloseExitsAndMinimizeKeepsTaskbarEntry()
     {
         var source = Normalize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "src", "ECodex", "Views", "MainWindow.xaml.cs")));
 
         source.Should().NotContain("e.Cancel = true;\n            HideToTray();");
         source.Should().Contain("PersistCurrentSession();\n        TerminateDaemonSessionsOnCloseIfConfigured();");
-        source.Should().Contain("if (WindowState == WindowState.Minimized && !App.IsExplicitShutdownRequested)");
-        source.Should().Contain("HideToTray();");
-        source.Should().Contain("ShowInTaskbar = false;");
+        source.Should().NotContain("if (WindowState == WindowState.Minimized && !App.IsExplicitShutdownRequested)");
+        source.Should().NotContain("HideToTray();");
+        source.Should().NotContain("ShowInTaskbar = false;");
         source.Should().Contain("public void RestoreFromTray()");
         source.Should().Contain("ShowInTaskbar = true;");
     }

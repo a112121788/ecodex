@@ -211,7 +211,7 @@ public class DaemonSessionInfo {
 
 daemon 不再暴露 `SESSION_CLOSE_ALL` 这类独立全量清理请求。需要“退出 ECodex 并终止终端”时，主应用 `app.exit {"terminateTerminals":true}` 会先 `SESSION_LIST`，再对每个 paneId 发送 `SESSION_CLOSE`，最后请求应用退出。
 
-关闭按钮会保存会话并退出 `ecodex-app` 主进程；最小化只隐藏主窗口到系统托盘，主进程、daemon 连接、后台终端和通知继续运行。托盘菜单“退出并保留终端”会强制保留 daemon 会话；“退出并终止终端”会先逐个关闭 daemon 会话再退出主 UI。主应用退出时，`DaemonClient.Dispose()` 只关闭客户端管道，不广播 `Disconnected`；因此 `SurfaceViewModel.OnDaemonDisconnected()` 的本地 ConPTY 回退仅用于运行中 daemon 意外断开，不用于正常退出。`ECodexSettings.PreserveDaemonSessionsOnClose` 默认 `true`；设为 `false` 时关闭按钮、托盘退出或 `app.exit` 退出前会逐个关闭 daemon 托管会话。
+关闭按钮会保存会话并退出 `ecodex-app` 主进程；最小化保留任务栏按钮并让主进程、daemon 连接、后台终端和通知继续运行。托盘菜单“退出并保留终端”会强制保留 daemon 会话；“退出并终止终端”会先逐个关闭 daemon 会话再退出主 UI。主应用退出时，`DaemonClient.Dispose()` 只关闭客户端管道，不广播 `Disconnected`；因此 `SurfaceViewModel.OnDaemonDisconnected()` 的本地 ConPTY 回退仅用于运行中 daemon 意外断开，不用于正常退出。`ECodexSettings.PreserveDaemonSessionsOnClose` 默认 `true`；设为 `false` 时关闭按钮、托盘退出或 `app.exit` 退出前会逐个关闭 daemon 托管会话。
 
 终端进程自然退出时，`DaemonSessionManager` 会从 active sessions 中移除对应 pane，再广播 `EXITED`；因此 daemon 空闲退出判断不会被已结束的终端进程阻塞。
 
@@ -370,7 +370,7 @@ Shell 写入 `\e]133;A` / `\e]133;B;<command>` / `\e]133;C` / `\e]133;D;<exitcod
 | 外部 shell fallback | 缺少 `workspaceId` 的事件只允许写诊断日志，不创建通知，避免用户全局 PowerShell profile 中的普通命令刷 ECodex 通知 |
 | 缺失 pane fallback | 有 `workspaceId/surfaceId` 但缺少 `paneId` 时，只能创建 workspace / surface 级通知，不得猜测当前 pane 或跳转到错误 pane |
 | 前台活跃行为 | ECodex 主窗口处于前台活跃状态时只保留命令日志 / 诊断，不创建未读通知、不弹 Toast |
-| 后台 / 非激活行为 | 窗口隐藏到托盘或非激活时，`phase=end` 依据退出码生成完成 / 失败通知并进入未读中心；Toast 仍由窗口焦点与系统能力决定 |
+| 后台 / 非激活行为 | 窗口最小化或非激活时，`phase=end` 依据退出码生成完成 / 失败通知并进入未读中心；Toast 仍由窗口焦点与系统能力决定 |
 | 去重 / 节流 | 同 workspace / surface / pane、同命令、同退出码的重复 `phase=end` 事件 30 秒内只生成 1 条通知；不同 pane 不互相吞，成功 / 失败或不同退出码变化不互相吞 |
 
 ### 5.5 保留策略
@@ -381,7 +381,7 @@ Shell 写入 `\e]133;A` / `\e]133;B;<command>` / `\e]133;C` / `\e]133;D;<exitcod
 | `ECodexSettings.TranscriptRetentionDays` | 脚本日志按文件 `LastWriteTime` 清理（默认 90，`0` = 永久保留） |
 | `ECodexSettings.CaptureTranscriptsOnClose` | Surface/Pane 关闭 / 清理时是否落盘脚本 |
 | `ECodexSettings.CaptureTranscriptsOnClear` | 清屏时是否落盘脚本 |
-| `ECodexSettings.PreserveDaemonSessionsOnClose` | 关闭按钮、托盘退出或 `app.exit` 退出主应用时是否保留 daemon 托管终端（默认 `true`）；最小化只隐藏到托盘 |
+| `ECodexSettings.PreserveDaemonSessionsOnClose` | 关闭按钮、托盘退出或 `app.exit` 退出主应用时是否保留 daemon 托管终端（默认 `true`）；最小化保留任务栏按钮并后台运行 |
 
 应用启动 + `SettingsChanged` 时调用 `ApplyRetentionPolicy / ApplyTranscriptRetentionPolicy / ScrubSensitiveData…`。
 
@@ -410,7 +410,7 @@ public NotificationSource Source; // Osc9 / Osc99 / Osc777 / Cli / AgentAttentio
 
 ### 6.1 Toast 点击激活契约（`NOT-02C-*`）
 
-Windows Toast 只作为系统级提醒入口；通知中心的内存 `TerminalNotification` 仍是事实源。Toast 点击跳转必须遵循下列契约，避免隐藏到托盘后跳错 workspace / surface / pane：
+Windows Toast 只作为系统级提醒入口；通知中心的内存 `TerminalNotification` 仍是事实源。Toast 点击跳转必须遵循下列契约，避免后台激活后跳错 workspace / surface / pane：
 
 | 字段 / 规则 | 契约 |
 |---|---|
@@ -425,7 +425,7 @@ Windows Toast 只作为系统级提醒入口；通知中心的内存 `TerminalNo
 
 ### 6.2 Codex 等待输入提醒契约（`NOT-02D-*`）
 
-Codex 等待用户输入、权限确认或关键错误决策时，需要在 ECodex 隐藏到托盘或非激活时低噪声提醒；普通日志输出、流式回答和前台活跃窗口不得刷通知。
+Codex 等待用户输入、权限确认或关键错误决策时，需要在 ECodex 最小化或非激活时低噪声提醒；普通日志输出、流式回答和前台活跃窗口不得刷通知。
 
 | 字段 / 规则 | 契约 |
 |---|---|

@@ -223,16 +223,6 @@ public partial class MainWindow : Window
     private void OnWindowStateChanged(object? sender, EventArgs e)
     {
         UpdateWindowChrome();
-
-        if (WindowState == WindowState.Minimized && !App.IsExplicitShutdownRequested)
-            HideToTray();
-    }
-
-    private void HideToTray()
-    {
-        PersistCurrentSession(captureTranscripts: false);
-        ShowInTaskbar = false;
-        Hide();
     }
 
     public void RestoreFromTray()

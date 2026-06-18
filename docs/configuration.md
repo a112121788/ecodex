@@ -34,7 +34,7 @@ ecodex config reload
 
 | 字段 | 默认 | 说明 |
 |---|---|---|
-| `PreserveDaemonSessionsOnClose` | `true` | 关闭按钮、托盘退出或 `app.exit` 退出 ECodex 时保留 daemon 托管终端；设为 `false` 时退出前逐个终止当前 daemon 会话。最小化只隐藏到托盘，不触发该开关。 |
+| `PreserveDaemonSessionsOnClose` | `true` | 关闭按钮、托盘退出或 `app.exit` 退出 ECodex 时保留 daemon 托管终端；设为 `false` 时退出前逐个终止当前 daemon 会话。最小化保留任务栏按钮并后台运行，不触发该开关。 |
 
 ## 兼容开关
 
